@@ -1,0 +1,24 @@
+.viewport {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  cursor: grab;
+  user-select: none;
+  touch-action: none; /* prevents browser from intercepting touch events for scroll */
+}
+
+.viewport:active {
+  cursor: grabbing;
+}
+
+/* The world canvas: holds all 25 map tiles in a CSS grid.
+   grid-template-columns/rows and gap are set inline in WorldMap.tsx from worldMap.ts constants
+   so they stay in sync with WORLD_WIDTH / WORLD_HEIGHT used for camera clamping.
+   Position is driven by transform: translate(cameraX, cameraY) — GPU composited. */
+.world {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: grid;
+  will-change: transform; /* promote to GPU compositor layer for smooth panning */
+}

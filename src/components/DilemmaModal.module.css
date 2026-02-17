@@ -1,0 +1,95 @@
+.backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(30, 20, 5, 0.75);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  z-index: 100;
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.modal {
+  width: 100%;
+  max-width: 430px;
+  background: #f5e6c8;
+  border-radius: 20px 20px 0 0;
+  padding: 24px 20px 32px;
+  animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+  from { transform: translateY(60px); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+
+.title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #3a2a00;
+  margin: 0 0 8px;
+}
+
+.narrative {
+  font-size: 14px;
+  color: #5a3e1b;
+  line-height: 1.5;
+  margin: 0 0 20px;
+}
+
+.choices {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.choice {
+  background: #fff8ec;
+  border: 2px solid #c8860a;
+  border-radius: 12px;
+  padding: 12px 14px;
+  text-align: start;
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.1s ease;
+}
+
+.choice:active {
+  transform: scale(0.98);
+}
+
+.choice:hover {
+  background: #fdf0d5;
+}
+
+.choiceLabel {
+  font-size: 14px;
+  font-weight: 700;
+  color: #3a2a00;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.choiceMeta {
+  font-size: 12px;
+  color: #7a5c10;
+}
+
+.costBadge {
+  display: inline-block;
+  background: #c8860a;
+  color: #fff;
+  border-radius: 8px;
+  padding: 1px 7px;
+  font-size: 11px;
+  font-weight: 600;
+  margin-inline-end: 6px;
+}
+
+.zeroCost {
+  background: #4a7c3f;
+}

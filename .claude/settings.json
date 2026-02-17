@@ -1,0 +1,8 @@
+{
+  "enabledPlugins": {
+    "backend-development@claude-code-workflows": true,
+    "frontend-mobile-development@claude-code-workflows": true,
+    "full-stack-orchestration@claude-code-workflows": true,
+    "javascript-typescript@claude-code-workflows": true
+  }
+}

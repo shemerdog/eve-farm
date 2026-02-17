@@ -1,0 +1,14 @@
+.counter {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 14px 16px;
+  background: rgba(0, 0, 0, 0.12);
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
+  font-size: 22px;
+  font-weight: 700;
+  color: #3a2a00;
+}
+
+.icon { font-size: 26px; }
