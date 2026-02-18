@@ -10,8 +10,11 @@ import {
   MAP_COLS,
   MAP_ROWS,
   initialCamera,
+  zoomAtPoint,
+  ZOOM_STEP,
 } from '@/game/worldMap'
 import { MapTileView } from './MapTileView'
+import { ZoomControls } from './ZoomControls'
 import styles from './WorldMap.module.css'
 
 // Built once at module level — tile grid never changes at runtime
@@ -32,6 +35,22 @@ export const WorldMap = () => {
     setCamera(initialCamera(vp.clientWidth, vp.clientHeight))
   }, [setCamera])
 
+  const handleZoomIn = () => {
+    const vp = viewportRef.current
+    if (!vp) return
+    const vpW = vp.clientWidth
+    const vpH = vp.clientHeight
+    setCamera(zoomAtPoint(camera, camera.zoom + ZOOM_STEP, vpW / 2, vpH / 2, vpW, vpH))
+  }
+
+  const handleZoomOut = () => {
+    const vp = viewportRef.current
+    if (!vp) return
+    const vpW = vp.clientWidth
+    const vpH = vp.clientHeight
+    setCamera(zoomAtPoint(camera, camera.zoom - ZOOM_STEP, vpW / 2, vpH / 2, vpW, vpH))
+  }
+
   return (
     <div ref={viewportRef} className={styles.viewport}>
       <div
@@ -42,7 +61,8 @@ export const WorldMap = () => {
           gridTemplateColumns: `repeat(${MAP_COLS}, ${TILE_SIZE}px)`,
           gridTemplateRows: `repeat(${MAP_ROWS}, ${TILE_SIZE}px)`,
           gap: TILE_GAP,
-          transform: `translate(${camera.x}px, ${camera.y}px)`,
+          transform: `translate(${camera.x}px, ${camera.y}px) scale(${camera.zoom})`,
+          transformOrigin: '0 0',
         }}
       >
         {TILES.map((tile) => (
@@ -52,6 +72,7 @@ export const WorldMap = () => {
           />
         ))}
       </div>
+      <ZoomControls zoom={camera.zoom} onZoomIn={handleZoomIn} onZoomOut={handleZoomOut} />
     </div>
   )
 }

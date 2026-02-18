@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react'
 import type { RefObject } from 'react'
 import { useWorldStore } from '@/store/worldStore'
-import { clampCamera, applyMomentumFrame } from '@/game/worldMap'
+import { clampCamera, applyMomentumFrame, zoomAtPoint } from '@/game/worldMap'
 
 // Minimum pointer movement (px) before a press is treated as a drag.
 // Below this threshold the press is a tap and click events reach inner elements.
@@ -22,6 +22,10 @@ export const usePan = (viewportRef: RefObject<HTMLDivElement | null>) => {
   const lastPos = useRef({ x: 0, y: 0 })
   const vel = useRef({ x: 0, y: 0 })
 
+  // Pinch-to-zoom: track two active pointer IDs and their positions
+  const activePointers = useRef<Map<number, { x: number; y: number }>>(new Map())
+  const lastPinchDist = useRef<number | null>(null)
+
   useEffect(() => {
     const el = viewportRef.current
     if (!el) return
@@ -37,17 +41,52 @@ export const usePan = (viewportRef: RefObject<HTMLDivElement | null>) => {
 
     const onPointerDown = (e: PointerEvent) => {
       stopMomentum()
-      pointerDown.current = true
-      dragActive.current = false
-      startPos.current = { x: e.clientX, y: e.clientY }
-      lastPos.current = { x: e.clientX, y: e.clientY }
-      vel.current = { x: 0, y: 0 }
-      // setPointerCapture is intentionally deferred to onPointerMove once the
-      // drag threshold is exceeded, so that simple taps still deliver click
-      // events to inner elements (farm plot tiles, Buy Land buttons).
+      activePointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY })
+
+      if (activePointers.current.size === 1) {
+        // Single pointer — may become a pan
+        pointerDown.current = true
+        dragActive.current = false
+        startPos.current = { x: e.clientX, y: e.clientY }
+        lastPos.current = { x: e.clientX, y: e.clientY }
+        vel.current = { x: 0, y: 0 }
+        // setPointerCapture is intentionally deferred to onPointerMove once the
+        // drag threshold is exceeded, so that simple taps still deliver click
+        // events to inner elements (farm plot tiles, Buy Land buttons).
+      } else if (activePointers.current.size === 2) {
+        // Second finger down — switch to pinch mode, cancel any pan
+        pointerDown.current = false
+        dragActive.current = false
+        lastPinchDist.current = null
+      }
+    }
+
+    const pinchDistance = (): number => {
+      const [a, b] = [...activePointers.current.values()]
+      return Math.hypot(a.x - b.x, a.y - b.y)
+    }
+
+    const pinchMidpoint = (): { x: number; y: number } => {
+      const [a, b] = [...activePointers.current.values()]
+      return { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 }
     }
 
     const onPointerMove = (e: PointerEvent) => {
+      activePointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY })
+
+      if (activePointers.current.size === 2) {
+        // Pinch-to-zoom
+        const dist = pinchDistance()
+        if (lastPinchDist.current !== null && lastPinchDist.current > 0) {
+          const camera = useWorldStore.getState().camera
+          const newZoom = camera.zoom * (dist / lastPinchDist.current)
+          const mid = pinchMidpoint()
+          setCamera(zoomAtPoint(camera, newZoom, mid.x, mid.y, el.clientWidth, el.clientHeight))
+        }
+        lastPinchDist.current = dist
+        return
+      }
+
       if (!pointerDown.current) return
 
       if (!dragActive.current) {
@@ -67,10 +106,19 @@ export const usePan = (viewportRef: RefObject<HTMLDivElement | null>) => {
       vel.current = { x: dx, y: dy }
       // Read current camera fresh from store to avoid stale closure
       const camera = useWorldStore.getState().camera
-      setCamera(clampCamera({ x: camera.x + dx, y: camera.y + dy }, el.clientWidth, el.clientHeight))
+      setCamera(clampCamera(
+        { x: camera.x + dx, y: camera.y + dy, zoom: camera.zoom },
+        el.clientWidth,
+        el.clientHeight,
+      ))
     }
 
-    const onPointerUp = () => {
+    const onPointerUp = (e: PointerEvent) => {
+      activePointers.current.delete(e.pointerId)
+      lastPinchDist.current = null
+
+      if (activePointers.current.size > 0) return  // still pinching
+
       pointerDown.current = false
       const wasDragging = dragActive.current
       dragActive.current = false
@@ -89,16 +137,26 @@ export const usePan = (viewportRef: RefObject<HTMLDivElement | null>) => {
       rafId = requestAnimationFrame(step)
     }
 
-    const onPointerCancel = () => {
+    const onPointerCancel = (e: PointerEvent) => {
+      activePointers.current.delete(e.pointerId)
+      lastPinchDist.current = null
       pointerDown.current = false
       dragActive.current = false
       stopMomentum()
+    }
+
+    const onWheel = (e: WheelEvent) => {
+      e.preventDefault()
+      const camera = useWorldStore.getState().camera
+      const newZoom = camera.zoom - e.deltaY * 0.001
+      setCamera(zoomAtPoint(camera, newZoom, e.clientX, e.clientY, el.clientWidth, el.clientHeight))
     }
 
     el.addEventListener('pointerdown', onPointerDown)
     el.addEventListener('pointermove', onPointerMove)
     el.addEventListener('pointerup', onPointerUp)
     el.addEventListener('pointercancel', onPointerCancel)
+    el.addEventListener('wheel', onWheel, { passive: false })
 
     return () => {
       stopMomentum()
@@ -106,6 +164,7 @@ export const usePan = (viewportRef: RefObject<HTMLDivElement | null>) => {
       el.removeEventListener('pointermove', onPointerMove)
       el.removeEventListener('pointerup', onPointerUp)
       el.removeEventListener('pointercancel', onPointerCancel)
+      el.removeEventListener('wheel', onWheel)
     }
   }, [setCamera]) // setCamera is stable (Zustand guarantee); viewportRef object is stable (React guarantee)
 }

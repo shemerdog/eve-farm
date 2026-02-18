@@ -54,6 +54,7 @@ export type MapTile = {
 export type CameraState = {
   x: number; // pixel offset applied to the world canvas
   y: number;
+  zoom: number; // scale factor; 1.0 = default, range [MIN_ZOOM, MAX_ZOOM]
 };
 
 export type WorldMapState = {
