@@ -6,6 +6,9 @@ import {
   initialCamera,
   applyMomentumFrame,
   buildTileGrid,
+  coordsEqual,
+  isPurchased,
+  isAdjacentToUnlocked,
   FARM_COORD,
   TILE_STRIDE,
   WORLD_WIDTH,
@@ -15,6 +18,7 @@ import {
   MOMENTUM_FRICTION,
   MOMENTUM_STOP_THRESHOLD,
 } from './worldMap'
+import { calcTilePrice } from './constants'
 
 describe('getTileType', () => {
   it('returns farm for FARM_COORD', () => {
@@ -127,5 +131,72 @@ describe('applyMomentumFrame', () => {
     const result = applyMomentumFrame({ x: 0, y: 0 }, 100, 100, 430, 700)
     expect(result.camera.x).toBe(0)
     expect(result.camera.y).toBe(0)
+  })
+})
+
+describe('calcTilePrice', () => {
+  it('returns 50 for the first tile (n=0)', () => {
+    expect(calcTilePrice(0)).toBe(50)
+  })
+  it('returns 80 for the second tile (n=1)', () => {
+    expect(calcTilePrice(1)).toBe(80)
+  })
+  it('floors fractional results — fourth tile is 204 not 204.8 (n=3)', () => {
+    expect(calcTilePrice(3)).toBe(204)
+  })
+  it('returns 327 for n=4', () => {
+    expect(calcTilePrice(4)).toBe(327)
+  })
+})
+
+describe('coordsEqual', () => {
+  it('returns true for identical coords', () => {
+    expect(coordsEqual({ col: 2, row: 3 }, { col: 2, row: 3 })).toBe(true)
+  })
+  it('returns false when col differs', () => {
+    expect(coordsEqual({ col: 1, row: 3 }, { col: 2, row: 3 })).toBe(false)
+  })
+  it('returns false when row differs', () => {
+    expect(coordsEqual({ col: 2, row: 2 }, { col: 2, row: 3 })).toBe(false)
+  })
+})
+
+describe('isPurchased', () => {
+  it('returns false for empty purchasedCoords', () => {
+    expect(isPurchased({ col: 1, row: 2 }, [])).toBe(false)
+  })
+  it('returns true when coord is in the list', () => {
+    expect(isPurchased({ col: 1, row: 2 }, [{ col: 1, row: 2 }])).toBe(true)
+  })
+  it('returns false when coord is not in the list', () => {
+    expect(isPurchased({ col: 0, row: 2 }, [{ col: 1, row: 2 }])).toBe(false)
+  })
+})
+
+describe('isAdjacentToUnlocked', () => {
+  // FARM_COORD is { col: 2, row: 2 }
+
+  it('returns true for tile orthogonally adjacent to the farm tile (right)', () => {
+    expect(isAdjacentToUnlocked({ col: 3, row: 2 }, [])).toBe(true)
+  })
+  it('returns true for tile orthogonally adjacent to the farm tile (above)', () => {
+    expect(isAdjacentToUnlocked({ col: 2, row: 1 }, [])).toBe(true)
+  })
+  it('returns false for tile diagonal to farm only', () => {
+    expect(isAdjacentToUnlocked({ col: 3, row: 3 }, [])).toBe(false)
+  })
+  it('returns false for a corner tile with no purchased neighbors', () => {
+    expect(isAdjacentToUnlocked({ col: 0, row: 0 }, [])).toBe(false)
+  })
+  it('returns true when orthogonally adjacent to a purchased tile', () => {
+    // { col: 3, row: 2 } is purchased (adjacent to farm), so { col: 4, row: 2 } becomes purchasable
+    expect(isAdjacentToUnlocked({ col: 4, row: 2 }, [{ col: 3, row: 2 }])).toBe(true)
+  })
+  it('returns false when only diagonally adjacent to a purchased tile', () => {
+    expect(isAdjacentToUnlocked({ col: 4, row: 3 }, [{ col: 3, row: 2 }])).toBe(false)
+  })
+  it('returns false for the farm tile itself (no unlocked neighbor at distance 1)', () => {
+    // FARM_COORD's neighbors are all locked tiles, not FARM_COORD itself
+    expect(isAdjacentToUnlocked(FARM_COORD, [])).toBe(false)
   })
 })

@@ -24,3 +24,13 @@ export const applyWheatCost = (current: number, cost: number): number =>
 // Clamp a meter value to [0, 100]
 export const clampMeter = (value: number): number =>
   Math.max(0, Math.min(100, value))
+
+// ── Tile purchasing ───────────────────────────────────────────────────────────
+
+export const BASE_TILE_PRICE = 50
+export const TILE_PRICE_MULTIPLIER = 1.6
+
+// price(n) = floor(50 * 1.6^n) where n = tiles already purchased.
+// Floors consistently with applyWheatCost — generous to the player.
+export const calcTilePrice = (tilesPurchased: number): number =>
+  Math.floor(BASE_TILE_PRICE * Math.pow(TILE_PRICE_MULTIPLIER, tilesPurchased))

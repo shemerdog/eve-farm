@@ -1,8 +1,11 @@
+import type { TileCoord } from '@/types'
 import { FarmGrid } from '@/components/FarmGrid'
 import styles from './FarmTileContent.module.css'
 
-export const FarmTileContent = () => (
+type Props = { tileCoord: TileCoord }
+
+export const FarmTileContent = ({ tileCoord }: Props) => (
   <div className={styles.content}>
-    <FarmGrid />
+    <FarmGrid tileCoord={tileCoord} />
   </div>
 )

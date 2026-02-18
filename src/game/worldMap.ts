@@ -66,6 +66,35 @@ export const initialCamera = (vpWidth: number, vpHeight: number): CameraState =>
   )
 }
 
+// ── Tile purchasing helpers ───────────────────────────────────────────────────
+
+// Structural equality for TileCoord (plain object — reference equality not reliable).
+export const coordsEqual = (a: TileCoord, b: TileCoord): boolean =>
+  a.col === b.col && a.row === b.row
+
+// Returns true if coord exists in the purchasedCoords list.
+export const isPurchased = (
+  coord: TileCoord,
+  purchasedCoords: TileCoord[],
+): boolean => purchasedCoords.some((c) => coordsEqual(c, coord))
+
+// Returns true if coord is orthogonally adjacent to the farm tile or any
+// purchased tile. Used to determine if a locked tile shows the buy UI.
+export const isAdjacentToUnlocked = (
+  coord: TileCoord,
+  purchasedCoords: TileCoord[],
+): boolean => {
+  const orthogonalNeighbors: TileCoord[] = [
+    { col: coord.col - 1, row: coord.row },
+    { col: coord.col + 1, row: coord.row },
+    { col: coord.col,     row: coord.row - 1 },
+    { col: coord.col,     row: coord.row + 1 },
+  ]
+  return orthogonalNeighbors.some(
+    (n) => coordsEqual(n, FARM_COORD) || isPurchased(n, purchasedCoords),
+  )
+}
+
 // Apply one frame of momentum decay. Returns next camera + velocity + done flag.
 // Position moves by the current velocity, then velocity decays for the next frame.
 export const applyMomentumFrame = (

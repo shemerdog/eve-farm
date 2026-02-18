@@ -22,7 +22,8 @@ Design documents:
 - **Vite 7 + React 19 + TypeScript** (strict mode)
 - **Zustand 5** with `persist` middleware (localStorage key: `eve-game-state`)
 - **CSS Modules** — no framework, scoped styles per component
-- **Vitest** for unit tests (`npm test`)
+- **Vitest** for unit/component tests (`npm test` — runs `src/**/*.test.{ts,tsx}`)
+- **Playwright** for E2E tests (`npx playwright test` — runs `e2e/`)
 - Path alias: `@/` → `src/`
 
 ## Source Structure
@@ -31,22 +32,37 @@ Design documents:
 src/
   types/index.ts          — all shared TypeScript types
   game/
-    constants.ts          — PLOT_COUNT, WHEAT_GROWTH_DURATION, applyWheatCost, clampMeter
+    constants.ts          — PLOT_COUNT, WHEAT_GROWTH_DURATION, calcTilePrice, applyWheatCost, clampMeter
     gameTick.ts           — pure tickPlot(plot, now) + growthProgress(plot, now)
-    gameTick.test.ts      — 11 unit tests for pure game logic
+    gameTick.test.ts      — unit tests for pure game logic
+    worldMap.ts           — tile grid, camera math, coordsEqual, isPurchased, isAdjacentToUnlocked
+    worldMap.test.ts      — unit tests for world map helpers
     dilemmas.ts           — DILEMMAS array (פאה + Ma'aser)
+    strings.he.ts         — all Hebrew UI strings
   store/
-    gameStore.ts          — Zustand store: plantWheat, tickGrowth, harvest, resolveDilemma, resetPlot
+    gameStore.ts          — persisted state: plantWheat, harvest, resolveDilemma, resetPlot, buyTile
+    worldStore.ts         — camera state only (NOT persisted, re-centers on mount)
   hooks/
     useGameLoop.ts        — setInterval(tickGrowth, 500) while any plot is growing
+    usePan.ts             — pointer-event pan + momentum for WorldMap viewport
   components/
     MetersBar             — devotion/morality/faithfulness bars (always visible)
     FarmGrid              — 2×2 grid of PlotTile components
     PlotTile              — per-plot visual + plant/harvest interaction + progress ring
+    PlotTile.test.tsx     — component tests: sow/harvest clicks call store actions
     WheatCounter          — wheat total in bottom HUD
     DilemmaModal          — full-screen overlay, appears after every 2 harvests
-  App.tsx                 — root layout: MetersBar / FarmGrid / WheatCounter / DilemmaModal
+    WorldMap/
+      WorldMap.tsx        — pannable viewport, mounts TILES grid, wires usePan
+      MapTileView.tsx     — reads store, computes props, renders FarmTileContent or LockedTileContent
+      FarmTileContent.tsx — renders FarmGrid inside the farm map tile
+      LockedTileContent.tsx        — price badge, buy button, fog-dissolve animation
+      LockedTileContent.test.tsx   — component tests: buy button enabled/disabled/calls onBuy
+  App.tsx                 — root layout: MetersBar / WorldMap / WheatCounter / DilemmaModal
   index.css               — global reset + CSS custom properties (warm earth palette)
+  setupTests.ts           — imports @testing-library/jest-dom for Vitest
+e2e/
+  farmInteraction.spec.ts — Playwright E2E: sow, harvest, buy tile, usePan regression
 ```
 
 ## POC Core Loop

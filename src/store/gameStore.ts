@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import type { GameState, Plot, MeterValues } from '@/types'
+import type { GameState, Plot, MeterValues, TileCoord } from '@/types'
 import {
   PLOT_COUNT,
   WHEAT_GROWTH_DURATION,
@@ -9,33 +9,38 @@ import {
   METER_INITIAL,
   applyWheatCost,
   clampMeter,
+  calcTilePrice,
 } from '@/game/constants'
 import { tickPlot } from '@/game/gameTick'
 import { DILEMMAS } from '@/game/dilemmas'
+import { FARM_COORD, isAdjacentToUnlocked, isPurchased } from '@/game/worldMap'
 
-const makePlots = (): Plot[] =>
+const makePlots = (coord: TileCoord): Plot[] =>
   Array.from({ length: PLOT_COUNT }, (_, i) => ({
-    id: i,
-    state: 'empty',
+    id: `${coord.col}_${coord.row}_${i}`,
+    state: 'empty' as const,
     plantedAt: null,
     growthDuration: WHEAT_GROWTH_DURATION,
+    tileCoord: coord,
   }))
 
 const initialState: GameState = {
-  plots: makePlots(),
+  plots: makePlots(FARM_COORD),
   wheat: 0,
   meters: { ...METER_INITIAL },
   activeDilemma: null,
   harvestsSinceLastDilemma: 0,
   dilemmaIndex: 0,
+  purchasedCoords: [],
 }
 
 type Actions = {
-  plantWheat: (plotId: number) => void
+  plantWheat: (plotId: string) => void
   tickGrowth: () => void
-  harvest: (plotId: number) => void
+  harvest: (plotId: string) => void
   resolveDilemma: (choiceIndex: number) => void
-  resetPlot: (plotId: number) => void
+  resetPlot: (plotId: string) => void
+  buyTile: (coord: TileCoord) => void
 }
 
 export const useGameStore = create<GameState & Actions>()(
@@ -117,9 +122,26 @@ export const useGameStore = create<GameState & Actions>()(
           ),
         }))
       },
+
+      buyTile: (coord) => {
+        set((s) => {
+          const price = calcTilePrice(s.purchasedCoords.length)
+          if (
+            s.wheat < price ||
+            !isAdjacentToUnlocked(coord, s.purchasedCoords) ||
+            isPurchased(coord, s.purchasedCoords)
+          ) return s
+          return {
+            wheat: Math.max(0, s.wheat - price),
+            purchasedCoords: [...s.purchasedCoords, coord],
+            plots: [...s.plots, ...makePlots(coord)],
+          }
+        })
+      },
     }),
     {
       name: 'eve-game-state',
+      version: 2,
       // Only persist the data fields, not the action functions
       partialize: (state) => ({
         plots: state.plots,
@@ -128,7 +150,27 @@ export const useGameStore = create<GameState & Actions>()(
         harvestsSinceLastDilemma: state.harvestsSinceLastDilemma,
         dilemmaIndex: state.dilemmaIndex,
         activeDilemma: state.activeDilemma,
+        purchasedCoords: state.purchasedCoords,
       }),
+      migrate: (persisted, version) => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const state = persisted as any
+        if (version < 2) {
+          // Convert old numeric plot IDs to string format and add tileCoord
+          const farmCoord = FARM_COORD
+          state.plots = (state.plots ?? []).map((p: { id: number }, i: number) => ({
+            ...p,
+            id: `${farmCoord.col}_${farmCoord.row}_${typeof p.id === 'number' ? p.id : i}`,
+            tileCoord: farmCoord,
+          }))
+          // Re-create plots for any purchased tiles (they had no plots before)
+          const purchased: TileCoord[] = state.purchasedCoords ?? []
+          for (const coord of purchased) {
+            state.plots.push(...makePlots(coord))
+          }
+        }
+        return state as GameState
+      },
     }
   )
 )
