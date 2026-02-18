@@ -5,7 +5,6 @@ The farm tile hosts the core crop loop: choose a crop, plant it, wait, and harve
 
 ## Sub-Features
 - Crop selection
-- Sowing
 - Harvest
 - Advanced: fertilize, maintain, deter pests, crop rotation (future)
 
@@ -26,23 +25,6 @@ Players choose what to plant to set their short-term goals.
 1. Crop options are visible before planting.
 2. Choosing a crop immediately commits the selection.
 
-## Sub-Feature: Sowing
-
-### Description & Motivation
-Sowing starts the growth cycle and gives immediate feedback.
-
-### User Workflows
-1. Player selects a crop.
-2. The plot changes to a planted state.
-3. A growth indicator becomes visible.
-
-### Diagram / Screenshot
-- Optional
-
-### Acceptance Criteria
-1. A planted plot is visually distinct from an empty plot.
-2. The player can plant only if the plot is empty.
-
 ## Sub-Feature: Harvest
 
 ### Description & Motivation
@@ -62,4 +44,5 @@ Harvesting is the reward moment and updates resources.
 3. The plot returns to an empty state after harvesting.
 
 ## Notes
+- Sowing is specified in `spec/future/farm/sowing.spec.md`.
 - Advanced crop mechanics are out of current scope.
