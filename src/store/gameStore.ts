@@ -1,176 +1,210 @@
-import { create } from 'zustand'
-import { persist } from 'zustand/middleware'
-import type { GameState, Plot, MeterValues, TileCoord } from '@/types'
+import { create } from "zustand";
+import { persist } from "zustand/middleware";
+import type { GameState, Plot, MeterValues, TileCoord } from "@/types";
 import {
   PLOT_COUNT,
   WHEAT_GROWTH_DURATION,
   WHEAT_PER_HARVEST,
-  HARVESTS_TO_TRIGGER_DILEMMA,
   METER_INITIAL,
   applyWheatCost,
   clampMeter,
   calcTilePrice,
-} from '@/game/constants'
-import { tickPlot } from '@/game/gameTick'
-import { DILEMMAS } from '@/game/dilemmas'
-import { FARM_COORD, isAdjacentToUnlocked, isPurchased } from '@/game/worldMap'
+} from "@/game/constants";
+import { tickPlot } from "@/game/gameTick";
+import { DILEMMAS } from "@/game/dilemmas";
+import { FARM_COORD, isAdjacentToUnlocked, isPurchased } from "@/game/worldMap";
 
 const makePlots = (coord: TileCoord): Plot[] =>
   Array.from({ length: PLOT_COUNT }, (_, i) => ({
     id: `${coord.col}_${coord.row}_${i}`,
-    state: 'empty' as const,
+    state: "empty" as const,
     plantedAt: null,
     growthDuration: WHEAT_GROWTH_DURATION,
     tileCoord: coord,
-  }))
+  }));
+
+const PEAH_DILEMMA = DILEMMAS.find((d) => d.id === "peah")!;
+const SHIKCHAH_DILEMMA = DILEMMAS.find((d) => d.id === "shikchah")!;
 
 const initialState: GameState = {
   plots: makePlots(FARM_COORD),
   wheat: 0,
   meters: { ...METER_INITIAL },
   activeDilemma: null,
-  harvestsSinceLastDilemma: 0,
-  dilemmaIndex: 0,
   purchasedCoords: [],
-}
+};
 
 type Actions = {
-  plantWheat: (plotId: string) => void
-  tickGrowth: () => void
-  harvest: (plotId: string) => void
-  resolveDilemma: (choiceIndex: number) => void
-  resetPlot: (plotId: string) => void
-  buyTile: (coord: TileCoord) => void
-}
+  plowPlot: (plotId: string) => void;
+  plantWheat: (plotId: string) => void;
+  tickGrowth: () => void;
+  harvest: (plotId: string) => void;
+  gatherSheafs: (plotId: string) => void;
+  resolveDilemma: (choiceIndex: number) => void;
+  resetPlot: (plotId: string) => void;
+  buyTile: (coord: TileCoord) => void;
+  resetGame: () => void;
+};
 
 export const useGameStore = create<GameState & Actions>()(
   persist(
     (set, get) => ({
       ...initialState,
 
+      plowPlot: (plotId) => {
+        set((s) => ({
+          plots: s.plots.map((p) =>
+            p.id === plotId && p.state === "empty"
+              ? { ...p, state: "plowed" }
+              : p,
+          ),
+        }));
+      },
+
       plantWheat: (plotId) => {
         set((s) => ({
           plots: s.plots.map((p) =>
-            p.id === plotId && p.state === 'empty'
-              ? { ...p, state: 'growing', plantedAt: Date.now() }
-              : p
+            p.id === plotId && p.state === "plowed"
+              ? { ...p, state: "growing", plantedAt: Date.now() }
+              : p,
           ),
-        }))
+        }));
       },
 
       tickGrowth: () => {
-        const now = Date.now()
+        const now = Date.now();
         set((s) => ({
           plots: s.plots.map((p) => tickPlot(p, now)),
-        }))
+        }));
       },
 
       harvest: (plotId) => {
-        const state = get()
-        const plot = state.plots.find((p) => p.id === plotId)
-        if (!plot || plot.state !== 'ready') return
-
-        const newHarvestCount = state.harvestsSinceLastDilemma + 1
-        const shouldTrigger =
-          newHarvestCount >= HARVESTS_TO_TRIGGER_DILEMMA && state.activeDilemma === null
+        const state = get();
+        const plot = state.plots.find((p) => p.id === plotId);
+        if (!plot || plot.state !== "ready") return;
 
         set((s) => ({
           plots: s.plots.map((p) =>
-            p.id === plotId ? { ...p, state: 'harvested' } : p
+            p.id === plotId ? { ...p, state: "harvested" } : p,
+          ),
+          activeDilemma:
+            state.activeDilemma === null ? PEAH_DILEMMA : s.activeDilemma,
+        }));
+
+        // Transition harvested → gathered after animation window (600ms)
+        setTimeout(() => get().resetPlot(plotId), 600);
+      },
+
+      gatherSheafs: (plotId) => {
+        const state = get();
+        const plot = state.plots.find((p) => p.id === plotId);
+        if (!plot || plot.state !== "gathered") return;
+
+        set((s) => ({
+          plots: s.plots.map((p) =>
+            p.id === plotId ? { ...p, state: "empty", plantedAt: null } : p,
           ),
           wheat: s.wheat + WHEAT_PER_HARVEST,
-          harvestsSinceLastDilemma: shouldTrigger ? 0 : newHarvestCount,
-          activeDilemma: shouldTrigger
-            ? DILEMMAS[s.dilemmaIndex % DILEMMAS.length]
-            : s.activeDilemma,
-          dilemmaIndex: shouldTrigger ? s.dilemmaIndex + 1 : s.dilemmaIndex,
-        }))
-
-        // Auto-reset harvested plot to empty after animation window (600ms)
-        setTimeout(() => get().resetPlot(plotId), 600)
+          activeDilemma:
+            state.activeDilemma === null ? SHIKCHAH_DILEMMA : s.activeDilemma,
+        }));
       },
 
       resolveDilemma: (choiceIndex) => {
-        const { activeDilemma, wheat, meters } = get()
-        if (!activeDilemma) return
+        const { activeDilemma, wheat, meters } = get();
+        if (!activeDilemma) return;
 
-        const choice = activeDilemma.choices[choiceIndex]
-        if (!choice) return
+        const choice = activeDilemma.choices[choiceIndex];
+        if (!choice) return;
 
-        const newWheat = applyWheatCost(wheat, choice.wheatCost)
+        const newWheat = applyWheatCost(wheat, choice.wheatCost);
         const newMeters: MeterValues = {
-          devotion: clampMeter(meters.devotion + (choice.meterEffect.devotion ?? 0)),
-          morality: clampMeter(meters.morality + (choice.meterEffect.morality ?? 0)),
-          faithfulness: clampMeter(
-            meters.faithfulness + (choice.meterEffect.faithfulness ?? 0)
+          devotion: clampMeter(
+            meters.devotion + (choice.meterEffect.devotion ?? 0),
           ),
-        }
+          morality: clampMeter(
+            meters.morality + (choice.meterEffect.morality ?? 0),
+          ),
+          faithfulness: clampMeter(
+            meters.faithfulness + (choice.meterEffect.faithfulness ?? 0),
+          ),
+        };
 
         set({
           wheat: Math.max(0, newWheat),
           meters: newMeters,
           activeDilemma: null,
-        })
+        });
       },
 
       resetPlot: (plotId) => {
         set((s) => ({
           plots: s.plots.map((p) =>
-            p.id === plotId && p.state === 'harvested'
-              ? { ...p, state: 'empty', plantedAt: null }
-              : p
+            p.id === plotId && p.state === "harvested"
+              ? { ...p, state: "gathered" }
+              : p,
           ),
-        }))
+        }));
       },
 
       buyTile: (coord) => {
         set((s) => {
-          const price = calcTilePrice(s.purchasedCoords.length)
+          const price = calcTilePrice(s.purchasedCoords.length);
           if (
             s.wheat < price ||
             !isAdjacentToUnlocked(coord, s.purchasedCoords) ||
             isPurchased(coord, s.purchasedCoords)
-          ) return s
+          )
+            return s;
           return {
             wheat: Math.max(0, s.wheat - price),
             purchasedCoords: [...s.purchasedCoords, coord],
             plots: [...s.plots, ...makePlots(coord)],
-          }
-        })
+          };
+        });
+      },
+
+      resetGame: () => {
+        set({ ...initialState, plots: makePlots(FARM_COORD) });
       },
     }),
     {
-      name: 'eve-game-state',
-      version: 2,
+      name: "eve-game-state",
+      version: 3,
       // Only persist the data fields, not the action functions
       partialize: (state) => ({
         plots: state.plots,
         wheat: state.wheat,
         meters: state.meters,
-        harvestsSinceLastDilemma: state.harvestsSinceLastDilemma,
-        dilemmaIndex: state.dilemmaIndex,
         activeDilemma: state.activeDilemma,
         purchasedCoords: state.purchasedCoords,
       }),
       migrate: (persisted, version) => {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const state = persisted as any
+        const state = persisted as any;
         if (version < 2) {
           // Convert old numeric plot IDs to string format and add tileCoord
-          const farmCoord = FARM_COORD
-          state.plots = (state.plots ?? []).map((p: { id: number }, i: number) => ({
-            ...p,
-            id: `${farmCoord.col}_${farmCoord.row}_${typeof p.id === 'number' ? p.id : i}`,
-            tileCoord: farmCoord,
-          }))
+          const farmCoord = FARM_COORD;
+          state.plots = (state.plots ?? []).map(
+            (p: { id: number }, i: number) => ({
+              ...p,
+              id: `${farmCoord.col}_${farmCoord.row}_${typeof p.id === "number" ? p.id : i}`,
+              tileCoord: farmCoord,
+            }),
+          );
           // Re-create plots for any purchased tiles (they had no plots before)
-          const purchased: TileCoord[] = state.purchasedCoords ?? []
+          const purchased: TileCoord[] = state.purchasedCoords ?? [];
           for (const coord of purchased) {
-            state.plots.push(...makePlots(coord))
+            state.plots.push(...makePlots(coord));
           }
         }
-        return state as GameState
+        if (version < 3) {
+          // Drop fields removed when Peah was changed to trigger every harvest
+          delete state.harvestsSinceLastDilemma;
+          delete state.dilemmaIndex;
+        }
+        return state as GameState;
       },
-    }
-  )
-)
+    },
+  ),
+);

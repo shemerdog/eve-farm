@@ -22,10 +22,12 @@
   transform: scale(0.95);
 }
 
-/* State-based backgrounds */
-.tile.growing    { background: #5c4011; }
-.tile.ready      { background: #7a5c10; box-shadow: 0 0 12px rgba(212, 160, 23, 0.6), inset 0 -3px 0 rgba(0,0,0,0.25); }
-.tile.harvested  { background: #6b4d0e; }
+/* State-based backgrounds — each stage has a distinct hue */
+.tile.plowed     { background: #4a2c10; }                                                                                /* dark tilled earth */
+.tile.growing    { background: #3a5c20; box-shadow: 0 0 8px rgba(60, 120, 30, 0.4), inset 0 -3px 0 rgba(0,0,0,0.25); } /* lush green growth */
+.tile.ready      { background: #b8720a; box-shadow: 0 0 14px rgba(212, 160, 23, 0.7), inset 0 -3px 0 rgba(0,0,0,0.25); } /* golden amber harvest */
+.tile.harvested  { background: #8a7040; }                                                                                /* pale straw / stubble */
+.tile.gathered   { background: #6b5820; box-shadow: 0 0 10px rgba(255, 220, 80, 0.35), inset 0 -3px 0 rgba(0,0,0,0.25); } /* warm cleared field */
 
 .emoji {
   font-size: 2.2rem;
@@ -52,6 +54,12 @@
   transition: background 0.15s ease;
 }
 
+.plowBtn {
+  background: #7a5230;
+  color: #fff;
+}
+.plowBtn:hover { background: #5e3d22; }
+
 .plantBtn {
   background: #c8860a;
   color: #fff;
@@ -63,6 +71,12 @@
   color: #3a2a00;
 }
 .harvestBtn:hover { background: #b8880f; }
+
+.gatherBtn {
+  background: #e8c840;
+  color: #3a2a00;
+}
+.gatherBtn:hover { background: #c8a830; }
 
 /* Radial progress ring */
 .progressRing {

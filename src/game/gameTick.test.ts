@@ -37,11 +37,17 @@ describe("tickPlot", () => {
     const emptyPlot = makePlot({ state: "empty", plantedAt: null });
     expect(tickPlot(emptyPlot).state).toBe("empty");
 
+    const plowedPlot = makePlot({ state: "plowed", plantedAt: null });
+    expect(tickPlot(plowedPlot).state).toBe("plowed");
+
     const readyPlot = makePlot({ state: "ready" });
     expect(tickPlot(readyPlot).state).toBe("ready");
 
     const harvestedPlot = makePlot({ state: "harvested" });
     expect(tickPlot(harvestedPlot).state).toBe("harvested");
+
+    const gatheredPlot = makePlot({ state: "gathered" });
+    expect(tickPlot(gatheredPlot).state).toBe("gathered");
   });
 
   it("does not modify a growing plot with null plantedAt", () => {

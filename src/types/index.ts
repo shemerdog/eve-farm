@@ -1,6 +1,12 @@
 // PlotState: 'planted' is dropped — planting goes directly to 'growing'.
 // This removes a transient state with no distinct visual behavior.
-export type PlotState = "empty" | "growing" | "ready" | "harvested";
+export type PlotState =
+  | "empty"
+  | "plowed"
+  | "growing"
+  | "ready"
+  | "harvested"
+  | "gathered";
 
 export type Plot = {
   id: string; // "col_row_idx", e.g. "2_2_0"
@@ -35,8 +41,6 @@ export type GameState = {
   wheat: number;
   meters: MeterValues;
   activeDilemma: Dilemma | null;
-  harvestsSinceLastDilemma: number;
-  dilemmaIndex: number; // cycles through DILEMMAS array deterministically
   purchasedCoords: TileCoord[]; // tiles the player has bought; drives price formula via .length
 };
 
