@@ -93,3 +93,35 @@
 .zeroCost {
   background: #4a7c3f;
 }
+
+.saveRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin: 0 0 16px;
+  cursor: pointer;
+}
+
+.saveCheckbox {
+  width: 18px;
+  height: 18px;
+  accent-color: #c8860a;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+
+.saveLabel {
+  font-size: 13px;
+  color: #5a3e1b;
+  flex: 1;
+}
+
+.savedBadge {
+  font-size: 11px;
+  font-weight: 600;
+  color: #fff;
+  background: #4a7c3f;
+  border-radius: 8px;
+  padding: 2px 8px;
+}

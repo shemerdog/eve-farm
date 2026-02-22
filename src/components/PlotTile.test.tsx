@@ -26,6 +26,7 @@ const emptyPlot: Plot = {
   plantedAt: null,
   growthDuration: 15000,
   tileCoord: coord,
+  cropType: "wheat",
 };
 const plowedPlot: Plot = {
   id: "2_2_4",
@@ -33,6 +34,7 @@ const plowedPlot: Plot = {
   plantedAt: null,
   growthDuration: 15000,
   tileCoord: coord,
+  cropType: "wheat",
 };
 const growingPlot: Plot = {
   id: "2_2_1",
@@ -40,6 +42,7 @@ const growingPlot: Plot = {
   plantedAt: Date.now(),
   growthDuration: 15000,
   tileCoord: coord,
+  cropType: "wheat",
 };
 const readyPlot: Plot = {
   id: "2_2_2",
@@ -47,6 +50,7 @@ const readyPlot: Plot = {
   plantedAt: Date.now() - 15001,
   growthDuration: 15000,
   tileCoord: coord,
+  cropType: "wheat",
 };
 const harvestedPlot: Plot = {
   id: "2_2_3",
@@ -54,6 +58,7 @@ const harvestedPlot: Plot = {
   plantedAt: null,
   growthDuration: 15000,
   tileCoord: coord,
+  cropType: "wheat",
 };
 const gatheredPlot: Plot = {
   id: "2_2_5",
@@ -61,6 +66,7 @@ const gatheredPlot: Plot = {
   plantedAt: null,
   growthDuration: 15000,
   tileCoord: coord,
+  cropType: "wheat",
 };
 
 beforeEach(() => {
@@ -224,5 +230,34 @@ describe("PlotTile — no spurious calls", () => {
     expect(mockPlowPlot).not.toHaveBeenCalled();
     expect(mockPlantWheat).not.toHaveBeenCalled();
     expect(mockHarvest).not.toHaveBeenCalled();
+  });
+});
+
+describe("PlotTile — barley crop type", () => {
+  const barleyReadyPlot: Plot = {
+    id: "2_1_0",
+    state: "ready",
+    plantedAt: Date.now() - 20001,
+    growthDuration: 20000,
+    tileCoord: { col: 2, row: 1 },
+    cropType: "barley",
+  };
+  const barleyGatheredPlot: Plot = {
+    id: "2_1_1",
+    state: "gathered",
+    plantedAt: null,
+    growthDuration: 20000,
+    tileCoord: { col: 2, row: 1 },
+    cropType: "barley",
+  };
+
+  test("barley ready plot shows grain sheaf emoji", () => {
+    render(<PlotTile plot={barleyReadyPlot} />);
+    expect(screen.getByText("🌾")).toBeInTheDocument();
+  });
+
+  test("barley gathered plot shows sheaves emoji", () => {
+    render(<PlotTile plot={barleyGatheredPlot} />);
+    expect(screen.getByText("🌾")).toBeInTheDocument();
   });
 });

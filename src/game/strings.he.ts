@@ -27,5 +27,8 @@ export const HE = {
       morality: "מ", // mem
       faithfulness: "נ", // nun
     },
+    saveForCycles: "זְכֹר בְּחִירָה זוֹ לחמש מחזורים", // Remember this choice for 5 cycles
+    savedActive: "שָׁמוּר", // Saved
+    savedCyclesLeft: "מחזורים נותרים", // cycles remaining
   },
 } as const;

@@ -1,5 +1,8 @@
 # Repository Guidelines
 
+## Project Overview
+Eve is a Township-style farming game with ethical dilemmas and warm, non-dogmatic heritage framing. Mobile-first. POC builds and runs with `npm run dev`.
+
 ## Project Structure & Module Organization
 - `src/` contains all application code.
 - `src/components/` holds UI building blocks (e.g., `MetersBar`, `WorldMap`, `PlotTile`).
@@ -11,6 +14,13 @@
 - `dist/` and `test-results/` are build/test artifacts.
 
 If you need background on the POC scope or core loop, read `POC_SCAFFOLD.md` and `poc-actionable-plan.md`.
+
+## Tech Stack
+- Vite + React + TypeScript (strict)
+- Zustand `persist` (key: `eve-game-state`)
+- CSS Modules
+- Vitest + Playwright
+- Path alias: `@/` → `src/`
 
 ## Build, Test, and Development Commands
 - `npm run dev`: start the Vite dev server.
@@ -26,6 +36,15 @@ If you need background on the POC scope or core loop, read `POC_SCAFFOLD.md` and
 - Indentation: 2 spaces. Strings use single quotes. Semicolons are omitted.
 - CSS Modules for component styles, typically paired with the component file (e.g., `PlotTile.module.css`).
 - Prefer path aliases for imports (`@/game`, `@/components`).
+
+## Core Loop (POC)
+Plant → grow (15s) → harvest (+10 wheat) → every 2 harvests show dilemma → apply cost/meter changes → auto-reset after 600ms.
+
+## Key Implementation Decisions
+- Plot state: `empty | growing | ready | harvested`
+- Dilemmas: `DILEMMAS[dilemmaIndex % DILEMMAS.length]`
+- Wheat cost rounding: `Math.floor`
+- Pure game logic in `src/game/`
 
 ## Testing Guidelines
 - Unit and component tests use Vitest + Testing Library.

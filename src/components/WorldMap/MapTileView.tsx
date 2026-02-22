@@ -1,39 +1,58 @@
-import type { MapTile } from '@/types'
-import { useGameStore } from '@/store/gameStore'
-import { isAdjacentToUnlocked, isPurchased } from '@/game/worldMap'
-import { calcTilePrice } from '@/game/constants'
-import { FarmTileContent } from './FarmTileContent'
-import { LockedTileContent } from './LockedTileContent'
-import styles from './MapTileView.module.css'
+import { useMemo } from "react";
+import type { MapTile, TileCategory } from "@/types";
+import { useGameStore } from "@/store/gameStore";
+import { isAdjacentToUnlocked, isPurchased, coordsEqual } from "@/game/worldMap";
+import { calcTilePrice } from "@/game/constants";
+import { FarmTileContent } from "./FarmTileContent";
+import { VineyardTileContent } from "./VineyardTileContent";
+import { BarleyFieldTileContent } from "./BarleyFieldTileContent";
+import { LockedTileContent } from "./LockedTileContent";
+import styles from "./MapTileView.module.css";
 
-type Props = { tile: MapTile }
+type Props = { tile: MapTile };
 
 export const MapTileView = ({ tile }: Props) => {
-  const purchasedCoords = useGameStore((s) => s.purchasedCoords)
-  const wheat = useGameStore((s) => s.wheat)
-  const buyTile = useGameStore((s) => s.buyTile)
+  const purchasedCoords = useGameStore((s) => s.purchasedCoords);
+  const tileCategories = useGameStore((s) => s.tileCategories);
+  const wheat = useGameStore((s) => s.wheat);
+  const buyTile = useGameStore((s) => s.buyTile);
+  const allPlots = useGameStore((s) => s.plots);
 
-  if (tile.type === 'farm') {
+  const tilePlots = useMemo(
+    () => allPlots.filter((p) => coordsEqual(p.tileCoord, tile.coord)),
+    [allPlots, tile.coord],
+  );
+
+  if (tile.type === "farm") {
     return (
       <div className={`${styles.tile} ${styles.farm}`}>
         <FarmTileContent tileCoord={tile.coord} />
       </div>
-    )
+    );
   }
 
-  const purchased = isPurchased(tile.coord, purchasedCoords)
+  const purchased = isPurchased(tile.coord, purchasedCoords);
 
   if (purchased) {
+    const key = `${tile.coord.col}_${tile.coord.row}`;
+    const category: TileCategory = tileCategories[key] ?? "field";
+    const firstCropType = tilePlots[0]?.cropType ?? "wheat";
     return (
       <div className={`${styles.tile} ${styles.farm}`}>
-        <FarmTileContent tileCoord={tile.coord} />
+        {category === "orchard" ? (
+          <VineyardTileContent tileCoord={tile.coord} />
+        ) : firstCropType === "barley" ? (
+          <BarleyFieldTileContent tileCoord={tile.coord} />
+        ) : (
+          <FarmTileContent tileCoord={tile.coord} />
+        )}
       </div>
-    )
+    );
   }
 
-  const purchasable = isAdjacentToUnlocked(tile.coord, purchasedCoords)
-  const price = calcTilePrice(purchasedCoords.length)
-  const canAfford = wheat >= price
+  const purchasable = isAdjacentToUnlocked(tile.coord, purchasedCoords);
+  const price = calcTilePrice(purchasedCoords.length);
+  const canAfford = wheat >= price;
 
   return (
     <div className={`${styles.tile} ${styles.locked}`}>
@@ -41,8 +60,10 @@ export const MapTileView = ({ tile }: Props) => {
         purchasable={purchasable}
         canAfford={canAfford}
         price={price}
-        onBuy={() => buyTile(tile.coord)}
+        onBuy={(category, subcategory) =>
+          buyTile(tile.coord, category, subcategory)
+        }
       />
     </div>
-  )
-}
+  );
+};

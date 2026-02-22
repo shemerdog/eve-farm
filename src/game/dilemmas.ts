@@ -3,6 +3,35 @@ import type { Dilemma } from "@/types";
 // Wheat costs use exact fractions; applyWheatCost (Math.floor) is applied at resolution time.
 // e.g. 14% of 10 wheat = 1.4 → floors to 1 wheat deducted.
 
+// Orlah: the commandment not to eat fruit from a tree's first three years.
+// Grape plots trigger this dilemma on harvest.
+export const ORLAH_DILEMMA: Dilemma = {
+  id: "orlah",
+  title: "עָרְלָה — פְּרִי הַכֶּרֶם הַחָדָשׁ",
+  narrative:
+    "הַגֶּפֶן הָרִאשׁוֹן נָשָׂא פֵּרוֹת. הַמָּסֹרֶת אוֹסֶרֶת לֶאֱכֹל מִפְּרִי הָעֵץ בִּשְׁלֹשֶׁת שָׁנָיו הָרִאשׁוֹנוֹת. מַה תִּבְחַר לַעֲשׂוֹת עִם הָעֲנָבִים?",
+  choices: [
+    {
+      label: "הַשְׁאֵר אֶת הַפְּרִי",
+      description: "אַתָּה מְכַבֵּד אֶת הַמָּסֹרֶת וּמַשְׁאִיר אֶת הַפֵּרוֹת",
+      wheatCost: 0,
+      meterEffect: { morality: +10, devotion: +8 },
+    },
+    {
+      label: "קְחַח מֶחֱצָה",
+      description: "אַתָּה לוֹקֵחַ מֶחֱצִית וּמַשְׁאִיר מֶחֱצִית",
+      wheatCost: 0,
+      meterEffect: { morality: +3, devotion: +2 },
+    },
+    {
+      label: "קַח הַכֹּל",
+      description: "אַתָּה לוֹקֵחַ אֶת כָּל הָעֲנָבִים לְעַצְמְךָ",
+      wheatCost: 0,
+      meterEffect: { morality: -8, devotion: -5 },
+    },
+  ],
+};
+
 export const DILEMMAS: Dilemma[] = [
   {
     id: "peah",
@@ -83,4 +112,5 @@ export const DILEMMAS: Dilemma[] = [
       },
     ],
   },
+  ORLAH_DILEMMA,
 ];

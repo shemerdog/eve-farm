@@ -8,6 +8,7 @@ const makePlot = (overrides: Partial<Plot> = {}): Plot => ({
   plantedAt: Date.now(),
   growthDuration: 15_000,
   tileCoord: { col: 2, row: 2 },
+  cropType: "wheat",
   ...overrides,
 });
 

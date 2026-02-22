@@ -78,18 +78,29 @@ export const PlotTile = ({ plot }: Props) => {
     plot.state === "ready" ||
     plot.state === "gathered";
 
+  const isGrapes = plot.cropType === "grapes";
+  const isBarley = plot.cropType === "barley";
+
   const emoji =
     plot.state === "empty"
       ? "🪵"
       : plot.state === "plowed"
         ? "🟫"
         : plot.state === "growing"
-          ? "🌱"
+          ? isGrapes
+            ? "🌿"
+            : "🌱"
           : plot.state === "ready"
-            ? "🌾"
+            ? isGrapes
+              ? "🍇"
+              : "🌾"
             : plot.state === "harvested"
               ? "✨"
-              : /* gathered */ "🎋";
+              : /* gathered */ isGrapes
+                ? "🍇"
+                : isBarley
+                  ? "🌾"
+                  : "🎋";
 
   return (
     <div
@@ -130,7 +141,11 @@ export const PlotTile = ({ plot }: Props) => {
 
       {plot.state === "growing" && <ProgressRing plot={plot} />}
 
-      {showFloat && <span className={styles.floatUp}>+10 🌾</span>}
+      {showFloat && (
+        <span className={styles.floatUp}>
+          {isGrapes ? "+15 🍇" : isBarley ? "+12 🌿" : "+10 🌾"}
+        </span>
+      )}
     </div>
   );
 };

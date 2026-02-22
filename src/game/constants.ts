@@ -7,6 +7,14 @@ export const WHEAT_GROWTH_DURATION = 15_000;
 
 export const WHEAT_PER_HARVEST = 10;
 
+// Grapes grow slower but yield more — 30 s growth, 15 grapes per harvest
+export const GRAPE_GROWTH_DURATION = 30_000;
+export const GRAPES_PER_HARVEST = 15;
+
+// Barley grows between wheat and grapes — 20 s growth, 12 barley per harvest
+export const BARLEY_GROWTH_DURATION = 20_000;
+export const BARLEY_PER_HARVEST = 12;
+
 export const METER_INITIAL: MeterValues = {
   devotion: 50,
   morality: 50,
