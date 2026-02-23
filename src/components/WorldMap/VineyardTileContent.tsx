@@ -4,7 +4,7 @@ import styles from './VineyardTileContent.module.css'
 
 type Props = { tileCoord: TileCoord }
 
-export const VineyardTileContent = ({ tileCoord }: Props) => (
+export const VineyardTileContent = ({ tileCoord }: Props): React.JSX.Element => (
     <div className={styles.content}>
         <FarmGrid tileCoord={tileCoord} />
     </div>

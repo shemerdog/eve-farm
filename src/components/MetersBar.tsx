@@ -14,7 +14,7 @@ const METERS = [
 
 type Props = { onManageDecisions: () => void }
 
-export const MetersBar = ({ onManageDecisions }: Props) => {
+export const MetersBar = ({ onManageDecisions }: Props): React.JSX.Element => {
     const meters = useGameStore((s) => s.meters)
 
     return (

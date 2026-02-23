@@ -7,7 +7,7 @@ import styles from './FarmGrid.module.css'
 
 type Props = { tileCoord: TileCoord }
 
-export const FarmGrid = ({ tileCoord }: Props) => {
+export const FarmGrid = ({ tileCoord }: Props): React.JSX.Element => {
     const allPlots = useGameStore((s) => s.plots)
     const plots = useMemo(
         () => allPlots.filter((p) => coordsEqual(p.tileCoord, tileCoord)),

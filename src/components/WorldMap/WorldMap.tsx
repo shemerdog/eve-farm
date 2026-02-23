@@ -20,7 +20,7 @@ import styles from './WorldMap.module.css'
 // Built once at module level — tile grid never changes at runtime
 const TILES = buildTileGrid()
 
-export const WorldMap = () => {
+export const WorldMap = (): React.JSX.Element => {
     const camera = useWorldStore((s) => s.camera)
     const setCamera = useWorldStore((s) => s.setCamera)
     const viewportRef = useRef<HTMLDivElement>(null)
@@ -35,7 +35,7 @@ export const WorldMap = () => {
         setCamera(initialCamera(vp.clientWidth, vp.clientHeight))
     }, [setCamera])
 
-    const handleZoomIn = () => {
+    const handleZoomIn = (): void => {
         const vp = viewportRef.current
         if (!vp) return
         const vpW = vp.clientWidth
@@ -43,7 +43,7 @@ export const WorldMap = () => {
         setCamera(zoomAtPoint(camera, camera.zoom + ZOOM_STEP, vpW / 2, vpH / 2, vpW, vpH))
     }
 
-    const handleZoomOut = () => {
+    const handleZoomOut = (): void => {
         const vp = viewportRef.current
         if (!vp) return
         const vpW = vp.clientWidth

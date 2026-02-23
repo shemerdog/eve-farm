@@ -10,7 +10,7 @@ const DRAG_THRESHOLD_PX = 5
 // usePan attaches pointer event listeners to the given element and drives the
 // world camera via the worldStore. Momentum is tracked in refs to avoid
 // triggering React re-renders on every pointer-move event.
-export const usePan = (viewportRef: RefObject<HTMLDivElement | null>) => {
+export const usePan = (viewportRef: RefObject<HTMLDivElement | null>): void => {
     const setCamera = useWorldStore((s) => s.setCamera)
 
     // Ephemeral drag state: lives in refs, never causes re-renders
@@ -26,20 +26,20 @@ export const usePan = (viewportRef: RefObject<HTMLDivElement | null>) => {
     const activePointers = useRef<Map<number, { x: number; y: number }>>(new Map())
     const lastPinchDist = useRef<number | null>(null)
 
-    useEffect(() => {
+    useEffect((): void | (() => void) => {
         const el = viewportRef.current
         if (!el) return
 
         let rafId: number | null = null
 
-        const stopMomentum = () => {
+        const stopMomentum = (): void => {
             if (rafId !== null) {
                 cancelAnimationFrame(rafId)
                 rafId = null
             }
         }
 
-        const onPointerDown = (e: PointerEvent) => {
+        const onPointerDown = (e: PointerEvent): void => {
             stopMomentum()
             activePointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY })
 
@@ -71,7 +71,7 @@ export const usePan = (viewportRef: RefObject<HTMLDivElement | null>) => {
             return { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 }
         }
 
-        const onPointerMove = (e: PointerEvent) => {
+        const onPointerMove = (e: PointerEvent): void => {
             activePointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY })
 
             if (activePointers.current.size === 2) {
@@ -117,7 +117,7 @@ export const usePan = (viewportRef: RefObject<HTMLDivElement | null>) => {
             )
         }
 
-        const onPointerUp = (e: PointerEvent) => {
+        const onPointerUp = (e: PointerEvent): void => {
             activePointers.current.delete(e.pointerId)
             lastPinchDist.current = null
 
@@ -131,7 +131,7 @@ export const usePan = (viewportRef: RefObject<HTMLDivElement | null>) => {
             const vpW = el.clientWidth
             const vpH = el.clientHeight
 
-            const step = () => {
+            const step = (): void => {
                 const camera = useWorldStore.getState().camera
                 const result = applyMomentumFrame(camera, vel.current.x, vel.current.y, vpW, vpH)
                 vel.current = { x: result.velX, y: result.velY }
@@ -141,7 +141,7 @@ export const usePan = (viewportRef: RefObject<HTMLDivElement | null>) => {
             rafId = requestAnimationFrame(step)
         }
 
-        const onPointerCancel = (e: PointerEvent) => {
+        const onPointerCancel = (e: PointerEvent): void => {
             activePointers.current.delete(e.pointerId)
             lastPinchDist.current = null
             pointerDown.current = false
@@ -149,7 +149,7 @@ export const usePan = (viewportRef: RefObject<HTMLDivElement | null>) => {
             stopMomentum()
         }
 
-        const onWheel = (e: WheelEvent) => {
+        const onWheel = (e: WheelEvent): void => {
             e.preventDefault()
             const camera = useWorldStore.getState().camera
             const newZoom = camera.zoom - e.deltaY * 0.001
@@ -172,5 +172,5 @@ export const usePan = (viewportRef: RefObject<HTMLDivElement | null>) => {
             el.removeEventListener('pointercancel', onPointerCancel)
             el.removeEventListener('wheel', onWheel)
         }
-    }, [setCamera]) // setCamera is stable (Zustand guarantee); viewportRef object is stable (React guarantee)
+    }, [setCamera, viewportRef]) // setCamera is stable (Zustand guarantee); viewportRef object is stable (React guarantee)
 }

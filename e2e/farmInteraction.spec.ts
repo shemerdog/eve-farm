@@ -16,7 +16,7 @@ const PLOTS_EMPTY = Array.from({ length: 4 }, (_, i) => ({
 // Serialize a game state snapshot for localStorage injection.
 // Uses version 2 so that migrations v3–v9 run automatically, backfilling
 // cropType, hasBeenPlanted, barley, tileCategories, savedFieldDecisions, etc.
-function setGameState(overrides: Record<string, unknown>) {
+function setGameState(overrides: Record<string, unknown>): string {
     const base = {
         plots: PLOTS_EMPTY,
         wheat: 0,
@@ -29,7 +29,7 @@ function setGameState(overrides: Record<string, unknown>) {
     return JSON.stringify({ state: { ...base, ...overrides }, version: 2 })
 }
 
-test.beforeEach(async ({ page }) => {
+test.beforeEach(async ({ page }): Promise<void> => {
     // Inject a clean, known state before each test via localStorage
     await page.addInitScript((key) => {
         localStorage.removeItem(key)
@@ -40,7 +40,7 @@ test.beforeEach(async ({ page }) => {
 
 test('tapping inside the map fires clicks — usePan pointer-capture regression', async ({
     page,
-}) => {
+}): Promise<void> => {
     await page.goto('/')
 
     // Before the fix, setPointerCapture on every pointerdown swallowed all
@@ -57,7 +57,7 @@ test('tapping inside the map fires clicks — usePan pointer-capture regression'
 
 // ── Plow + Sow ───────────────────────────────────────────────────────────────
 
-test('plow then sow transitions plot to growing state', async ({ page }) => {
+test('plow then sow transitions plot to growing state', async ({ page }): Promise<void> => {
     await page.goto('/')
 
     // Plow the first empty plot
@@ -73,7 +73,7 @@ test('plow then sow transitions plot to growing state', async ({ page }) => {
 
 // ── Harvest ──────────────────────────────────────────────────────────────────
 
-test('harvest then gather adds wheat', async ({ page }) => {
+test('harvest then gather adds wheat', async ({ page }): Promise<void> => {
     // Seed a plot in the ready state (skip the 15s growth timer).
     // Pre-save both PEAH and SHIKCHAH decisions (choice 2 = keep-all, zero cost)
     // so that both dilemmas auto-resolve without showing the modal.
@@ -116,14 +116,14 @@ test('harvest then gather adds wheat', async ({ page }) => {
 
 // ── Buy Tile ─────────────────────────────────────────────────────────────────
 
-test('buy tile buttons are disabled when player cannot afford', async ({ page }) => {
+test('buy tile buttons are disabled when player cannot afford', async ({ page }): Promise<void> => {
     await page.goto('/')
     // Default state has 0 wheat, tile costs 50 → category buttons disabled
     const fieldBtn = page.getByRole('button', { name: '🌿 שדה' }).first()
     await expect(fieldBtn).toBeDisabled()
 })
 
-test('buy tile buttons are enabled when player can afford', async ({ page }) => {
+test('buy tile buttons are enabled when player can afford', async ({ page }): Promise<void> => {
     await page.addInitScript(({ key, value }) => localStorage.setItem(key, value), {
         key: STORE_KEY,
         value: setGameState({ wheat: 100 }),
@@ -138,7 +138,7 @@ test('buy tile buttons are enabled when player can afford', async ({ page }) => 
 
 test('manage decisions panel opens, shows encountered dilemma, and allows toggling', async ({
     page,
-}) => {
+}): Promise<void> => {
     // Seed state: peah:wheat has been encountered; saved decision is enabled
     await page.addInitScript(({ key, value }) => localStorage.setItem(key, value), {
         key: STORE_KEY,
@@ -172,7 +172,7 @@ test('manage decisions panel opens, shows encountered dilemma, and allows toggli
     await expect(page.getByRole('heading', { name: 'נהל החלטות' })).not.toBeVisible()
 })
 
-test('clicking buy tile deducts wheat and unlocks the tile', async ({ page }) => {
+test('clicking buy tile deducts wheat and unlocks the tile', async ({ page }): Promise<void> => {
     await page.addInitScript(({ key, value }) => localStorage.setItem(key, value), {
         key: STORE_KEY,
         value: setGameState({ wheat: 100 }),

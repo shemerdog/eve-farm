@@ -11,7 +11,7 @@ import styles from './MapTileView.module.css'
 
 type Props = { tile: MapTile }
 
-export const MapTileView = ({ tile }: Props) => {
+export const MapTileView = ({ tile }: Props): React.JSX.Element => {
     const purchasedCoords = useGameStore((s) => s.purchasedCoords)
     const tileCategories = useGameStore((s) => s.tileCategories)
     const wheat = useGameStore((s) => s.wheat)

@@ -1,7 +1,7 @@
 import { useGameStore } from '@/store/gameStore'
 import styles from './WheatCounter.module.css'
 
-export const WheatCounter = () => {
+export const WheatCounter = (): React.JSX.Element => {
     const wheat = useGameStore((s) => s.wheat)
     const grapes = useGameStore((s) => s.grapes)
     const barley = useGameStore((s) => s.barley)

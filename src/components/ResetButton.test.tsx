@@ -6,26 +6,27 @@ import { ResetButton } from './ResetButton'
 const mockResetGame = vi.fn()
 
 vi.mock('@/store/gameStore', () => ({
-    useGameStore: (selector: (s: object) => unknown) => selector({ resetGame: mockResetGame }),
+    useGameStore: (selector: (s: object) => unknown): unknown =>
+        selector({ resetGame: mockResetGame }),
 }))
 
-beforeEach(() => {
+beforeEach((): void => {
     mockResetGame.mockReset()
 })
 
 describe('ResetButton', () => {
-    test('renders a reset button', () => {
+    test('renders reset button', (): void => {
         render(<ResetButton />)
         expect(screen.getByRole('button', { name: /reset/i })).toBeInTheDocument()
     })
 
-    test('clicking the button calls resetGame once', async () => {
+    test('clicking reset calls resetGame', async (): Promise<void> => {
         render(<ResetButton />)
         await userEvent.click(screen.getByRole('button', { name: /reset/i }))
         expect(mockResetGame).toHaveBeenCalledOnce()
     })
 
-    test('calls resetGame with no arguments', async () => {
+    test('calls resetGame with no arguments', async (): Promise<void> => {
         render(<ResetButton />)
         await userEvent.click(screen.getByRole('button', { name: /reset/i }))
         expect(mockResetGame).toHaveBeenCalledWith()

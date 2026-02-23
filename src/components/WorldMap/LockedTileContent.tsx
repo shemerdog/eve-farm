@@ -11,11 +11,16 @@ type Props = {
     onBuy: (category: TileCategory, subcategory: TileSubcategory) => void
 }
 
-export const LockedTileContent = ({ purchasable, canAfford, price, onBuy }: Props) => {
+export const LockedTileContent = ({
+    purchasable,
+    canAfford,
+    price,
+    onBuy,
+}: Props): React.JSX.Element => {
     const [step, setStep] = useState<Step>('root')
     const contentClass = purchasable ? styles.purchasable : styles.inaccessible
 
-    const handleBuy = (category: TileCategory, subcategory: TileSubcategory) => {
+    const handleBuy = (category: TileCategory, subcategory: TileSubcategory): void => {
         onBuy(category, subcategory)
         setStep('root')
     }

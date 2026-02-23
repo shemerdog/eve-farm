@@ -7,7 +7,7 @@ type Props = {
     onZoomOut: () => void
 }
 
-export const ZoomControls = ({ zoom, onZoomIn, onZoomOut }: Props) => (
+export const ZoomControls = ({ zoom, onZoomIn, onZoomOut }: Props): React.JSX.Element => (
     <div className={styles.controls}>
         <button
             className={styles.btn}

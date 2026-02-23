@@ -4,7 +4,7 @@ import styles from './FarmTileContent.module.css'
 
 type Props = { tileCoord: TileCoord }
 
-export const FarmTileContent = ({ tileCoord }: Props) => (
+export const FarmTileContent = ({ tileCoord }: Props): React.JSX.Element => (
     <div className={styles.content}>
         <FarmGrid tileCoord={tileCoord} />
     </div>

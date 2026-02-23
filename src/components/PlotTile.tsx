@@ -10,15 +10,15 @@ type Props = { plot: Plot }
 const RING_R = 14
 const RING_CIRCUMFERENCE = 2 * Math.PI * RING_R
 
-const ProgressRing = ({ plot }: { plot: Plot }) => {
+const ProgressRing = ({ plot }: { plot: Plot }): React.JSX.Element => {
     const [progress, setProgress] = useState(0)
 
-    useEffect(() => {
+    useEffect((): void | (() => void) => {
         if (plot.state !== 'growing') return
-        const update = () => setProgress(growthProgress(plot))
+        const update = (): void => setProgress(growthProgress(plot))
         update()
         const id = setInterval(update, 200)
-        return () => clearInterval(id)
+        return (): void => clearInterval(id)
     }, [plot])
 
     const dashOffset = RING_CIRCUMFERENCE * (1 - progress)
@@ -50,7 +50,7 @@ const ProgressRing = ({ plot }: { plot: Plot }) => {
     )
 }
 
-export const PlotTile = ({ plot }: Props) => {
+export const PlotTile = ({ plot }: Props): React.JSX.Element => {
     const plowPlot = useGameStore((s) => s.plowPlot)
     const plantWheat = useGameStore((s) => s.plantWheat)
     const plantOrchard = useGameStore((s) => s.plantOrchard)
@@ -62,11 +62,11 @@ export const PlotTile = ({ plot }: Props) => {
     const [showFloat, setShowFloat] = useState(false)
 
     // Trigger float-up animation when plot enters harvested state
-    useEffect(() => {
+    useEffect((): void | (() => void) => {
         if (plot.state === 'harvested') {
             setShowFloat(true)
             const id = setTimeout(() => setShowFloat(false), 600)
-            return () => clearTimeout(id)
+            return (): void => clearTimeout(id)
         }
     }, [plot.state])
 
@@ -118,7 +118,7 @@ export const PlotTile = ({ plot }: Props) => {
                               ? '🌾'
                               : '🎋'
 
-    const handleClick = () => {
+    const handleClick = (): void => {
         if (plot.state === 'empty') {
             if (isOrchard) {
                 if (!plot.hasBeenPlanted) plantOrchard(plot.id)

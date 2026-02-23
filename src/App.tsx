@@ -8,7 +8,7 @@ import { DecisionsPanel } from '@/components/DecisionsPanel'
 import { ResetButton } from '@/components/ResetButton'
 import styles from './App.module.css'
 
-const App = () => {
+const App = (): React.JSX.Element => {
     useGameLoop()
     const [showDecisions, setShowDecisions] = useState(false)
 

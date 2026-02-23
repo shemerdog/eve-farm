@@ -126,7 +126,7 @@ export const useGameStore = create<GameState & Actions>()(
         (set, get) => ({
             ...initialState,
 
-            plowPlot: (plotId) => {
+            plowPlot: (plotId: string): void => {
                 set((s) => ({
                     plots: s.plots.map((p) =>
                         p.id === plotId && p.state === 'empty' ? { ...p, state: 'plowed' } : p,
@@ -134,7 +134,7 @@ export const useGameStore = create<GameState & Actions>()(
                 }))
             },
 
-            plantWheat: (plotId) => {
+            plantWheat: (plotId: string): void => {
                 set((s) => ({
                     plots: s.plots.map((p) =>
                         p.id === plotId && p.state === 'plowed'
@@ -144,7 +144,7 @@ export const useGameStore = create<GameState & Actions>()(
                 }))
             },
 
-            plantOrchard: (plotId) => {
+            plantOrchard: (plotId: string): void => {
                 set((s) => ({
                     plots: s.plots.map((p) =>
                         p.id === plotId && p.state === 'empty' && !p.hasBeenPlanted
@@ -154,7 +154,7 @@ export const useGameStore = create<GameState & Actions>()(
                 }))
             },
 
-            fertilizePlot: (plotId) => {
+            fertilizePlot: (plotId: string): void => {
                 set((s) => ({
                     plots: s.plots.map((p) =>
                         p.id === plotId &&
@@ -169,7 +169,7 @@ export const useGameStore = create<GameState & Actions>()(
                 }))
             },
 
-            tendPlot: (plotId) => {
+            tendPlot: (plotId: string): void => {
                 set((s) => ({
                     plots: s.plots.map((p) => {
                         if (p.id !== plotId || p.state !== 'fertilized' || p.nextActionAt !== null)
@@ -192,7 +192,7 @@ export const useGameStore = create<GameState & Actions>()(
                 }))
             },
 
-            thinShoots: (plotId) => {
+            thinShoots: (plotId: string): void => {
                 set((s) => ({
                     plots: s.plots.map((p) =>
                         p.id === plotId &&
@@ -205,14 +205,14 @@ export const useGameStore = create<GameState & Actions>()(
                 }))
             },
 
-            tickGrowth: () => {
+            tickGrowth: (): void => {
                 const now = Date.now()
                 set((s) => ({
                     plots: s.plots.map((p) => tickPlot(p, now)),
                 }))
             },
 
-            harvest: (plotId) => {
+            harvest: (plotId: string): void => {
                 const state = get()
                 const plot = state.plots.find((p) => p.id === plotId)
                 if (!plot || plot.state !== 'ready') return
@@ -296,7 +296,7 @@ export const useGameStore = create<GameState & Actions>()(
                 setTimeout(() => get().resetPlot(plotId), 600)
             },
 
-            gatherSheafs: (plotId) => {
+            gatherSheafs: (plotId: string): void => {
                 const state = get()
                 const plot = state.plots.find((p) => p.id === plotId)
                 if (!plot || plot.state !== 'gathered') return
@@ -365,7 +365,7 @@ export const useGameStore = create<GameState & Actions>()(
                 }))
             },
 
-            resolveDilemma: (choiceIndex, save = false) => {
+            resolveDilemma: (choiceIndex: number, save: boolean = false): void => {
                 const {
                     activeDilemma,
                     activeDilemmaContext,
@@ -426,7 +426,7 @@ export const useGameStore = create<GameState & Actions>()(
                 })
             },
 
-            toggleDecisionEnabled: (key) => {
+            toggleDecisionEnabled: (key: string): void => {
                 set((s) => {
                     const entry = s.savedFieldDecisions[key]
                     if (!entry) return s
@@ -439,7 +439,7 @@ export const useGameStore = create<GameState & Actions>()(
                 })
             },
 
-            resetPlot: (plotId) => {
+            resetPlot: (plotId: string): void => {
                 set((s) => ({
                     plots: s.plots.map((p) =>
                         p.id === plotId && p.state === 'harvested'
@@ -449,7 +449,11 @@ export const useGameStore = create<GameState & Actions>()(
                 }))
             },
 
-            buyTile: (coord, category, subcategory) => {
+            buyTile: (
+                coord: TileCoord,
+                category: TileCategory,
+                subcategory: TileSubcategory,
+            ): void => {
                 set((s) => {
                     const price = calcTilePrice(s.purchasedCoords.length)
                     if (
@@ -469,7 +473,7 @@ export const useGameStore = create<GameState & Actions>()(
                 })
             },
 
-            resetGame: () => {
+            resetGame: (): void => {
                 set({
                     ...initialState,
                     plots: makePlots(FARM_COORD),

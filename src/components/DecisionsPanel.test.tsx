@@ -13,7 +13,7 @@ let mockSavedFieldDecisions: Record<
 > = {}
 
 vi.mock('@/store/gameStore', () => ({
-    useGameStore: (selector: (s: object) => unknown) =>
+    useGameStore: (selector: (s: object) => unknown): unknown =>
         selector({
             encounteredDilemmas: mockEncounteredDilemmas,
             savedFieldDecisions: mockSavedFieldDecisions,
@@ -21,7 +21,7 @@ vi.mock('@/store/gameStore', () => ({
         }),
 }))
 
-beforeEach(() => {
+beforeEach((): void => {
     mockToggleDecisionEnabled.mockReset()
     mockEncounteredDilemmas = []
     mockSavedFieldDecisions = {}
@@ -30,29 +30,29 @@ beforeEach(() => {
 const mockOnClose = vi.fn()
 
 describe('DecisionsPanel — empty state', () => {
-    test('renders the panel title', () => {
+    test('renders the panel title', (): void => {
         render(<DecisionsPanel onClose={mockOnClose} />)
         expect(screen.getByText('נהל החלטות')).toBeInTheDocument()
     })
 
-    test('shows empty state message when no encountered dilemmas', () => {
+    test('shows empty state message when no encountered dilemmas', (): void => {
         render(<DecisionsPanel onClose={mockOnClose} />)
         expect(screen.getByText('עדיין לא נתקלת בהחלטות שניתן לשמור')).toBeInTheDocument()
     })
 
-    test('renders a close button', () => {
+    test('renders a close button', (): void => {
         render(<DecisionsPanel onClose={mockOnClose} />)
         expect(screen.getByRole('button', { name: /✕/ })).toBeInTheDocument()
     })
 
-    test('close button calls onClose', async () => {
+    test('close button calls onClose', async (): Promise<void> => {
         const onClose = vi.fn()
         render(<DecisionsPanel onClose={onClose} />)
         await userEvent.click(screen.getByRole('button', { name: /✕/ }))
         expect(onClose).toHaveBeenCalledOnce()
     })
 
-    test('clicking backdrop calls onClose', async () => {
+    test('clicking backdrop calls onClose', async (): Promise<void> => {
         const onClose = vi.fn()
         const { container } = render(<DecisionsPanel onClose={onClose} />)
         // The backdrop is the outermost div; click on it directly
@@ -63,38 +63,38 @@ describe('DecisionsPanel — empty state', () => {
 })
 
 describe('DecisionsPanel — with encountered dilemmas', () => {
-    beforeEach(() => {
+    beforeEach((): void => {
         mockEncounteredDilemmas = ['peah:wheat']
         mockSavedFieldDecisions = {
             'peah:wheat': { choiceIndex: 0, cyclesRemaining: 3, enabled: true },
         }
     })
 
-    test('shows a list item for encountered peah:wheat', () => {
+    test('shows a list item for encountered peah:wheat', (): void => {
         render(<DecisionsPanel onClose={mockOnClose} />)
         // The PEAH dilemma title should appear
         expect(screen.getByText('פֵּאָה — פִּנַּת הַשָּׂדֶה')).toBeInTheDocument()
     })
 
-    test('checkbox is checked when decision is active and enabled', () => {
+    test('checkbox is checked when decision is active and enabled', (): void => {
         render(<DecisionsPanel onClose={mockOnClose} />)
         const checkbox = screen.getByRole('checkbox') as HTMLInputElement
         expect(checkbox.checked).toBe(true)
     })
 
-    test('checkbox is enabled when cyclesRemaining > 0', () => {
+    test('checkbox is enabled when cyclesRemaining > 0', (): void => {
         render(<DecisionsPanel onClose={mockOnClose} />)
         const checkbox = screen.getByRole('checkbox') as HTMLInputElement
         expect(checkbox.disabled).toBe(false)
     })
 
-    test('shows cycles-remaining badge', () => {
+    test('shows cycles-remaining badge', (): void => {
         render(<DecisionsPanel onClose={mockOnClose} />)
         // Badge shows "3 מחזורים נותרו" or similar
         expect(screen.getByText(/3/)).toBeInTheDocument()
     })
 
-    test('clicking checkbox calls toggleDecisionEnabled with the key', async () => {
+    test('clicking checkbox calls toggleDecisionEnabled with the key', async (): Promise<void> => {
         render(<DecisionsPanel onClose={mockOnClose} />)
         const checkbox = screen.getByRole('checkbox')
         await userEvent.click(checkbox)
@@ -104,14 +104,14 @@ describe('DecisionsPanel — with encountered dilemmas', () => {
 })
 
 describe('DecisionsPanel — expired decision (cyclesRemaining = 0)', () => {
-    beforeEach(() => {
+    beforeEach((): void => {
         mockEncounteredDilemmas = ['peah:wheat']
         mockSavedFieldDecisions = {
             'peah:wheat': { choiceIndex: 0, cyclesRemaining: 0, enabled: true },
         }
     })
 
-    test('checkbox is disabled when cyclesRemaining is 0', () => {
+    test('checkbox is disabled when cyclesRemaining is 0', (): void => {
         render(<DecisionsPanel onClose={mockOnClose} />)
         const checkbox = screen.getByRole('checkbox') as HTMLInputElement
         expect(checkbox.disabled).toBe(true)
@@ -119,17 +119,17 @@ describe('DecisionsPanel — expired decision (cyclesRemaining = 0)', () => {
 })
 
 describe('DecisionsPanel — no saved choice yet', () => {
-    beforeEach(() => {
+    beforeEach((): void => {
         mockEncounteredDilemmas = ['shikchah:wheat']
         mockSavedFieldDecisions = {}
     })
 
-    test('shows no-saved-choice note', () => {
+    test('shows no saved choice message', (): void => {
         render(<DecisionsPanel onClose={mockOnClose} />)
         expect(screen.getByText('ללא בחירה שמורה')).toBeInTheDocument()
     })
 
-    test('checkbox is disabled when no saved choice', () => {
+    test('checkbox is disabled when no saved choice exists', (): void => {
         render(<DecisionsPanel onClose={mockOnClose} />)
         const checkbox = screen.getByRole('checkbox') as HTMLInputElement
         expect(checkbox.disabled).toBe(true)
@@ -137,7 +137,7 @@ describe('DecisionsPanel — no saved choice yet', () => {
 })
 
 describe('DecisionsPanel — filters non-saveable dilemma IDs', () => {
-    beforeEach(() => {
+    beforeEach((): void => {
         // ORLAH and NETA_REVAI are not saveable; should not appear
         mockEncounteredDilemmas = ['peah:wheat', 'orlah:grapes', 'neta_revai:grapes']
         mockSavedFieldDecisions = {

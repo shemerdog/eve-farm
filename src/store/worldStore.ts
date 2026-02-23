@@ -8,5 +8,5 @@ type Actions = {
 // Camera is not persisted — WorldMap.tsx re-centres on the farm tile each session.
 export const useWorldStore = create<WorldMapState & Actions>()((set) => ({
     camera: { x: 0, y: 0, zoom: 1 },
-    setCamera: (camera) => set({ camera }),
+    setCamera: (camera: CameraState): void => set({ camera }),
 }))

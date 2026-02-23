@@ -25,7 +25,7 @@ const formatEffect = (effect: Record<string, number>): string => {
         .join('  ')
 }
 
-export const DilemmaModal = () => {
+export const DilemmaModal = (): React.JSX.Element | null => {
     const activeDilemma = useGameStore((s) => s.activeDilemma)
     const activeDilemmaContext = useGameStore((s) => s.activeDilemmaContext)
     const wheat = useGameStore((s) => s.wheat)

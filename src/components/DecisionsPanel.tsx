@@ -7,7 +7,7 @@ const SAVEABLE_IDS = new Set(['peah', 'shikchah'])
 
 type Props = { onClose: () => void }
 
-export const DecisionsPanel = ({ onClose }: Props) => {
+export const DecisionsPanel = ({ onClose }: Props): React.JSX.Element => {
     const encounteredDilemmas = useGameStore((s) => s.encounteredDilemmas)
     const savedFieldDecisions = useGameStore((s) => s.savedFieldDecisions)
     const toggleDecisionEnabled = useGameStore((s) => s.toggleDecisionEnabled)
