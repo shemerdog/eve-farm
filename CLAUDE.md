@@ -48,8 +48,17 @@ src/
     dilemmas.ts           — DILEMMAS array (PEAH, SHIKCHAH, ORLAH, NETA_REVAI)
     strings.he.ts         — all Hebrew UI strings
   store/
-    gameStore.ts          — persisted state: plowPlot, plantWheat, plantOrchard, fertilizePlot, tendPlot, thinShoots, harvest, gatherSheafs, resolveDilemma, resetPlot, buyTile, resetGame
+    gameStore.ts          — root Zustand composer (wires initialState + modular action domains + persist)
+    game/
+      state.ts            — initialState + makePlots helpers
+      plotActions.ts      — plot lifecycle actions (plow/plant/fertilize/tend/thin/tickGrowth)
+      dilemmaActions.ts   — harvest/gather routing, auto-resolve, resolveDilemma, toggleDecisionEnabled, resetPlot
+      economyActions.ts   — buyTile + resetGame
+      migrations.ts       — persist migration logic (v2→v12), typed unknown narrowing
+      storeTypes.ts       — GameActions/GameStore and SetState/GetState helper types
     worldStore.ts         — camera state only (NOT persisted, re-centers on mount)
+  test-utils/
+    gameStore.ts          — shared test helpers (resetGameStore, buyTileWithWheat, findPlotByCoord, patchPlot)
   hooks/
     useGameLoop.ts        — setInterval(tickGrowth, 500) while any plot is growing
     usePan.ts             — pointer-event pan + momentum for WorldMap viewport
@@ -57,7 +66,8 @@ src/
     MetersBar             — devotion/morality/faithfulness bars (always visible)
     FarmGrid              — 2×2 grid of PlotTile components
     PlotTile              — per-plot visual + plant/harvest interaction + progress ring
-    PlotTile.test.tsx     — component tests: sow/harvest clicks call store actions
+    PlotTile.test.tsx     — field-crop component tests
+    PlotTile.orchard.test.tsx — orchard cycle + nextActionAt component tests
     WheatCounter          — wheat/barley/grapes totals in bottom HUD
     ResetButton           — resets all game progress; ResetButton.test.tsx
     DilemmaModal          — full-screen overlay, appears on harvest/gather triggers
@@ -75,6 +85,11 @@ src/
   setupTests.ts           — imports @testing-library/jest-dom for Vitest
 e2e/
   farmInteraction.spec.ts — Playwright E2E: sow, harvest, buy tile, usePan regression
+src/store/
+  gameStore.economy.test.ts    — buyTile + yield/routing basics for field/orchard crops
+  gameStore.dilemmas.test.ts   — saved decisions, auto-resolve, encountered tracking, enabled flags
+  gameStore.orchard.test.ts    — orchard lifecycle, timers, cycle gating, skip-gather behavior
+  gameStore.migrations.test.ts — migration behavior checks (v6/v12)
 ```
 
 ## Core Loop
@@ -113,7 +128,7 @@ Save keys are `"<dilemmaId>:<cropType>"`. When a saved decision is active, the d
 - **Pure game logic**: `tickPlot(plot, now)` lives in `src/game/` with no React/Zustand dependency — fully unit-testable
 - **harvestCount: number** on `Plot` — tracks how many times an orchard plot has been harvested; gates ORLAH (cycles 1–3), NETA_REVAI (cycle 4), no dilemma (cycle 5+). Incremented inside `harvest()`, not in `tickPlot`.
 - **activePlotId: string | null** on `GameState` — set when a dilemma fires from `harvest()`; read by `resolveDilemma()` to reset the correct plot when the player chooses "Leave the fruit" (ORLAH/NETA_REVAI choice 0); cleared after resolution.
-- **Persistence**: Zustand `persist` middleware saves all game state fields to localStorage; only data is persisted, not action functions. **Persist version: 11**; migrations v2–v11 handle all legacy saves (id format, field renames, backfills).
+- **Persistence**: Zustand `persist` middleware saves all game state fields to localStorage; only data is persisted, not action functions. **Persist version: 12**; migrations v2–v12 handle all legacy saves (id format, field renames, backfills, `encounteredDilemmas`, `enabled` on saved decisions).
 - **Timer**: `useGameLoop` hook starts/stops `setInterval` based on whether any plot is `growing`; uses wall-clock timestamps so tab backgrounding doesn't break growth
 
 ## Key Design Decisions

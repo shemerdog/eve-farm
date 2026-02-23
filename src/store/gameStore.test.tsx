@@ -38,7 +38,7 @@ describe('gameStore — buyTile creates plots', () => {
         const price = calcTilePrice(0)
         useGameStore.setState({ wheat: price })
 
-        useGameStore.getState().buyTile(adjacentCoord)
+        useGameStore.getState().buyTile(adjacentCoord, 'field', 'wheat')
 
         const { plots } = useGameStore.getState()
         expect(plots).toHaveLength(8) // 4 original + 4 new
@@ -48,7 +48,7 @@ describe('gameStore — buyTile creates plots', () => {
         const price = calcTilePrice(0)
         useGameStore.setState({ wheat: price })
 
-        useGameStore.getState().buyTile(adjacentCoord)
+        useGameStore.getState().buyTile(adjacentCoord, 'field', 'wheat')
 
         const { plots } = useGameStore.getState()
         const newPlots = plots.filter(
@@ -62,7 +62,7 @@ describe('gameStore — buyTile creates plots', () => {
         const price = calcTilePrice(0)
         useGameStore.setState({ wheat: price })
 
-        useGameStore.getState().buyTile(adjacentCoord)
+        useGameStore.getState().buyTile(adjacentCoord, 'field', 'wheat')
 
         const { plots } = useGameStore.getState()
         const newPlots = plots.filter(
@@ -76,7 +76,7 @@ describe('gameStore — buyTile creates plots', () => {
     it('does not create plots if purchase fails (not enough wheat)', () => {
         useGameStore.setState({ wheat: 0 })
 
-        useGameStore.getState().buyTile(adjacentCoord)
+        useGameStore.getState().buyTile(adjacentCoord, 'field', 'wheat')
 
         const { plots } = useGameStore.getState()
         expect(plots).toHaveLength(4) // only original plots

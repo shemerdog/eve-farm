@@ -1,23 +1,64 @@
 # TypeScript Best Practices Refactor Plan
 
+## Progress Update (2026-02-23)
+
+### Completed
+
+- Added ESLint flat config and enforced key TypeScript guardrails:
+    - `@typescript-eslint/explicit-function-return-type`
+    - `@typescript-eslint/explicit-module-boundary-types`
+    - `@typescript-eslint/consistent-type-imports`
+    - `@typescript-eslint/no-explicit-any`
+    - `prefer-const`
+- Modularized the game store:
+    - `src/store/gameStore.ts` is now a thin composer.
+    - Store logic extracted to `src/store/game/`:
+        - `state.ts`
+        - `plotActions.ts`
+        - `dilemmaActions.ts`
+        - `economyActions.ts`
+        - `migrations.ts`
+        - `storeTypes.ts`
+- Replaced persisted migration `as any` usage with `unknown` narrowing helpers in `migrations.ts`.
+- Split oversized tests by domain:
+    - `src/store/gameStore.economy.test.ts`
+    - `src/store/gameStore.dilemmas.test.ts`
+    - `src/store/gameStore.orchard.test.ts`
+    - `src/store/gameStore.migrations.test.ts`
+    - `src/components/PlotTile.orchard.test.tsx`
+- Added shared test utilities:
+    - `src/test-utils/gameStore.ts`
+- Documentation updated:
+    - `AGENTS.md`
+    - `CLAUDE.md`
+
+### Remaining
+
+- Further split still-large domain test files:
+    - `src/store/gameStore.orchard.test.ts` (>500 LOC)
+    - `src/store/gameStore.dilemmas.test.ts` (>500 LOC)
+- Decide and execute naming strategy for non-component files (kebab-case vs keep existing).
+- Perform broader immutability/SRP sweep outside already-refactored store boundaries.
+- Optional hardening: add explicit persisted-state validator/type alias (`PersistedGameState`) beyond current `unknown` narrowing.
+
 ## Goals
 
 - Align codebase with `TYPESCRIPT_BEST_PRACTICES.md` recommendations.
 - Reduce large files, improve modularity, and tighten typing.
 - Establish guardrails (lint rules + conventions) to prevent regression.
 
-## Snapshot (Key Gaps)
+## Snapshot (Updated)
 
-- File size guideline exceeded: `src/store/gameStore.ts` (637 lines) and several large test files (e.g., `src/store/gameStore.test.ts` 1970 lines, `src/components/PlotTile.test.tsx` 592 lines).
-- `any` usage in `src/store/gameStore.ts` (persisted state cast).
-- Mixed file naming conventions (camelCase for non-components vs recommended kebab-case).
-- No explicit global rule enforcing explicit function return types.
+- `src/store/gameStore.ts` is now small (composition only), but some split test files are still over the 500 LOC guideline.
+- Persist migration `any` cast has been removed; typed narrowing is in place.
+- Mixed file naming conventions remain (camelCase for non-components vs recommended kebab-case).
+- ESLint guardrails are now active; remaining work is mostly structural consistency and naming policy.
 
 ## Phase 1 Audit (Initial Findings)
 
 ### Guardrails / Tooling
 
-- No ESLint config file found (no `eslint.config.*` or `.eslintrc*`), so the current `npm run lint` cannot enforce TypeScript rules.
+- Completed: ESLint config exists and enforces the targeted TypeScript rules.
 
 ### Explicit Return Types (Exported Functions)
 
@@ -40,7 +81,7 @@
 
 ### `any` / Unsafe Types
 
-- `src/store/gameStore.ts` uses `as any` for persisted state rehydration.
+- Completed for store migration path: `as any` removed; migration uses `unknown` + narrowing helpers.
 
 ### `let` Usage (Const Candidates to Review)
 
@@ -51,9 +92,13 @@
 
 ### File Size (Over 500 LOC)
 
-- `src/store/gameStore.ts` (637)
-- `src/store/gameStore.test.ts` (1970)
-- `src/components/PlotTile.test.tsx` (592)
+- Remaining:
+    - `src/store/gameStore.orchard.test.ts` (still over 500)
+    - `src/store/gameStore.dilemmas.test.ts` (still over 500)
+- Completed:
+    - `src/store/gameStore.ts` reduced to thin composition layer
+    - `src/store/gameStore.test.ts` split by domain
+    - `src/components/PlotTile.test.tsx` split (`PlotTile.test.tsx` + `PlotTile.orchard.test.tsx`)
 
 ### Naming Conventions (File Names)
 
@@ -65,6 +110,7 @@
 
 ### Phase 1: Audit + Guardrails
 
+- Status: mostly completed.
 - Inventory functions lacking explicit return types and document targets.
 - Inventory `let` usages and confirm whether `const` can replace.
 - Inventory mutable updates in game/store logic and identify safe immutability improvements.
@@ -74,10 +120,11 @@
     - `@typescript-eslint/no-explicit-any`
     - `prefer-const`
     - `@typescript-eslint/explicit-module-boundary-types`
-- Define naming rules in `CLAUDE.md` or a short `CONTRIBUTING.md` section (file naming, casing, component file naming, type-only imports).
+- Define naming rules in `CLAUDE.md` or a short `CONTRIBUTING.md` section (file naming, casing, component file naming, type-only imports). (Partially done; still need final naming policy decision.)
 
 ### Phase 2: Modularize Large Files
 
+- Status: mostly completed.
 - Split `src/store/gameStore.ts` into feature slices:
     - `src/store/game/` with `actions.ts`, `selectors.ts`, `reducers.ts` (or `slice` pattern).
     - Keep the Zustand store composition in `src/store/gameStore.ts` and delegate logic.
@@ -88,6 +135,7 @@
 
 ### Phase 3: Remove `any` and Strengthen Types
 
+- Status: mostly completed.
 - Replace persisted state `as any` cast with a typed shape and runtime guards.
     - Introduce `type PersistedGameState = Pick<GameState, ...>` and a validator.
     - Use `unknown` for deserialization and narrow safely.
@@ -95,6 +143,7 @@
 
 ### Phase 4: Function Signatures and Parameters
 
+- Status: partially completed.
 - Add explicit return types for non-component functions in:
     - `src/game/` and `src/store/` helpers.
     - `src/hooks/` utilities.
@@ -103,6 +152,7 @@
 
 ### Phase 5: File and Directory Naming
 
+- Status: pending decision/execution.
 - Decide and execute naming standard changes for non-component files:
     - Option A (strict best practice): rename to kebab-case (e.g., `game-store.ts`).
     - Option B (minimal churn): keep existing file names but enforce within new files.
@@ -110,11 +160,13 @@
 
 ### Phase 6: Immutability and SRP Pass
 
+- Status: partially completed (store SRP improved; wider pass pending).
 - Identify direct mutations in `src/game/` and `src/store/` and refactor to pure updates.
 - Break long functions into smaller, single-responsibility helpers with explicit return types.
 
 ### Phase 7: Verification
 
+- Status: completed incrementally per refactor slice.
 - Run `npm test`, `npm run lint`, and `npm run build` after each major refactor.
 - Ensure no public API regressions for components and store interfaces.
 
