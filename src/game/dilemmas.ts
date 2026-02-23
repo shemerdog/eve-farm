@@ -32,6 +32,33 @@ export const ORLAH_DILEMMA: Dilemma = {
   ],
 };
 
+// Neta Revai: fourth-year fruit is holy and must be eaten in purity in Jerusalem.
+// Fires only on the 4th harvest cycle of an orchard plot (harvestCount === 3).
+export const NETA_REVAI_DILEMMA: Dilemma = {
+  id: "neta_revai",
+  title: "נֶטַע רְבָעִי — פְּרִי שְׁנַת הָרְבִיעִית",
+  narrative:
+    "הָעֵץ הִגִּיעַ לְשָׁנָתוֹ הָרְבִיעִית, וּפֵרוֹתָיו קֹדֶשׁ לַה׳. " +
+    "הַמָּסֹרֶת מְצַוָּה לְהַעֲלוֹת אֶת הַפֵּרוֹת לִירוּשָׁלַיִם " +
+    "וּלְאָכְלָם שָׁם בְּטָהֳרָה. מַה תַּעֲשֶׂה עִם הַיְּבוּל הַזֶּה?",
+  choices: [
+    {
+      label: "שְׁמֹר לְמַסַּע הַבָּא לִירוּשָׁלָיִם",
+      description:
+        "אַתָּה שׁוֹמֵר אֶת הַפֵּרוֹת לִמְסִירָתָם בְּטָהֳרָה בִּירוּשָׁלָיִם",
+      wheatCost: 0,
+      meterEffect: { faithfulness: 8, devotion: 5 },
+    },
+    {
+      label: "קַח אֶת הַפֵּרוֹת לְעַצְמְךָ",
+      description:
+        "אַתָּה לוֹקֵחַ אֶת הַפֵּרוֹת לְעַצְמְךָ בְּלִי לְהַקְדִּישָׁם",
+      wheatCost: 0,
+      meterEffect: { morality: -8, devotion: -5 },
+    },
+  ],
+};
+
 export const DILEMMAS: Dilemma[] = [
   {
     id: "peah",
@@ -113,4 +140,5 @@ export const DILEMMAS: Dilemma[] = [
     ],
   },
   ORLAH_DILEMMA,
+  NETA_REVAI_DILEMMA,
 ];

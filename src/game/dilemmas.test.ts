@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { DILEMMAS, ORLAH_DILEMMA } from "./dilemmas";
+import { DILEMMAS, NETA_REVAI_DILEMMA, ORLAH_DILEMMA } from "./dilemmas";
 
 describe("ORLAH_DILEMMA", () => {
   it("has id 'orlah'", () => {
@@ -73,6 +73,34 @@ describe("DILEMMAS — shikchah", () => {
       expect(choice.label).toBeTruthy();
       expect(choice.description).toBeTruthy();
     }
+  });
+});
+
+describe("NETA_REVAI_DILEMMA", () => {
+  it("has id 'neta_revai'", () => {
+    expect(NETA_REVAI_DILEMMA.id).toBe("neta_revai");
+  });
+
+  it("has exactly 2 choices", () => {
+    expect(NETA_REVAI_DILEMMA.choices).toHaveLength(2);
+  });
+
+  it("choice 0 has no wheat cost", () => {
+    expect(NETA_REVAI_DILEMMA.choices[0].wheatCost).toBe(0);
+  });
+
+  it("choice 0 gives faithfulness and devotion bonuses", () => {
+    expect(NETA_REVAI_DILEMMA.choices[0].meterEffect.faithfulness).toBe(8);
+    expect(NETA_REVAI_DILEMMA.choices[0].meterEffect.devotion).toBe(5);
+  });
+
+  it("choice 1 gives morality and devotion penalties", () => {
+    expect(NETA_REVAI_DILEMMA.choices[1].meterEffect.morality).toBe(-8);
+    expect(NETA_REVAI_DILEMMA.choices[1].meterEffect.devotion).toBe(-5);
+  });
+
+  it("is included in DILEMMAS array", () => {
+    expect(DILEMMAS.find((d) => d.id === "neta_revai")).toBeDefined();
   });
 });
 
