@@ -1,8 +1,11 @@
-// PlotState: 'planted' is dropped — planting goes directly to 'growing'.
-// This removes a transient state with no distinct visual behavior.
+// PlotState: orchards use planted→fertilized→tended→(thinned for grapes)→growing.
+// Fields (wheat, barley) use plowed→growing directly.
 export type PlotState =
   | "empty"
   | "plowed"
+  | "planted" // orchard first cycle: vine/tree just planted
+  | "fertilized" // orchard: after fertilizing (every cycle)
+  | "tended" // orchard: after pruning/tending (grapes need thinning next)
   | "growing"
   | "ready"
   | "harvested"
@@ -20,6 +23,9 @@ export type Plot = {
   growthDuration: number; // ms, from constants — kept per-plot for future tuning
   tileCoord: TileCoord; // which map tile this plot belongs to
   cropType: CropType; // what crop grows on this plot
+  hasBeenPlanted: boolean; // orchard: true after first plantOrchard; skips plant step on subsequent cycles
+  nextActionAt: number | null; // null = action available now; timestamp = locked until this time
+  harvestCount: number; // increments each harvest(); used to gate ORLAH (cycles 1–3) and NETA_REVAI (cycle 4)
 };
 
 export type MeterValues = {
@@ -56,6 +62,8 @@ export type GameState = {
   activeDilemma: Dilemma | null;
   // Which crop type triggered the current dilemma (set alongside activeDilemma)
   activeDilemmaContext: CropType | null;
+  // plotId that triggered the active dilemma; used by resolveDilemma to reset the plot on skip-gather choices
+  activePlotId: string | null;
   purchasedCoords: TileCoord[]; // tiles the player has bought; drives price formula via .length
   tileCategories: Record<string, TileCategory>; // keyed by "col_row"; defaults to "farm"
   // Keyed by "<dilemmaId>:<cropType>" (e.g. "peah:wheat", "shikchah:barley"); only field-crop dilemmas are saveable
