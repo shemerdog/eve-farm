@@ -94,6 +94,19 @@ describe("tickPlot", () => {
     const result = tickPlot(plot, now);
     expect(result).toBe(plot);
   });
+
+  it("does not modify harvestCount", () => {
+    const now = Date.now();
+    const plot = makePlot({
+      plantedAt: now - 5_000,
+      growthDuration: 10_000,
+      cropType: "grapes",
+      hasBeenPlanted: true,
+      harvestCount: 7,
+    });
+    const result = tickPlot(plot, now);
+    expect(result.harvestCount).toBe(7);
+  });
 });
 
 describe("tickPlot — nextActionAt unlock", () => {
