@@ -106,6 +106,7 @@ const initialState: GameState = {
   purchasedCoords: [],
   tileCategories: {},
   savedFieldDecisions: {},
+  encounteredDilemmas: [],
 };
 
 type Actions = {
@@ -120,6 +121,7 @@ type Actions = {
   harvest: (plotId: string) => void;
   gatherSheafs: (plotId: string) => void;
   resolveDilemma: (choiceIndex: number, save?: boolean) => void;
+  toggleDecisionEnabled: (key: string) => void;
   resetPlot: (plotId: string) => void;
   buyTile: (
     coord: TileCoord,
@@ -259,10 +261,17 @@ export const useGameStore = create<GameState & Actions>()(
         // Auto-resolve PEAH for wheat/barley when a saved decision exists
         const isFieldCropHarvest =
           plot.cropType === "wheat" || plot.cropType === "barley";
+
+        // Track encounter for PEAH dilemma
+        const peahKey = `peah:${plot.cropType}`;
+        const newEncounteredDilemmas =
+          isFieldCropHarvest && !state.encounteredDilemmas.includes(peahKey)
+            ? [...state.encounteredDilemmas, peahKey]
+            : state.encounteredDilemmas;
+
         if (isFieldCropHarvest && state.activeDilemma === null) {
-          const peahKey = `peah:${plot.cropType}`;
           const saved = state.savedFieldDecisions[peahKey];
-          if (saved && saved.cyclesRemaining > 0) {
+          if (saved && saved.cyclesRemaining > 0 && saved.enabled) {
             const { wheat, meters } = applyDilemmaChoice(
               PEAH_DILEMMA,
               saved.choiceIndex,
@@ -277,6 +286,7 @@ export const useGameStore = create<GameState & Actions>()(
                 state.savedFieldDecisions,
                 peahKey,
               ),
+              encounteredDilemmas: newEncounteredDilemmas,
             });
             setTimeout(() => get().resetPlot(plotId), 600);
             return;
@@ -285,7 +295,10 @@ export const useGameStore = create<GameState & Actions>()(
 
         // Orchard with no dilemma (cycle 5+): just advance to harvested then reset
         if (isOrchard && dilemmaToShow === null) {
-          set({ plots: plotsUpdated });
+          set({
+            plots: plotsUpdated,
+            encounteredDilemmas: newEncounteredDilemmas,
+          });
           setTimeout(() => get().resetPlot(plotId), 600);
           return;
         }
@@ -299,6 +312,7 @@ export const useGameStore = create<GameState & Actions>()(
               ? plot.cropType
               : s.activeDilemmaContext,
           activePlotId: state.activeDilemma === null ? plotId : s.activePlotId,
+          encounteredDilemmas: newEncounteredDilemmas,
         }));
 
         // Transition harvested → gathered after animation window (600ms)
@@ -321,6 +335,13 @@ export const useGameStore = create<GameState & Actions>()(
           plot.cropType === "wheat" || plot.cropType === "barley";
         const triggerShikchah = isFieldCrop && state.activeDilemma === null;
 
+        // Track encounter for SHIKCHAH dilemma
+        const shikchahKey = `shikchah:${plot.cropType}`;
+        const newEncounteredDilemmas =
+          triggerShikchah && !state.encounteredDilemmas.includes(shikchahKey)
+            ? [...state.encounteredDilemmas, shikchahKey]
+            : state.encounteredDilemmas;
+
         const plotsReset = state.plots.map((p) =>
           p.id === plotId
             ? { ...p, state: "empty" as const, plantedAt: null }
@@ -339,9 +360,8 @@ export const useGameStore = create<GameState & Actions>()(
 
         // Auto-resolve SHIKCHAH when a saved decision exists for field crops
         if (triggerShikchah) {
-          const shikchahKey = `shikchah:${plot.cropType}`;
           const saved = state.savedFieldDecisions[shikchahKey];
-          if (saved && saved.cyclesRemaining > 0) {
+          if (saved && saved.cyclesRemaining > 0 && saved.enabled) {
             const { wheat, meters } = applyDilemmaChoice(
               SHIKCHAH_DILEMMA,
               saved.choiceIndex,
@@ -358,6 +378,7 @@ export const useGameStore = create<GameState & Actions>()(
                 state.savedFieldDecisions,
                 shikchahKey,
               ),
+              encounteredDilemmas: newEncounteredDilemmas,
             });
             return;
           }
@@ -374,6 +395,7 @@ export const useGameStore = create<GameState & Actions>()(
           activeDilemmaContext: triggerShikchah
             ? plot.cropType
             : s.activeDilemmaContext,
+          encounteredDilemmas: newEncounteredDilemmas,
         }));
       },
 
@@ -408,7 +430,7 @@ export const useGameStore = create<GameState & Actions>()(
           save && isSaveable && activeDilemmaContext
             ? {
                 ...savedFieldDecisions,
-                [saveKey]: { choiceIndex, cyclesRemaining: 5 },
+                [saveKey]: { choiceIndex, cyclesRemaining: 5, enabled: true },
               }
             : savedFieldDecisions;
 
@@ -435,6 +457,19 @@ export const useGameStore = create<GameState & Actions>()(
           activeDilemmaContext: null,
           activePlotId: null,
           savedFieldDecisions: newSavedDecisions,
+        });
+      },
+
+      toggleDecisionEnabled: (key) => {
+        set((s) => {
+          const entry = s.savedFieldDecisions[key];
+          if (!entry) return s;
+          return {
+            savedFieldDecisions: {
+              ...s.savedFieldDecisions,
+              [key]: { ...entry, enabled: !entry.enabled },
+            },
+          };
         });
       },
 
@@ -478,7 +513,7 @@ export const useGameStore = create<GameState & Actions>()(
     }),
     {
       name: "eve-game-state",
-      version: 11,
+      version: 12,
       // Only persist the data fields, not the action functions
       partialize: (state) => ({
         plots: state.plots,
@@ -492,6 +527,7 @@ export const useGameStore = create<GameState & Actions>()(
         purchasedCoords: state.purchasedCoords,
         tileCategories: state.tileCategories,
         savedFieldDecisions: state.savedFieldDecisions,
+        encounteredDilemmas: state.encounteredDilemmas,
       }),
       migrate: (persisted, version) => {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -583,6 +619,16 @@ export const useGameStore = create<GameState & Actions>()(
             ...p,
             harvestCount: p.harvestCount ?? 0,
           }));
+        }
+        if (version < 12) {
+          state.encounteredDilemmas = state.encounteredDilemmas ?? [];
+          const sfd = state.savedFieldDecisions ?? {};
+          for (const key of Object.keys(sfd)) {
+            if (sfd[key].enabled === undefined) {
+              sfd[key] = { ...sfd[key], enabled: true };
+            }
+          }
+          state.savedFieldDecisions = sfd;
         }
         return state as GameState;
       },

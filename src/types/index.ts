@@ -51,6 +51,7 @@ export type Dilemma = {
 export type SavedFieldDecision = {
   choiceIndex: number;
   cyclesRemaining: number; // counts down from 5; entry removed when it reaches 0
+  enabled: boolean; // when false, auto-resolve is skipped (dilemma shows modal)
 };
 
 export type GameState = {
@@ -68,6 +69,7 @@ export type GameState = {
   tileCategories: Record<string, TileCategory>; // keyed by "col_row"; defaults to "farm"
   // Keyed by "<dilemmaId>:<cropType>" (e.g. "peah:wheat", "shikchah:barley"); only field-crop dilemmas are saveable
   savedFieldDecisions: Record<string, SavedFieldDecision>;
+  encounteredDilemmas: string[]; // e.g. ["peah:wheat", "shikchah:barley"]
 };
 
 // ── World Map ────────────────────────────────────────────────────────────────

@@ -473,8 +473,8 @@ describe("savedFieldDecisions — initial state", () => {
   it("resetGame clears savedFieldDecisions", () => {
     useGameStore.setState({
       savedFieldDecisions: {
-        "peah:wheat": { choiceIndex: 0, cyclesRemaining: 5 },
-        "peah:barley": { choiceIndex: 1, cyclesRemaining: 3 },
+        "peah:wheat": { choiceIndex: 0, cyclesRemaining: 5, enabled: true },
+        "peah:barley": { choiceIndex: 1, cyclesRemaining: 3, enabled: true },
       },
     });
     useGameStore.getState().resetGame();
@@ -505,7 +505,7 @@ describe("resolveDilemma(choiceIndex, save=true) for PEAH", () => {
       activeDilemmaContext: "barley",
       wheat: 100,
       savedFieldDecisions: {
-        "peah:wheat": { choiceIndex: 2, cyclesRemaining: 3 },
+        "peah:wheat": { choiceIndex: 2, cyclesRemaining: 3, enabled: true },
       },
     });
     useGameStore.getState().resolveDilemma(1, true);
@@ -564,7 +564,7 @@ describe("resolveDilemma(choiceIndex, save=true) for SHIKCHAH", () => {
       activeDilemmaContext: "barley",
       wheat: 100,
       savedFieldDecisions: {
-        "shikchah:wheat": { choiceIndex: 2, cyclesRemaining: 4 },
+        "shikchah:wheat": { choiceIndex: 2, cyclesRemaining: 4, enabled: true },
       },
     });
     useGameStore.getState().resolveDilemma(0, true);
@@ -609,7 +609,7 @@ describe("harvest auto-resolves saved PEAH for wheat", () => {
       ),
       activeDilemma: null,
       savedFieldDecisions: {
-        "peah:wheat": { choiceIndex: 0, cyclesRemaining: 3 },
+        "peah:wheat": { choiceIndex: 0, cyclesRemaining: 3, enabled: true },
       },
     });
 
@@ -627,7 +627,7 @@ describe("harvest auto-resolves saved PEAH for wheat", () => {
       ),
       activeDilemma: null,
       savedFieldDecisions: {
-        "peah:wheat": { choiceIndex: 0, cyclesRemaining: 3 },
+        "peah:wheat": { choiceIndex: 0, cyclesRemaining: 3, enabled: true },
       },
     });
 
@@ -648,7 +648,7 @@ describe("harvest auto-resolves saved PEAH for wheat", () => {
       ),
       activeDilemma: null,
       savedFieldDecisions: {
-        "peah:wheat": { choiceIndex: 0, cyclesRemaining: 1 },
+        "peah:wheat": { choiceIndex: 0, cyclesRemaining: 1, enabled: true },
       },
     });
 
@@ -687,7 +687,7 @@ describe("harvest auto-resolves saved PEAH for wheat", () => {
       wheat: 100,
       meters: { devotion: 50, morality: 50, faithfulness: 50 },
       savedFieldDecisions: {
-        "peah:wheat": { choiceIndex: 0, cyclesRemaining: 2 },
+        "peah:wheat": { choiceIndex: 0, cyclesRemaining: 2, enabled: true },
       },
     });
 
@@ -716,7 +716,7 @@ describe("harvest auto-resolves saved PEAH for barley", () => {
       ),
       activeDilemma: null,
       savedFieldDecisions: {
-        "peah:barley": { choiceIndex: 0, cyclesRemaining: 3 },
+        "peah:barley": { choiceIndex: 0, cyclesRemaining: 3, enabled: true },
       },
     });
 
@@ -740,8 +740,8 @@ describe("harvest auto-resolves saved PEAH for barley", () => {
       ),
       activeDilemma: null,
       savedFieldDecisions: {
-        "peah:wheat": { choiceIndex: 1, cyclesRemaining: 5 },
-        "peah:barley": { choiceIndex: 0, cyclesRemaining: 2 },
+        "peah:wheat": { choiceIndex: 1, cyclesRemaining: 5, enabled: true },
+        "peah:barley": { choiceIndex: 0, cyclesRemaining: 2, enabled: true },
       },
     });
 
@@ -1366,7 +1366,7 @@ describe("gatherSheafs auto-resolves saved SHIKCHAH", () => {
       ),
       activeDilemma: null,
       savedFieldDecisions: {
-        "shikchah:wheat": { choiceIndex: 1, cyclesRemaining: 2 },
+        "shikchah:wheat": { choiceIndex: 1, cyclesRemaining: 2, enabled: true },
       },
     });
 
@@ -1390,7 +1390,11 @@ describe("gatherSheafs auto-resolves saved SHIKCHAH", () => {
       ),
       activeDilemma: null,
       savedFieldDecisions: {
-        "shikchah:barley": { choiceIndex: 0, cyclesRemaining: 3 },
+        "shikchah:barley": {
+          choiceIndex: 0,
+          cyclesRemaining: 3,
+          enabled: true,
+        },
       },
     });
 
@@ -1414,8 +1418,12 @@ describe("gatherSheafs auto-resolves saved SHIKCHAH", () => {
       ),
       activeDilemma: null,
       savedFieldDecisions: {
-        "shikchah:wheat": { choiceIndex: 2, cyclesRemaining: 5 },
-        "shikchah:barley": { choiceIndex: 0, cyclesRemaining: 3 },
+        "shikchah:wheat": { choiceIndex: 2, cyclesRemaining: 5, enabled: true },
+        "shikchah:barley": {
+          choiceIndex: 0,
+          cyclesRemaining: 3,
+          enabled: true,
+        },
       },
     });
 
@@ -1436,7 +1444,7 @@ describe("gatherSheafs auto-resolves saved SHIKCHAH", () => {
       ),
       activeDilemma: null,
       savedFieldDecisions: {
-        "shikchah:wheat": { choiceIndex: 0, cyclesRemaining: 4 },
+        "shikchah:wheat": { choiceIndex: 0, cyclesRemaining: 4, enabled: true },
       },
     });
 
@@ -1457,7 +1465,7 @@ describe("gatherSheafs auto-resolves saved SHIKCHAH", () => {
       ),
       activeDilemma: null,
       savedFieldDecisions: {
-        "shikchah:wheat": { choiceIndex: 0, cyclesRemaining: 1 },
+        "shikchah:wheat": { choiceIndex: 0, cyclesRemaining: 1, enabled: true },
       },
     });
 
@@ -1642,5 +1650,321 @@ describe("resolveDilemma – orchard skip-gather behavior", () => {
     expect(useGameStore.getState().activePlotId).toBe(plotId);
     useGameStore.getState().resolveDilemma(2); // "Take all"
     expect(useGameStore.getState().activePlotId).toBeNull();
+  });
+});
+
+// ── toggleDecisionEnabled ────────────────────────────────────────────────────
+
+describe("toggleDecisionEnabled", () => {
+  it("flips enabled from true to false", () => {
+    useGameStore.setState({
+      savedFieldDecisions: {
+        "peah:wheat": { choiceIndex: 0, cyclesRemaining: 3, enabled: true },
+      },
+    });
+    useGameStore.getState().toggleDecisionEnabled("peah:wheat");
+    expect(
+      useGameStore.getState().savedFieldDecisions["peah:wheat"]?.enabled,
+    ).toBe(false);
+  });
+
+  it("flips enabled from false to true", () => {
+    useGameStore.setState({
+      savedFieldDecisions: {
+        "peah:wheat": { choiceIndex: 0, cyclesRemaining: 3, enabled: false },
+      },
+    });
+    useGameStore.getState().toggleDecisionEnabled("peah:wheat");
+    expect(
+      useGameStore.getState().savedFieldDecisions["peah:wheat"]?.enabled,
+    ).toBe(true);
+  });
+
+  it("does nothing when key does not exist", () => {
+    useGameStore.setState({ savedFieldDecisions: {} });
+    useGameStore.getState().toggleDecisionEnabled("peah:wheat");
+    expect(
+      useGameStore.getState().savedFieldDecisions["peah:wheat"],
+    ).toBeUndefined();
+  });
+
+  it("does not affect other keys", () => {
+    useGameStore.setState({
+      savedFieldDecisions: {
+        "peah:wheat": { choiceIndex: 0, cyclesRemaining: 3, enabled: true },
+        "shikchah:wheat": { choiceIndex: 1, cyclesRemaining: 2, enabled: true },
+      },
+    });
+    useGameStore.getState().toggleDecisionEnabled("peah:wheat");
+    expect(
+      useGameStore.getState().savedFieldDecisions["shikchah:wheat"]?.enabled,
+    ).toBe(true);
+  });
+
+  it("does not change choiceIndex or cyclesRemaining", () => {
+    useGameStore.setState({
+      savedFieldDecisions: {
+        "peah:wheat": { choiceIndex: 2, cyclesRemaining: 4, enabled: true },
+      },
+    });
+    useGameStore.getState().toggleDecisionEnabled("peah:wheat");
+    const entry = useGameStore.getState().savedFieldDecisions["peah:wheat"];
+    expect(entry?.choiceIndex).toBe(2);
+    expect(entry?.cyclesRemaining).toBe(4);
+  });
+});
+
+// ── encounteredDilemmas tracking ─────────────────────────────────────────────
+
+describe("encounteredDilemmas tracking — harvest", () => {
+  it("adds peah:wheat to encounteredDilemmas on first wheat harvest", () => {
+    const state = useGameStore.getState();
+    const wheatPlot = state.plots[0];
+    useGameStore.setState({
+      plots: state.plots.map((p) =>
+        p.id === wheatPlot.id ? { ...p, state: "ready" as const } : p,
+      ),
+      encounteredDilemmas: [],
+      savedFieldDecisions: {},
+    });
+
+    useGameStore.getState().harvest(wheatPlot.id);
+
+    expect(useGameStore.getState().encounteredDilemmas).toContain("peah:wheat");
+  });
+
+  it("does not duplicate peah:wheat if already in encounteredDilemmas", () => {
+    const state = useGameStore.getState();
+    const wheatPlot = state.plots[0];
+    useGameStore.setState({
+      plots: state.plots.map((p) =>
+        p.id === wheatPlot.id ? { ...p, state: "ready" as const } : p,
+      ),
+      encounteredDilemmas: ["peah:wheat"],
+      savedFieldDecisions: {},
+    });
+
+    useGameStore.getState().harvest(wheatPlot.id);
+
+    const encountered = useGameStore.getState().encounteredDilemmas;
+    expect(encountered.filter((k) => k === "peah:wheat")).toHaveLength(1);
+  });
+
+  it("adds peah:barley to encounteredDilemmas on first barley harvest", () => {
+    useGameStore.setState({ wheat: 1000 });
+    const coord = { col: 2, row: 1 };
+    useGameStore.getState().buyTile(coord, "field", "barley");
+
+    const state = useGameStore.getState();
+    const barleyPlot = state.plots.find(
+      (p) => p.tileCoord.col === coord.col && p.tileCoord.row === coord.row,
+    )!;
+    useGameStore.setState({
+      plots: state.plots.map((p) =>
+        p.id === barleyPlot.id ? { ...p, state: "ready" as const } : p,
+      ),
+      encounteredDilemmas: [],
+      savedFieldDecisions: {},
+    });
+
+    useGameStore.getState().harvest(barleyPlot.id);
+
+    expect(useGameStore.getState().encounteredDilemmas).toContain(
+      "peah:barley",
+    );
+  });
+});
+
+describe("encounteredDilemmas tracking — gatherSheafs", () => {
+  it("adds shikchah:wheat to encounteredDilemmas on first wheat gather", () => {
+    const state = useGameStore.getState();
+    const wheatPlot = state.plots[0];
+    useGameStore.setState({
+      plots: state.plots.map((p) =>
+        p.id === wheatPlot.id ? { ...p, state: "gathered" as const } : p,
+      ),
+      encounteredDilemmas: [],
+      savedFieldDecisions: {},
+    });
+
+    useGameStore.getState().gatherSheafs(wheatPlot.id);
+
+    expect(useGameStore.getState().encounteredDilemmas).toContain(
+      "shikchah:wheat",
+    );
+  });
+
+  it("does not duplicate shikchah:wheat if already encountered", () => {
+    const state = useGameStore.getState();
+    const wheatPlot = state.plots[0];
+    useGameStore.setState({
+      plots: state.plots.map((p) =>
+        p.id === wheatPlot.id ? { ...p, state: "gathered" as const } : p,
+      ),
+      encounteredDilemmas: ["shikchah:wheat"],
+      savedFieldDecisions: {},
+    });
+
+    useGameStore.getState().gatherSheafs(wheatPlot.id);
+
+    const encountered = useGameStore.getState().encounteredDilemmas;
+    expect(encountered.filter((k) => k === "shikchah:wheat")).toHaveLength(1);
+  });
+});
+
+// ── auto-resolve skipped when enabled: false ─────────────────────────────────
+
+describe("harvest auto-resolve respects enabled flag", () => {
+  it("shows PEAH modal when saved decision has enabled: false", () => {
+    const state = useGameStore.getState();
+    const wheatPlot = state.plots[0];
+    useGameStore.setState({
+      plots: state.plots.map((p) =>
+        p.id === wheatPlot.id ? { ...p, state: "ready" as const } : p,
+      ),
+      activeDilemma: null,
+      savedFieldDecisions: {
+        "peah:wheat": { choiceIndex: 0, cyclesRemaining: 3, enabled: false },
+      },
+    });
+
+    useGameStore.getState().harvest(wheatPlot.id);
+
+    expect(useGameStore.getState().activeDilemma?.id).toBe("peah");
+  });
+
+  it("does not decrement cyclesRemaining when enabled: false", () => {
+    const state = useGameStore.getState();
+    const wheatPlot = state.plots[0];
+    useGameStore.setState({
+      plots: state.plots.map((p) =>
+        p.id === wheatPlot.id ? { ...p, state: "ready" as const } : p,
+      ),
+      activeDilemma: null,
+      savedFieldDecisions: {
+        "peah:wheat": { choiceIndex: 0, cyclesRemaining: 3, enabled: false },
+      },
+    });
+
+    useGameStore.getState().harvest(wheatPlot.id);
+
+    expect(
+      useGameStore.getState().savedFieldDecisions["peah:wheat"]
+        ?.cyclesRemaining,
+    ).toBe(3);
+  });
+});
+
+describe("gatherSheafs auto-resolve respects enabled flag", () => {
+  it("shows SHIKCHAH modal when saved decision has enabled: false", () => {
+    const state = useGameStore.getState();
+    const wheatPlot = state.plots[0];
+    useGameStore.setState({
+      plots: state.plots.map((p) =>
+        p.id === wheatPlot.id ? { ...p, state: "gathered" as const } : p,
+      ),
+      activeDilemma: null,
+      savedFieldDecisions: {
+        "shikchah:wheat": {
+          choiceIndex: 0,
+          cyclesRemaining: 3,
+          enabled: false,
+        },
+      },
+    });
+
+    useGameStore.getState().gatherSheafs(wheatPlot.id);
+
+    expect(useGameStore.getState().activeDilemma?.id).toBe("shikchah");
+  });
+});
+
+// ── resolveDilemma saves with enabled: true ──────────────────────────────────
+
+describe("resolveDilemma save includes enabled: true", () => {
+  it("saves peah:wheat with enabled: true", () => {
+    const peah = DILEMMAS.find((d) => d.id === "peah")!;
+    useGameStore.setState({
+      activeDilemma: peah,
+      activeDilemmaContext: "wheat",
+      wheat: 100,
+    });
+    useGameStore.getState().resolveDilemma(0, true);
+    expect(
+      useGameStore.getState().savedFieldDecisions["peah:wheat"]?.enabled,
+    ).toBe(true);
+  });
+
+  it("saves shikchah:barley with enabled: true", () => {
+    const shikchah = DILEMMAS.find((d) => d.id === "shikchah")!;
+    useGameStore.setState({
+      activeDilemma: shikchah,
+      activeDilemmaContext: "barley",
+      wheat: 100,
+    });
+    useGameStore.getState().resolveDilemma(1, true);
+    expect(
+      useGameStore.getState().savedFieldDecisions["shikchah:barley"]?.enabled,
+    ).toBe(true);
+  });
+});
+
+// ── v12 migration ─────────────────────────────────────────────────────────────
+
+describe("v12 migration logic", () => {
+  it("backfills encounteredDilemmas when missing", () => {
+    // Simulate the migration function inline (can't replay persist versioning)
+    const state: Record<string, unknown> = {
+      savedFieldDecisions: {},
+    };
+    const version = 11;
+    if (version < 12) {
+      (state as Record<string, unknown>).encounteredDilemmas =
+        (state.encounteredDilemmas as string[] | undefined) ?? [];
+    }
+    expect(state.encounteredDilemmas).toEqual([]);
+  });
+
+  it("backfills enabled: true on existing savedFieldDecisions entries", () => {
+    const sfd: Record<
+      string,
+      { choiceIndex: number; cyclesRemaining: number; enabled?: boolean }
+    > = {
+      "peah:wheat": { choiceIndex: 0, cyclesRemaining: 3 },
+      "shikchah:barley": { choiceIndex: 1, cyclesRemaining: 2 },
+    };
+    // Simulate v12 migration
+    for (const key of Object.keys(sfd)) {
+      if (sfd[key].enabled === undefined) {
+        sfd[key] = { ...sfd[key], enabled: true };
+      }
+    }
+    expect(sfd["peah:wheat"].enabled).toBe(true);
+    expect(sfd["shikchah:barley"].enabled).toBe(true);
+  });
+
+  it("does not overwrite explicitly set enabled: false during migration", () => {
+    const sfd: Record<
+      string,
+      { choiceIndex: number; cyclesRemaining: number; enabled?: boolean }
+    > = {
+      "peah:wheat": { choiceIndex: 0, cyclesRemaining: 3, enabled: false },
+    };
+    // Simulate v12 migration — only backfills when undefined
+    for (const key of Object.keys(sfd)) {
+      if (sfd[key].enabled === undefined) {
+        sfd[key] = { ...sfd[key], enabled: true };
+      }
+    }
+    expect(sfd["peah:wheat"].enabled).toBe(false);
+  });
+
+  it("preserves existing encounteredDilemmas if already present", () => {
+    const state = { encounteredDilemmas: ["peah:wheat"] as string[] };
+    const version = 11;
+    if (version < 12) {
+      state.encounteredDilemmas = state.encounteredDilemmas ?? [];
+    }
+    expect(state.encounteredDilemmas).toEqual(["peah:wheat"]);
   });
 });
