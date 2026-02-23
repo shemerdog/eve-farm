@@ -2,6 +2,13 @@
 
 ## Progress Update (2026-02-23)
 
+### Readiness Check (2026-02-23)
+
+- `npm run lint` passes.
+- `npm test` passes (17 files, 304 tests).
+- `npm run build` passes (TypeScript + Vite production build).
+- Store composition and migrations are stable; no immediate functional blockers found.
+
 ### Completed
 
 - Added ESLint flat config and enforced key TypeScript guardrails:
@@ -37,6 +44,7 @@
 - Further split still-large domain test files:
     - `src/store/gameStore.orchard.test.ts` (>500 LOC)
     - `src/store/gameStore.dilemmas.test.ts` (>500 LOC)
+- Define and execute the next split target (recommended first target: `src/store/gameStore.orchard.test.ts`).
 - Decide and execute naming strategy for non-component files (kebab-case vs keep existing).
 - Perform broader immutability/SRP sweep outside already-refactored store boundaries.
 - Optional hardening: add explicit persisted-state validator/type alias (`PersistedGameState`) beyond current `unknown` narrowing.
@@ -85,7 +93,7 @@
 
 ### `let` Usage (Const Candidates to Review)
 
-- `src/store/gameStore.ts:239` (`let dilemmaToShow`)
+- `src/store/game/dilemmaActions.ts:66` (`let dilemmaToShow`)
 - `src/hooks/usePan.ts:33` (`let rafId`)
 - `src/hooks/usePan.ts:125` (`const wasDragging` is already const; no action)
 - Tests: `src/components/DecisionsPanel.test.tsx` uses module-level `let` for mutable mocks.
@@ -166,7 +174,7 @@
 
 ### Phase 7: Verification
 
-- Status: completed incrementally per refactor slice.
+- Status: completed incrementally per refactor slice, including full readiness check on 2026-02-23.
 - Run `npm test`, `npm run lint`, and `npm run build` after each major refactor.
 - Ensure no public API regressions for components and store interfaces.
 

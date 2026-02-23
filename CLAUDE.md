@@ -25,6 +25,12 @@ Design documents:
 - `POC_SCAFFOLD.md` — POC scope, core loop, success criteria
 - `research-township.md` — Genre research on Township-style games
 
+Plan document lifecycle:
+
+- `ai-docs/plans/backlog/` stores plans for future implementation.
+- Move a plan to `ai-docs/plans/active/` when execution starts.
+- Move a plan to `ai-docs/plans/completed/` after implementation is complete.
+
 ## Tech Stack
 
 - **Vite 7 + React 19 + TypeScript** (strict mode)
