@@ -381,9 +381,11 @@ export const useGameStore = create<GameState & Actions>()(
         const {
           activeDilemma,
           activeDilemmaContext,
+          activePlotId,
           wheat,
           meters,
           savedFieldDecisions,
+          plots,
         } = get();
         if (!activeDilemma) return;
 
@@ -410,11 +412,28 @@ export const useGameStore = create<GameState & Actions>()(
               }
             : savedFieldDecisions;
 
+        // Choice 0 for ORLAH ("Leave the fruit") and NETA_REVAI ("Save for Jerusalem"):
+        // skip gather entirely — reset the triggering plot to empty (fertilize stage next).
+        const skipGatherAndReset =
+          (activeDilemma.id === "orlah" && choiceIndex === 0) ||
+          (activeDilemma.id === "neta_revai" && choiceIndex === 0);
+
+        const updatedPlots =
+          skipGatherAndReset && activePlotId
+            ? plots.map((p) =>
+                p.id === activePlotId
+                  ? { ...p, state: "empty" as const, plantedAt: null }
+                  : p,
+              )
+            : plots;
+
         set({
+          plots: updatedPlots,
           wheat: newWheat,
           meters: newMeters,
           activeDilemma: null,
           activeDilemmaContext: null,
+          activePlotId: null,
           savedFieldDecisions: newSavedDecisions,
         });
       },

@@ -1580,3 +1580,67 @@ describe("harvest – orchard cycle gating", () => {
     expect(useGameStore.getState().activeDilemma?.id).toBe("peah");
   });
 });
+
+describe("resolveDilemma – orchard skip-gather behavior", () => {
+  it("ORLAH choice 0 resets plot to empty immediately, no grapes added", () => {
+    const plotId = setupOrchardPlot(0);
+    useGameStore.getState().harvest(plotId);
+    expect(useGameStore.getState().activeDilemma?.id).toBe("orlah");
+
+    useGameStore.getState().resolveDilemma(0); // "Leave the fruit"
+
+    const plot = useGameStore.getState().plots.find((p) => p.id === plotId);
+    expect(plot?.state).toBe("empty");
+    expect(plot?.plantedAt).toBeNull();
+    expect(useGameStore.getState().grapes).toBe(0);
+    expect(useGameStore.getState().activePlotId).toBeNull();
+    expect(useGameStore.getState().activeDilemma).toBeNull();
+  });
+
+  it("ORLAH choice 0 keeps hasBeenPlanted true (fertilize available next)", () => {
+    const plotId = setupOrchardPlot(0);
+    useGameStore.getState().harvest(plotId);
+    useGameStore.getState().resolveDilemma(0);
+    const plot = useGameStore.getState().plots.find((p) => p.id === plotId);
+    expect(plot?.hasBeenPlanted).toBe(true);
+  });
+
+  it("ORLAH choice 1 does not reset plot — gather step still needed", () => {
+    const plotId = setupOrchardPlot(0);
+    useGameStore.getState().harvest(plotId);
+    useGameStore.getState().resolveDilemma(1); // "Take half"
+    const plot = useGameStore.getState().plots.find((p) => p.id === plotId);
+    // plot is "harvested" still (600ms timer hasn't fired in unit test)
+    expect(plot?.state).toBe("harvested");
+    expect(useGameStore.getState().activePlotId).toBeNull();
+  });
+
+  it("NETA_REVAI choice 0 resets plot to empty, no grapes added", () => {
+    const plotId = setupOrchardPlot(3);
+    useGameStore.getState().harvest(plotId);
+    expect(useGameStore.getState().activeDilemma?.id).toBe("neta_revai");
+
+    useGameStore.getState().resolveDilemma(0); // "Save for Jerusalem"
+
+    const plot = useGameStore.getState().plots.find((p) => p.id === plotId);
+    expect(plot?.state).toBe("empty");
+    expect(useGameStore.getState().grapes).toBe(0);
+    expect(useGameStore.getState().activePlotId).toBeNull();
+  });
+
+  it("NETA_REVAI choice 1 does not reset plot — gather step still needed", () => {
+    const plotId = setupOrchardPlot(3);
+    useGameStore.getState().harvest(plotId);
+    useGameStore.getState().resolveDilemma(1); // "Take the fruit"
+    const plot = useGameStore.getState().plots.find((p) => p.id === plotId);
+    expect(plot?.state).toBe("harvested");
+  });
+
+  it("activePlotId is cleared on every resolveDilemma call", () => {
+    const plotId = setupOrchardPlot(0);
+    useGameStore.getState().harvest(plotId);
+    expect(useGameStore.getState().activePlotId).toBe(plotId);
+    useGameStore.getState().resolveDilemma(2); // "Take all"
+    expect(useGameStore.getState().activePlotId).toBeNull();
+  });
+});
