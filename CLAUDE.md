@@ -2,6 +2,12 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## MCP Tools
+
+Always use:
+- **Serena** for semantic code retrieval and editing (symbol lookup, find references, replace symbol bodies)
+- **Context7** for up-to-date documentation on third-party libraries and frameworks
+
 ## Project Overview
 
 **Eve** is a Township-style farming game that reconnects players with ancient Jewish/Israelite heritage through casual farming mechanics and ethical dilemmas. The tone is warm, welcoming, and non-dogmatic — cultural heritage made approachable without strict religious framing.
@@ -10,7 +16,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Current State
 
-POC is implemented and building. The full core loop is wired: plant → grow → harvest → dilemma → meters. Run with `npm run dev`. Test with `npm test`.
+POC is implemented and building. The full core loop is wired: plow → sow → grow → harvest → gather → dilemma → meters. Run with `npm run dev`. Test with `npm test`.
 
 Design documents:
 - `poc-actionable-plan.md` — step-by-step build plan with component breakdown
@@ -32,15 +38,15 @@ Design documents:
 src/
   types/index.ts          — all shared TypeScript types
   game/
-    constants.ts          — PLOT_COUNT, WHEAT_GROWTH_DURATION, calcTilePrice, applyWheatCost, clampMeter
+    constants.ts          — PLOT_COUNT, growth durations, calcTilePrice, applyWheatCost, clampMeter, FERTILIZE_WAIT_DURATION, TEND_WAIT_DURATION
     gameTick.ts           — pure tickPlot(plot, now) + growthProgress(plot, now)
     gameTick.test.ts      — unit tests for pure game logic
     worldMap.ts           — tile grid, camera math, coordsEqual, isPurchased, isAdjacentToUnlocked
     worldMap.test.ts      — unit tests for world map helpers
-    dilemmas.ts           — DILEMMAS array (פאה + Ma'aser)
+    dilemmas.ts           — DILEMMAS array (PEAH, SHIKCHAH, ORLAH, NETA_REVAI)
     strings.he.ts         — all Hebrew UI strings
   store/
-    gameStore.ts          — persisted state: plantWheat, harvest, resolveDilemma, resetPlot, buyTile
+    gameStore.ts          — persisted state: plowPlot, plantWheat, plantOrchard, fertilizePlot, tendPlot, thinShoots, harvest, gatherSheafs, resolveDilemma, resetPlot, buyTile, resetGame
     worldStore.ts         — camera state only (NOT persisted, re-centers on mount)
   hooks/
     useGameLoop.ts        — setInterval(tickGrowth, 500) while any plot is growing
@@ -50,37 +56,62 @@ src/
     FarmGrid              — 2×2 grid of PlotTile components
     PlotTile              — per-plot visual + plant/harvest interaction + progress ring
     PlotTile.test.tsx     — component tests: sow/harvest clicks call store actions
-    WheatCounter          — wheat total in bottom HUD
-    DilemmaModal          — full-screen overlay, appears after every 2 harvests
+    WheatCounter          — wheat/barley/grapes totals in bottom HUD
+    ResetButton           — resets all game progress; ResetButton.test.tsx
+    DilemmaModal          — full-screen overlay, appears on harvest/gather triggers
     WorldMap/
-      WorldMap.tsx        — pannable viewport, mounts TILES grid, wires usePan
-      MapTileView.tsx     — reads store, computes props, renders FarmTileContent or LockedTileContent
-      FarmTileContent.tsx — renders FarmGrid inside the farm map tile
-      LockedTileContent.tsx        — price badge, buy button, fog-dissolve animation
+      WorldMap.tsx        — pannable + zoomable viewport, mounts TILES grid, wires usePan
+      MapTileView.tsx     — reads store, computes props, renders FarmTileContent / VineyardTileContent / BarleyFieldTileContent / LockedTileContent
+      FarmTileContent.tsx — renders FarmGrid inside the wheat farm map tile
+      VineyardTileContent.tsx      — renders FarmGrid for orchard/grape tiles; VineyardTileContent.test.tsx
+      BarleyFieldTileContent.tsx   — renders FarmGrid for barley field tiles; BarleyFieldTileContent.test.tsx
+      ZoomControls.tsx             — zoom in/out buttons; ZoomControls.test.tsx
+      LockedTileContent.tsx        — price badge, 2-step buy flow (category → crop), fog-dissolve animation
       LockedTileContent.test.tsx   — component tests: buy button enabled/disabled/calls onBuy
-  App.tsx                 — root layout: MetersBar / WorldMap / WheatCounter / DilemmaModal
+  App.tsx                 — root layout: MetersBar / WorldMap / WheatCounter / DilemmaModal / ResetButton
   index.css               — global reset + CSS custom properties (warm earth palette)
   setupTests.ts           — imports @testing-library/jest-dom for Vitest
 e2e/
   farmInteraction.spec.ts — Playwright E2E: sow, harvest, buy tile, usePan regression
 ```
 
-## POC Core Loop
+## Core Loop
 
-1. Plant wheat on any of 4 plots → plot enters `growing` state immediately
-2. Wait 15 seconds for growth timer
-3. Harvest ready plot → wheat +10, harvested count increments
-4. After every 2 harvests → dilemma modal appears (cycles through פאה, Ma'aser)
-5. Choose a dilemma option → wheat cost applied (Math.floor), meters updated, modal clears
-6. Plots auto-reset to `empty` 600ms after harvest
+**Field crops (wheat/barley):** Plow → Sow (enter `growing`) → wait → Harvest (PEAH dilemma) → Gather sheafs (SHIKCHAH dilemma) → `empty`
+
+**Orchard (grapes):** First cycle: Plant → Fertilize → (10 s wait) → Tend → (10 s wait) → Thin Shoots → `growing` → Harvest (ORLAH or NETA_REVAI dilemma, cycle-gated) → Gather → `empty`. Subsequent cycles skip the Plant step (`hasBeenPlanted = true`). Choosing "Leave the fruit" (choice 0 of ORLAH/NETA_REVAI) skips the gather step and resets the plot to `empty` with no yield.
+
+**Resources:** wheat (field harvest), barley (field harvest), grapes (orchard harvest) — each tracked independently in `GameState`.
+
+**Dilemma choices** apply wheat cost (floored) and update meters; PEAH and SHIKCHAH can be saved for 5 future cycles.
+
+## Dilemma Routing
+
+| Trigger | Crop | Condition | Dilemma | Saveable |
+|---------|------|-----------|---------|----------|
+| `harvest` | wheat | — | PEAH_DILEMMA | yes (`"peah:wheat"`) |
+| `harvest` | barley | — | PEAH_DILEMMA | yes (`"peah:barley"`) |
+| `harvest` | grapes (orchard tile) | `harvestCount` 0–2 (cycles 1–3) | ORLAH_DILEMMA | no |
+| `harvest` | grapes (orchard tile) | `harvestCount` 3 (cycle 4) | NETA_REVAI_DILEMMA | no |
+| `harvest` | grapes (orchard tile) | `harvestCount` ≥ 4 (cycle 5+) | _(none)_ | — |
+| `gatherSheafs` | wheat | — | SHIKCHAH_DILEMMA | yes (`"shikchah:wheat"`) |
+| `gatherSheafs` | barley | — | SHIKCHAH_DILEMMA | yes (`"shikchah:barley"`) |
+| `gatherSheafs` | grapes | — | _(none)_ | — |
+
+Orchard detection uses `tileCategories[coordKey] === "orchard"` (not `cropType`), so all future orchard subtypes automatically get the same ORLAH/NETA_REVAI cycle. Choosing choice 0 of ORLAH or NETA_REVAI skips gather entirely and resets the plot to `empty`.
+
+Save keys are `"<dilemmaId>:<cropType>"`. When a saved decision is active, the dilemma resolves silently and `cyclesRemaining` decrements; at 0 the entry is deleted.
 
 ## Key Implementation Decisions
 
-- **PlotState** is `empty | growing | ready | harvested` — no `planted` state; planting goes directly to `growing` (simpler state machine, 4 states not 5)
-- **dilemmaIndex** in `GameState` drives deterministic cycling: `DILEMMAS[dilemmaIndex % DILEMMAS.length]`, incremented on each trigger
+- **PlotState** has 9 states — field crops use `empty → plowed → growing → ready → harvested → gathered`; orchards add `planted → fertilized → tended` before `growing`. On subsequent orchard cycles `hasBeenPlanted = true` skips the `planted` step.
+- **Dilemmas** are triggered by specific actions per crop: `harvest` wheat/barley → PEAH; `harvest` grapes (orchard tile) → ORLAH (cycles 1–3) / NETA_REVAI (cycle 4) / none (cycle 5+); `gatherSheafs` wheat/barley → SHIKCHAH. `activeDilemma: Dilemma | null` + `activeDilemmaContext: CropType | null` + `activePlotId: string | null` drive the modal. PEAH and SHIKCHAH can be saved for 5 cycles; keys are crop-qualified (`"peah:wheat"`, `"shikchah:barley"`, etc.).
+- **nextActionAt** on `Plot` — `null` = action available; a timestamp = locked until `tickPlot` clears it. Used for orchard step timers (`FERTILIZE_WAIT_DURATION` / `TEND_WAIT_DURATION`, 10 s each).
 - **Wheat rounding**: `applyWheatCost = (current, cost) => current - Math.floor(cost)` — always floors, generous to player, defined in `constants.ts`
 - **Pure game logic**: `tickPlot(plot, now)` lives in `src/game/` with no React/Zustand dependency — fully unit-testable
-- **Persistence**: Zustand `persist` middleware saves all game state fields to localStorage; only data is persisted, not action functions
+- **harvestCount: number** on `Plot` — tracks how many times an orchard plot has been harvested; gates ORLAH (cycles 1–3), NETA_REVAI (cycle 4), no dilemma (cycle 5+). Incremented inside `harvest()`, not in `tickPlot`.
+- **activePlotId: string | null** on `GameState` — set when a dilemma fires from `harvest()`; read by `resolveDilemma()` to reset the correct plot when the player chooses "Leave the fruit" (ORLAH/NETA_REVAI choice 0); cleared after resolution.
+- **Persistence**: Zustand `persist` middleware saves all game state fields to localStorage; only data is persisted, not action functions. **Persist version: 11**; migrations v2–v11 handle all legacy saves (id format, field renames, backfills).
 - **Timer**: `useGameLoop` hook starts/stops `setInterval` based on whether any plot is `growing`; uses wall-clock timestamps so tab backgrounding doesn't break growth
 
 ## Key Design Decisions
@@ -89,4 +120,4 @@ e2e/
 - Tithes breakdown: community teachings/Levi 10%, poor 1–3%, worship 1%; player keeps remainder
 - Devotion/Morality/Faithfulness meter always visible, affected by dilemma choices
 - Monetization (future): cosmetic-only, non-pay-to-win
-- POC excludes: selling/money, additional crops/animals/buildings, production chains, social features
+- POC excludes: selling/money, production chains, social features

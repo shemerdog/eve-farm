@@ -1,5 +1,37 @@
 # Changelog
 
+## 2026-02-23 — Orchard Dilemma Redesign (ORLAH Cycles + NETA_REVAI)
+
+Reworked the orchard harvest dilemma flow so ORLAH applies for the first 3 harvests, NETA_REVAI fires on the 4th, and no dilemma fires from cycle 5 onward. Choosing "Leave the fruit" (choice 0) now skips the gather step entirely and resets the plot with no yield.
+
+- **`harvestCount: number`** added to `Plot` type — tracks completed orchard harvests; gates which dilemma fires each cycle.
+- **`activePlotId: string | null`** added to `GameState` — records the plot that triggered a dilemma so `resolveDilemma()` can reset it on "Leave the fruit".
+- **`NETA_REVAI_DILEMMA`** added to `src/game/dilemmas.ts` — fires on the 4th orchard harvest cycle.
+- **`harvest()`** in `gameStore.ts` reworked: detects orchard tiles via `tileCategories[coordKey] === "orchard"` (not `cropType`); increments `harvestCount`; routes to ORLAH (cycles 1–3), NETA_REVAI (cycle 4), or auto-resolves with no dilemma (cycle 5+); sets `activePlotId`.
+- **`resolveDilemma()`** in `gameStore.ts` updated: when choice 0 of ORLAH or NETA_REVAI is chosen, skips gather and resets the plot to `empty` immediately; clears `activePlotId` on every resolution.
+- Persist version bumped to 11; migration v11 backfills `harvestCount: 0` and `activePlotId: null` on existing saves.
+
+**Files changed:** `src/types/index.ts`, `src/game/dilemmas.ts`, `src/store/gameStore.ts`, `src/store/gameStore.test.ts`, `src/game/gameTick.test.ts`
+
+**Tests:** 267 Vitest (+20 new tests) + 6 Playwright E2E (all passing)
+
+## 2026-02-22 — Orchard Step Timeouts (nextActionAt)
+
+Added wait timers between intermediate orchard prep steps so vineyards feel like patient, intentional care rather than instant click-through.
+
+- **`nextActionAt: number | null`** added to `Plot` type — `null` means action available, a timestamp means locked until that time.
+- **`FERTILIZE_WAIT_DURATION` / `TEND_WAIT_DURATION`** (10 s each) added to `src/game/constants.ts`.
+- **`tickPlot`** extended: clears `nextActionAt` when its time has passed (runs before the `growing→ready` check); if both are due in one tick, `nextActionAt` clears first.
+- **`fertilizePlot`** now sets `nextActionAt = Date.now() + 10 s` after transitioning to `fertilized`.
+- **`tendPlot`** now sets `nextActionAt = Date.now() + 10 s` after transitioning to `tended` (grapes); guards against early clicks.
+- **`thinShoots`** guards against `nextActionAt !== null` (blocked until timer clears).
+- **PlotTile UI**: fertilized and tended buttons show `disabled` + `(Ns)` countdown when locked; `isInteractive` and `handleClick` both respect the lock. New `.lockedBtn` CSS style (muted / greyed out).
+- Persist version bumped to 10; migration v10 backfills `nextActionAt: null` on all existing plots.
+
+**Files changed:** `src/types/index.ts`, `src/game/constants.ts`, `src/game/gameTick.ts`, `src/game/gameTick.test.ts`, `src/store/gameStore.ts`, `src/store/gameStore.test.ts`, `src/components/PlotTile.tsx`, `src/components/PlotTile.module.css`, `src/components/PlotTile.test.tsx`
+
+**Tests:** 247 Vitest (+20 new tests) + 6 Playwright E2E (all passing)
+
 ## 2026-02-22 — Crop-Qualified Saved Decisions (Peah/Shikchah for Wheat & Barley Independently)
 
 Removed the Omer dilemma from barley harvest and replaced it with PEAH (same as wheat). Barley and wheat now each have independent saved long-term decisions — saving a PEAH decision for wheat does not affect barley and vice versa.
