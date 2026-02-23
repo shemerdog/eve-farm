@@ -1,5 +1,22 @@
 # Changelog
 
+## 2026-02-23 — Manage Decisions Panel (persist v12)
+
+Players can now review all dilemmas they have encountered and toggle per-dilemma auto-resolve via a bottom-sheet panel opened with the ⚙ button in MetersBar.
+
+- **`enabled: boolean`** added to `SavedFieldDecision` — when false, auto-resolve is skipped and the dilemma modal appears instead.
+- **`encounteredDilemmas: string[]`** added to `GameState` — accumulates every dilemma key the player has seen; drives the panel list.
+- **`toggleDecisionEnabled(key)`** new store action — flips `enabled` immutably.
+- **`harvest()`** / **`gatherSheafs()`** updated: track encounters into `encounteredDilemmas`; guard auto-resolve behind `saved.enabled`.
+- **`resolveDilemma()`** saves decisions with `enabled: true`.
+- **Persist v12**: migration backfills `encounteredDilemmas: []` and `enabled: true` on all existing saved decisions.
+- **`DecisionsPanel`**: bottom-sheet modal listing saveable dilemmas (peah/shikchah only); checkboxes toggle enabled; cycles-remaining badge; "no saved choice" note; backdrop/close-button dismiss.
+- **`MetersBar`**: gains `onManageDecisions` prop and ⚙ gear button; `App.tsx` wires local `showDecisions` state.
+
+**Files changed:** `src/types/index.ts`, `src/store/gameStore.ts`, `src/game/strings.he.ts`, `src/components/MetersBar.tsx`, `src/components/MetersBar.module.css`, `src/App.tsx`, `src/components/DecisionsPanel.tsx` (new), `src/components/DecisionsPanel.module.css` (new)
+
+**Tests:** 304 Vitest (+37 new tests) + 7 Playwright E2E (+1 manage-decisions scenario, all passing)
+
 ## 2026-02-23 — Orchard Dilemma Redesign (ORLAH Cycles + NETA_REVAI)
 
 Reworked the orchard harvest dilemma flow so ORLAH applies for the first 3 harvests, NETA_REVAI fires on the 4th, and no dilemma fires from cycle 5 onward. Choosing "Leave the fruit" (choice 0) now skips the gather step entirely and resets the plot with no yield.
