@@ -42,7 +42,7 @@ describe("LockedTileContent — root step (2 category buttons)", () => {
   });
 
   test("clicking Field transitions to field step without calling onBuy", async () => {
-    const onBuy = vi.fn<[TileCategory, TileSubcategory], void>();
+    const onBuy = vi.fn<(c: TileCategory, s: TileSubcategory) => void>();
     render(
       <LockedTileContent purchasable canAfford price={50} onBuy={onBuy} />,
     );
@@ -58,7 +58,7 @@ describe("LockedTileContent — root step (2 category buttons)", () => {
   });
 
   test("clicking Orchard transitions to orchard step without calling onBuy", async () => {
-    const onBuy = vi.fn<[TileCategory, TileSubcategory], void>();
+    const onBuy = vi.fn<(c: TileCategory, s: TileSubcategory) => void>();
     render(
       <LockedTileContent purchasable canAfford price={50} onBuy={onBuy} />,
     );
@@ -95,7 +95,7 @@ describe("LockedTileContent — field step", () => {
   }
 
   test('Wheat button calls onBuy("field", "wheat") and resets to root', async () => {
-    const onBuy = vi.fn<[TileCategory, TileSubcategory], void>();
+    const onBuy = vi.fn<(c: TileCategory, s: TileSubcategory) => void>();
     await renderFieldStep(onBuy);
     await userEvent.click(screen.getByRole("button", { name: /חיטה|wheat/i }));
     expect(onBuy).toHaveBeenCalledWith("field", "wheat");
@@ -106,7 +106,7 @@ describe("LockedTileContent — field step", () => {
   });
 
   test('Barley button calls onBuy("field", "barley") and resets to root', async () => {
-    const onBuy = vi.fn<[TileCategory, TileSubcategory], void>();
+    const onBuy = vi.fn<(c: TileCategory, s: TileSubcategory) => void>();
     await renderFieldStep(onBuy);
     await userEvent.click(
       screen.getByRole("button", { name: /שעורה|barley/i }),
@@ -118,7 +118,7 @@ describe("LockedTileContent — field step", () => {
   });
 
   test("Back button returns to root without calling onBuy", async () => {
-    const onBuy = vi.fn<[TileCategory, TileSubcategory], void>();
+    const onBuy = vi.fn<(c: TileCategory, s: TileSubcategory) => void>();
     await renderFieldStep(onBuy);
     await userEvent.click(screen.getByRole("button", { name: /back|←|חזור/i }));
     expect(onBuy).not.toHaveBeenCalled();
@@ -133,14 +133,12 @@ describe("LockedTileContent — orchard step", () => {
     render(
       <LockedTileContent purchasable canAfford price={50} onBuy={onBuy} />,
     );
-    await userEvent.click(
-      screen.getByRole("button", { name: /כרם|orchard/i }),
-    );
+    await userEvent.click(screen.getByRole("button", { name: /כרם|orchard/i }));
     return onBuy;
   }
 
   test('Vineyard button calls onBuy("orchard", "grapes") and resets to root', async () => {
-    const onBuy = vi.fn<[TileCategory, TileSubcategory], void>();
+    const onBuy = vi.fn<(c: TileCategory, s: TileSubcategory) => void>();
     await renderOrchardStep(onBuy);
     // The vineyard button — it's the main action button now on orchard step
     const vineyardBtn = screen
@@ -155,7 +153,7 @@ describe("LockedTileContent — orchard step", () => {
   });
 
   test("Back button returns to root without calling onBuy", async () => {
-    const onBuy = vi.fn<[TileCategory, TileSubcategory], void>();
+    const onBuy = vi.fn<(c: TileCategory, s: TileSubcategory) => void>();
     await renderOrchardStep(onBuy);
     await userEvent.click(screen.getByRole("button", { name: /back|←|חזור/i }));
     expect(onBuy).not.toHaveBeenCalled();

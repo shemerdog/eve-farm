@@ -5,6 +5,8 @@ import {
   BARLEY_GROWTH_DURATION,
   BARLEY_PER_HARVEST,
   WHEAT_GROWTH_DURATION,
+  FERTILIZE_WAIT_DURATION,
+  TEND_WAIT_DURATION,
 } from "@/game/constants";
 import { DILEMMAS, ORLAH_DILEMMA } from "@/game/dilemmas";
 
@@ -426,7 +428,6 @@ describe("v6 migration: category key rename", () => {
     });
     // After setState, verify the new categories are correct
     // (In real migration, "farm" becomes "field")
-    const state = useGameStore.getState();
     // We simulate the migration result directly since we can't replay persist versioning
     const migrated = Object.entries({ "2_1": "farm" as never }).reduce(
       (acc, [key, cat]) => ({
@@ -750,6 +751,607 @@ describe("harvest auto-resolves saved PEAH for barley", () => {
     expect(after["peah:barley"]?.cyclesRemaining).toBe(1);
     // wheat cycles unchanged
     expect(after["peah:wheat"]?.cyclesRemaining).toBe(5);
+  });
+});
+
+// ── Orchard cycle actions ─────────────────────────────────────────────────────
+
+describe("plantOrchard", () => {
+  it("transitions empty grape plot (hasBeenPlanted=false) to planted and sets hasBeenPlanted=true", () => {
+    useGameStore.setState({ wheat: 1000 });
+    const coord = { col: 2, row: 1 };
+    useGameStore.getState().buyTile(coord, "orchard", "grapes");
+
+    const state = useGameStore.getState();
+    const grapePlot = state.plots.find(
+      (p) => p.tileCoord.col === coord.col && p.tileCoord.row === coord.row,
+    )!;
+
+    useGameStore.getState().plantOrchard(grapePlot.id);
+
+    const after = useGameStore.getState();
+    const updated = after.plots.find((p) => p.id === grapePlot.id)!;
+    expect(updated.state).toBe("planted");
+    expect(updated.hasBeenPlanted).toBe(true);
+  });
+
+  it("is a no-op when hasBeenPlanted=true", () => {
+    useGameStore.setState({ wheat: 1000 });
+    const coord = { col: 2, row: 1 };
+    useGameStore.getState().buyTile(coord, "orchard", "grapes");
+
+    const state = useGameStore.getState();
+    const grapePlot = state.plots.find(
+      (p) => p.tileCoord.col === coord.col && p.tileCoord.row === coord.row,
+    )!;
+
+    // Simulate already planted
+    useGameStore.setState({
+      plots: state.plots.map((p) =>
+        p.id === grapePlot.id
+          ? { ...p, state: "empty" as const, hasBeenPlanted: true }
+          : p,
+      ),
+    });
+
+    useGameStore.getState().plantOrchard(grapePlot.id);
+
+    const after = useGameStore.getState();
+    const updated = after.plots.find((p) => p.id === grapePlot.id)!;
+    expect(updated.state).toBe("empty"); // unchanged
+  });
+});
+
+describe("fertilizePlot", () => {
+  it("transitions planted plot to fertilized", () => {
+    useGameStore.setState({ wheat: 1000 });
+    const coord = { col: 2, row: 1 };
+    useGameStore.getState().buyTile(coord, "orchard", "grapes");
+
+    const state = useGameStore.getState();
+    const grapePlot = state.plots.find(
+      (p) => p.tileCoord.col === coord.col && p.tileCoord.row === coord.row,
+    )!;
+
+    useGameStore.setState({
+      plots: state.plots.map((p) =>
+        p.id === grapePlot.id
+          ? { ...p, state: "planted" as const, hasBeenPlanted: true }
+          : p,
+      ),
+    });
+
+    useGameStore.getState().fertilizePlot(grapePlot.id);
+
+    const updated = useGameStore
+      .getState()
+      .plots.find((p) => p.id === grapePlot.id)!;
+    expect(updated.state).toBe("fertilized");
+  });
+
+  it("transitions empty plot (hasBeenPlanted=true) to fertilized (subsequent cycle)", () => {
+    useGameStore.setState({ wheat: 1000 });
+    const coord = { col: 2, row: 1 };
+    useGameStore.getState().buyTile(coord, "orchard", "grapes");
+
+    const state = useGameStore.getState();
+    const grapePlot = state.plots.find(
+      (p) => p.tileCoord.col === coord.col && p.tileCoord.row === coord.row,
+    )!;
+
+    useGameStore.setState({
+      plots: state.plots.map((p) =>
+        p.id === grapePlot.id
+          ? { ...p, state: "empty" as const, hasBeenPlanted: true }
+          : p,
+      ),
+    });
+
+    useGameStore.getState().fertilizePlot(grapePlot.id);
+
+    const updated = useGameStore
+      .getState()
+      .plots.find((p) => p.id === grapePlot.id)!;
+    expect(updated.state).toBe("fertilized");
+  });
+
+  it("is a no-op on empty plot with hasBeenPlanted=false", () => {
+    useGameStore.setState({ wheat: 1000 });
+    const coord = { col: 2, row: 1 };
+    useGameStore.getState().buyTile(coord, "orchard", "grapes");
+
+    const state = useGameStore.getState();
+    const grapePlot = state.plots.find(
+      (p) => p.tileCoord.col === coord.col && p.tileCoord.row === coord.row,
+    )!;
+
+    useGameStore.getState().fertilizePlot(grapePlot.id);
+
+    const updated = useGameStore
+      .getState()
+      .plots.find((p) => p.id === grapePlot.id)!;
+    expect(updated.state).toBe("empty"); // unchanged
+  });
+});
+
+describe("tendPlot", () => {
+  it("transitions fertilized grape plot to tended", () => {
+    useGameStore.setState({ wheat: 1000 });
+    const coord = { col: 2, row: 1 };
+    useGameStore.getState().buyTile(coord, "orchard", "grapes");
+
+    const state = useGameStore.getState();
+    const grapePlot = state.plots.find(
+      (p) => p.tileCoord.col === coord.col && p.tileCoord.row === coord.row,
+    )!;
+
+    useGameStore.setState({
+      plots: state.plots.map((p) =>
+        p.id === grapePlot.id
+          ? { ...p, state: "fertilized" as const, hasBeenPlanted: true }
+          : p,
+      ),
+    });
+
+    useGameStore.getState().tendPlot(grapePlot.id);
+
+    const updated = useGameStore
+      .getState()
+      .plots.find((p) => p.id === grapePlot.id)!;
+    expect(updated.state).toBe("tended");
+  });
+
+  it("is a no-op on non-fertilized plots", () => {
+    useGameStore.setState({ wheat: 1000 });
+    const coord = { col: 2, row: 1 };
+    useGameStore.getState().buyTile(coord, "orchard", "grapes");
+
+    const state = useGameStore.getState();
+    const grapePlot = state.plots.find(
+      (p) => p.tileCoord.col === coord.col && p.tileCoord.row === coord.row,
+    )!;
+
+    useGameStore.getState().tendPlot(grapePlot.id);
+
+    const updated = useGameStore
+      .getState()
+      .plots.find((p) => p.id === grapePlot.id)!;
+    expect(updated.state).toBe("empty"); // unchanged
+  });
+});
+
+describe("thinShoots", () => {
+  it("transitions tended grape plot to growing and sets plantedAt", () => {
+    useGameStore.setState({ wheat: 1000 });
+    const coord = { col: 2, row: 1 };
+    useGameStore.getState().buyTile(coord, "orchard", "grapes");
+
+    const state = useGameStore.getState();
+    const grapePlot = state.plots.find(
+      (p) => p.tileCoord.col === coord.col && p.tileCoord.row === coord.row,
+    )!;
+
+    useGameStore.setState({
+      plots: state.plots.map((p) =>
+        p.id === grapePlot.id
+          ? { ...p, state: "tended" as const, hasBeenPlanted: true }
+          : p,
+      ),
+    });
+
+    const before = Date.now();
+    useGameStore.getState().thinShoots(grapePlot.id);
+    const after = Date.now();
+
+    const updated = useGameStore
+      .getState()
+      .plots.find((p) => p.id === grapePlot.id)!;
+    expect(updated.state).toBe("growing");
+    expect(updated.plantedAt).not.toBeNull();
+    expect(updated.plantedAt!).toBeGreaterThanOrEqual(before);
+    expect(updated.plantedAt!).toBeLessThanOrEqual(after);
+  });
+
+  it("is a no-op when plot is not tended", () => {
+    useGameStore.setState({ wheat: 1000 });
+    const coord = { col: 2, row: 1 };
+    useGameStore.getState().buyTile(coord, "orchard", "grapes");
+
+    const state = useGameStore.getState();
+    const grapePlot = state.plots.find(
+      (p) => p.tileCoord.col === coord.col && p.tileCoord.row === coord.row,
+    )!;
+
+    useGameStore.getState().thinShoots(grapePlot.id);
+
+    const updated = useGameStore
+      .getState()
+      .plots.find((p) => p.id === grapePlot.id)!;
+    expect(updated.state).toBe("empty"); // unchanged
+  });
+});
+
+describe("nextActionAt — fertilizePlot sets wait timer", () => {
+  it("sets nextActionAt after fertilizing", () => {
+    useGameStore.setState({ wheat: 1000 });
+    const coord = { col: 2, row: 1 };
+    useGameStore.getState().buyTile(coord, "orchard", "grapes");
+
+    const state = useGameStore.getState();
+    const plot = state.plots.find(
+      (p) => p.tileCoord.col === coord.col && p.tileCoord.row === coord.row,
+    )!;
+
+    useGameStore.setState({
+      plots: state.plots.map((p) =>
+        p.id === plot.id ? { ...p, state: "planted" as const } : p,
+      ),
+    });
+
+    const before = Date.now();
+    useGameStore.getState().fertilizePlot(plot.id);
+    const after = Date.now();
+
+    const updated = useGameStore
+      .getState()
+      .plots.find((p) => p.id === plot.id)!;
+    expect(updated.state).toBe("fertilized");
+    expect(updated.nextActionAt).not.toBeNull();
+    expect(updated.nextActionAt!).toBeGreaterThanOrEqual(
+      before + FERTILIZE_WAIT_DURATION,
+    );
+    expect(updated.nextActionAt!).toBeLessThanOrEqual(
+      after + FERTILIZE_WAIT_DURATION,
+    );
+  });
+
+  it("sets nextActionAt on empty→fertilized (subsequent cycle)", () => {
+    useGameStore.setState({ wheat: 1000 });
+    const coord = { col: 2, row: 1 };
+    useGameStore.getState().buyTile(coord, "orchard", "grapes");
+
+    const state = useGameStore.getState();
+    const plot = state.plots.find(
+      (p) => p.tileCoord.col === coord.col && p.tileCoord.row === coord.row,
+    )!;
+
+    useGameStore.setState({
+      plots: state.plots.map((p) =>
+        p.id === plot.id
+          ? { ...p, state: "empty" as const, hasBeenPlanted: true }
+          : p,
+      ),
+    });
+
+    useGameStore.getState().fertilizePlot(plot.id);
+
+    const updated = useGameStore
+      .getState()
+      .plots.find((p) => p.id === plot.id)!;
+    expect(updated.state).toBe("fertilized");
+    expect(updated.nextActionAt).not.toBeNull();
+  });
+});
+
+describe("nextActionAt — tendPlot blocked while nextActionAt is set", () => {
+  it("tendPlot is a no-op when nextActionAt is not null", () => {
+    useGameStore.setState({ wheat: 1000 });
+    const coord = { col: 2, row: 1 };
+    useGameStore.getState().buyTile(coord, "orchard", "grapes");
+
+    const state = useGameStore.getState();
+    const plot = state.plots.find(
+      (p) => p.tileCoord.col === coord.col && p.tileCoord.row === coord.row,
+    )!;
+
+    const futureTime = Date.now() + 9_000;
+    useGameStore.setState({
+      plots: state.plots.map((p) =>
+        p.id === plot.id
+          ? { ...p, state: "fertilized" as const, nextActionAt: futureTime }
+          : p,
+      ),
+    });
+
+    useGameStore.getState().tendPlot(plot.id);
+
+    const updated = useGameStore
+      .getState()
+      .plots.find((p) => p.id === plot.id)!;
+    expect(updated.state).toBe("fertilized"); // unchanged
+    expect(updated.nextActionAt).toBe(futureTime); // unchanged
+  });
+
+  it("tendPlot transitions when nextActionAt is null", () => {
+    useGameStore.setState({ wheat: 1000 });
+    const coord = { col: 2, row: 1 };
+    useGameStore.getState().buyTile(coord, "orchard", "grapes");
+
+    const state = useGameStore.getState();
+    const plot = state.plots.find(
+      (p) => p.tileCoord.col === coord.col && p.tileCoord.row === coord.row,
+    )!;
+
+    useGameStore.setState({
+      plots: state.plots.map((p) =>
+        p.id === plot.id
+          ? { ...p, state: "fertilized" as const, nextActionAt: null }
+          : p,
+      ),
+    });
+
+    useGameStore.getState().tendPlot(plot.id);
+
+    const updated = useGameStore
+      .getState()
+      .plots.find((p) => p.id === plot.id)!;
+    expect(updated.state).toBe("tended");
+  });
+
+  it("tendPlot (grapes) sets nextActionAt after transitioning to tended", () => {
+    useGameStore.setState({ wheat: 1000 });
+    const coord = { col: 2, row: 1 };
+    useGameStore.getState().buyTile(coord, "orchard", "grapes");
+
+    const state = useGameStore.getState();
+    const plot = state.plots.find(
+      (p) => p.tileCoord.col === coord.col && p.tileCoord.row === coord.row,
+    )!;
+
+    useGameStore.setState({
+      plots: state.plots.map((p) =>
+        p.id === plot.id
+          ? { ...p, state: "fertilized" as const, nextActionAt: null }
+          : p,
+      ),
+    });
+
+    const before = Date.now();
+    useGameStore.getState().tendPlot(plot.id);
+    const after = Date.now();
+
+    const updated = useGameStore
+      .getState()
+      .plots.find((p) => p.id === plot.id)!;
+    expect(updated.state).toBe("tended");
+    expect(updated.nextActionAt).not.toBeNull();
+    expect(updated.nextActionAt!).toBeGreaterThanOrEqual(
+      before + TEND_WAIT_DURATION,
+    );
+    expect(updated.nextActionAt!).toBeLessThanOrEqual(
+      after + TEND_WAIT_DURATION,
+    );
+  });
+});
+
+describe("nextActionAt — thinShoots blocked while nextActionAt is set", () => {
+  it("thinShoots is a no-op when nextActionAt is not null", () => {
+    useGameStore.setState({ wheat: 1000 });
+    const coord = { col: 2, row: 1 };
+    useGameStore.getState().buyTile(coord, "orchard", "grapes");
+
+    const state = useGameStore.getState();
+    const plot = state.plots.find(
+      (p) => p.tileCoord.col === coord.col && p.tileCoord.row === coord.row,
+    )!;
+
+    const futureTime = Date.now() + 9_000;
+    useGameStore.setState({
+      plots: state.plots.map((p) =>
+        p.id === plot.id
+          ? { ...p, state: "tended" as const, nextActionAt: futureTime }
+          : p,
+      ),
+    });
+
+    useGameStore.getState().thinShoots(plot.id);
+
+    const updated = useGameStore
+      .getState()
+      .plots.find((p) => p.id === plot.id)!;
+    expect(updated.state).toBe("tended"); // unchanged
+    expect(updated.nextActionAt).toBe(futureTime); // unchanged
+  });
+
+  it("thinShoots transitions when nextActionAt is null", () => {
+    useGameStore.setState({ wheat: 1000 });
+    const coord = { col: 2, row: 1 };
+    useGameStore.getState().buyTile(coord, "orchard", "grapes");
+
+    const state = useGameStore.getState();
+    const plot = state.plots.find(
+      (p) => p.tileCoord.col === coord.col && p.tileCoord.row === coord.row,
+    )!;
+
+    useGameStore.setState({
+      plots: state.plots.map((p) =>
+        p.id === plot.id
+          ? { ...p, state: "tended" as const, nextActionAt: null }
+          : p,
+      ),
+    });
+
+    useGameStore.getState().thinShoots(plot.id);
+
+    const updated = useGameStore
+      .getState()
+      .plots.find((p) => p.id === plot.id)!;
+    expect(updated.state).toBe("growing");
+  });
+});
+
+describe("makePlots initializes nextActionAt=null", () => {
+  it("initial farm plots have nextActionAt=null", () => {
+    useGameStore.getState().plots.forEach((p) => {
+      expect(p.nextActionAt).toBeNull();
+    });
+  });
+
+  it("buyTile creates plots with nextActionAt=null", () => {
+    useGameStore.setState({ wheat: 1000 });
+    const coord = { col: 2, row: 1 };
+    useGameStore.getState().buyTile(coord, "orchard", "grapes");
+
+    const state = useGameStore.getState();
+    const newPlots = state.plots.filter(
+      (p) => p.tileCoord.col === coord.col && p.tileCoord.row === coord.row,
+    );
+    newPlots.forEach((p) => expect(p.nextActionAt).toBeNull());
+  });
+});
+
+describe("orchard full first-cycle flow (grapes)", () => {
+  it("empty→planted→fertilized→tended→growing→ready after timer", () => {
+    useGameStore.setState({ wheat: 1000 });
+    const coord = { col: 2, row: 1 };
+    useGameStore.getState().buyTile(coord, "orchard", "grapes");
+
+    const state = useGameStore.getState();
+    const plot = state.plots.find(
+      (p) => p.tileCoord.col === coord.col && p.tileCoord.row === coord.row,
+    )!;
+
+    expect(plot.state).toBe("empty");
+    expect(plot.hasBeenPlanted).toBe(false);
+
+    useGameStore.getState().plantOrchard(plot.id);
+    expect(
+      useGameStore.getState().plots.find((p) => p.id === plot.id)!.state,
+    ).toBe("planted");
+
+    useGameStore.getState().fertilizePlot(plot.id);
+    expect(
+      useGameStore.getState().plots.find((p) => p.id === plot.id)!.state,
+    ).toBe("fertilized");
+
+    // Simulate timer expiry before tend (fertilizePlot sets nextActionAt lock)
+    useGameStore.setState({
+      plots: useGameStore
+        .getState()
+        .plots.map((p) =>
+          p.id === plot.id ? { ...p, nextActionAt: null } : p,
+        ),
+    });
+
+    useGameStore.getState().tendPlot(plot.id);
+    expect(
+      useGameStore.getState().plots.find((p) => p.id === plot.id)!.state,
+    ).toBe("tended");
+
+    // Simulate timer expiry before thin shoots (tendPlot sets nextActionAt lock)
+    useGameStore.setState({
+      plots: useGameStore
+        .getState()
+        .plots.map((p) =>
+          p.id === plot.id ? { ...p, nextActionAt: null } : p,
+        ),
+    });
+
+    useGameStore.getState().thinShoots(plot.id);
+    expect(
+      useGameStore.getState().plots.find((p) => p.id === plot.id)!.state,
+    ).toBe("growing");
+  });
+});
+
+describe("orchard subsequent cycle (hasBeenPlanted persists through gatherSheafs)", () => {
+  it("hasBeenPlanted remains true after gatherSheafs resets plot to empty", () => {
+    useGameStore.setState({ wheat: 1000 });
+    const coord = { col: 2, row: 1 };
+    useGameStore.getState().buyTile(coord, "orchard", "grapes");
+
+    const state = useGameStore.getState();
+    const plot = state.plots.find(
+      (p) => p.tileCoord.col === coord.col && p.tileCoord.row === coord.row,
+    )!;
+
+    // Simulate a completed cycle: set hasBeenPlanted=true, state=gathered
+    useGameStore.setState({
+      plots: state.plots.map((p) =>
+        p.id === plot.id
+          ? { ...p, state: "gathered" as const, hasBeenPlanted: true }
+          : p,
+      ),
+      activeDilemma: null,
+    });
+
+    useGameStore.getState().gatherSheafs(plot.id);
+
+    const updated = useGameStore
+      .getState()
+      .plots.find((p) => p.id === plot.id)!;
+    expect(updated.state).toBe("empty");
+    expect(updated.hasBeenPlanted).toBe(true); // persists!
+  });
+
+  it("fertilizePlot works on empty plot with hasBeenPlanted=true (skips plant step)", () => {
+    useGameStore.setState({ wheat: 1000 });
+    const coord = { col: 2, row: 1 };
+    useGameStore.getState().buyTile(coord, "orchard", "grapes");
+
+    const state = useGameStore.getState();
+    const plot = state.plots.find(
+      (p) => p.tileCoord.col === coord.col && p.tileCoord.row === coord.row,
+    )!;
+
+    useGameStore.setState({
+      plots: state.plots.map((p) =>
+        p.id === plot.id
+          ? { ...p, state: "empty" as const, hasBeenPlanted: true }
+          : p,
+      ),
+    });
+
+    useGameStore.getState().fertilizePlot(plot.id);
+
+    const updated = useGameStore
+      .getState()
+      .plots.find((p) => p.id === plot.id)!;
+    expect(updated.state).toBe("fertilized");
+  });
+});
+
+describe("makePlots initializes hasBeenPlanted=false", () => {
+  it("initial farm plots have hasBeenPlanted=false", () => {
+    const state = useGameStore.getState();
+    state.plots.forEach((p) => {
+      expect(p.hasBeenPlanted).toBe(false);
+    });
+  });
+
+  it("buyTile creates plots with hasBeenPlanted=false", () => {
+    useGameStore.setState({ wheat: 1000 });
+    const coord = { col: 2, row: 1 };
+    useGameStore.getState().buyTile(coord, "orchard", "grapes");
+
+    const state = useGameStore.getState();
+    const newPlots = state.plots.filter(
+      (p) => p.tileCoord.col === coord.col && p.tileCoord.row === coord.row,
+    );
+    newPlots.forEach((p) => expect(p.hasBeenPlanted).toBe(false));
+  });
+
+  it("resetGame resets hasBeenPlanted to false on all plots", () => {
+    useGameStore.setState({ wheat: 1000 });
+    const coord = { col: 2, row: 1 };
+    useGameStore.getState().buyTile(coord, "orchard", "grapes");
+
+    const state = useGameStore.getState();
+    const plot = state.plots.find(
+      (p) => p.tileCoord.col === coord.col && p.tileCoord.row === coord.row,
+    )!;
+
+    useGameStore.setState({
+      plots: state.plots.map((p) =>
+        p.id === plot.id ? { ...p, hasBeenPlanted: true } : p,
+      ),
+    });
+
+    useGameStore.getState().resetGame();
+
+    useGameStore
+      .getState()
+      .plots.forEach((p) => expect(p.hasBeenPlanted).toBe(false));
   });
 });
 

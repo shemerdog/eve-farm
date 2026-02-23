@@ -9,6 +9,9 @@ const makePlot = (overrides: Partial<Plot> = {}): Plot => ({
   growthDuration: 15_000,
   tileCoord: { col: 2, row: 2 },
   cropType: "wheat",
+  hasBeenPlanted: false,
+  nextActionAt: null,
+  harvestCount: 0,
   ...overrides,
 });
 
@@ -41,6 +44,27 @@ describe("tickPlot", () => {
     const plowedPlot = makePlot({ state: "plowed", plantedAt: null });
     expect(tickPlot(plowedPlot).state).toBe("plowed");
 
+    const plantedPlot = makePlot({
+      state: "planted",
+      plantedAt: null,
+      cropType: "grapes",
+    });
+    expect(tickPlot(plantedPlot).state).toBe("planted");
+
+    const fertilizedPlot = makePlot({
+      state: "fertilized",
+      plantedAt: null,
+      cropType: "grapes",
+    });
+    expect(tickPlot(fertilizedPlot).state).toBe("fertilized");
+
+    const tendedPlot = makePlot({
+      state: "tended",
+      plantedAt: null,
+      cropType: "grapes",
+    });
+    expect(tickPlot(tendedPlot).state).toBe("tended");
+
     const readyPlot = makePlot({ state: "ready" });
     expect(tickPlot(readyPlot).state).toBe("ready");
 
@@ -69,6 +93,72 @@ describe("tickPlot", () => {
     const plot = makePlot({ plantedAt: now - 1_000 });
     const result = tickPlot(plot, now);
     expect(result).toBe(plot);
+  });
+});
+
+describe("tickPlot — nextActionAt unlock", () => {
+  it("clears nextActionAt when its time has passed", () => {
+    const now = Date.now();
+    const plot = makePlot({
+      state: "fertilized",
+      plantedAt: null,
+      cropType: "grapes",
+      nextActionAt: now - 1,
+    });
+    const result = tickPlot(plot, now);
+    expect(result.nextActionAt).toBeNull();
+  });
+
+  it("clears nextActionAt exactly at the boundary", () => {
+    const now = Date.now();
+    const plot = makePlot({
+      state: "tended",
+      plantedAt: null,
+      cropType: "grapes",
+      nextActionAt: now,
+    });
+    const result = tickPlot(plot, now);
+    expect(result.nextActionAt).toBeNull();
+  });
+
+  it("does not clear nextActionAt before its time", () => {
+    const now = Date.now();
+    const plot = makePlot({
+      state: "fertilized",
+      plantedAt: null,
+      cropType: "grapes",
+      nextActionAt: now + 5_000,
+    });
+    const result = tickPlot(plot, now);
+    expect(result.nextActionAt).toBe(now + 5_000);
+  });
+
+  it("returns a new object reference when nextActionAt clears", () => {
+    const now = Date.now();
+    const plot = makePlot({
+      state: "fertilized",
+      plantedAt: null,
+      cropType: "grapes",
+      nextActionAt: now - 1,
+    });
+    const result = tickPlot(plot, now);
+    expect(result).not.toBe(plot);
+  });
+
+  it("does not advance growing→ready while nextActionAt is pending (clear happens first)", () => {
+    // A growing plot with both nextActionAt pending and growth complete:
+    // nextActionAt clear takes priority in the first tick, ready on the next.
+    const now = Date.now();
+    const plot = makePlot({
+      state: "growing",
+      plantedAt: now - 20_000,
+      growthDuration: 15_000,
+      nextActionAt: now - 1,
+    });
+    const result = tickPlot(plot, now);
+    // nextActionAt cleared; state still growing (will become ready next tick)
+    expect(result.nextActionAt).toBeNull();
+    expect(result.state).toBe("growing");
   });
 });
 

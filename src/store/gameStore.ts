@@ -23,6 +23,8 @@ import {
   applyWheatCost,
   clampMeter,
   calcTilePrice,
+  FERTILIZE_WAIT_DURATION,
+  TEND_WAIT_DURATION,
 } from "@/game/constants";
 import { tickPlot } from "@/game/gameTick";
 import { DILEMMAS, ORLAH_DILEMMA } from "@/game/dilemmas";
@@ -42,6 +44,9 @@ const makePlots = (coord: TileCoord, cropType: CropType = "wheat"): Plot[] =>
     growthDuration: GROWTH_DURATION[cropType],
     tileCoord: coord,
     cropType,
+    hasBeenPlanted: false,
+    nextActionAt: null,
+    harvestCount: 0,
   }));
 
 const PEAH_DILEMMA = DILEMMAS.find((d) => d.id === "peah")!;
@@ -97,6 +102,7 @@ const initialState: GameState = {
   meters: { ...METER_INITIAL },
   activeDilemma: null,
   activeDilemmaContext: null,
+  activePlotId: null,
   purchasedCoords: [],
   tileCategories: {},
   savedFieldDecisions: {},
@@ -105,6 +111,11 @@ const initialState: GameState = {
 type Actions = {
   plowPlot: (plotId: string) => void;
   plantWheat: (plotId: string) => void;
+  // Orchard-specific cycle actions:
+  plantOrchard: (plotId: string) => void;
+  fertilizePlot: (plotId: string) => void;
+  tendPlot: (plotId: string) => void;
+  thinShoots: (plotId: string) => void;
   tickGrowth: () => void;
   harvest: (plotId: string) => void;
   gatherSheafs: (plotId: string) => void;
@@ -137,6 +148,71 @@ export const useGameStore = create<GameState & Actions>()(
         set((s) => ({
           plots: s.plots.map((p) =>
             p.id === plotId && p.state === "plowed"
+              ? { ...p, state: "growing", plantedAt: Date.now() }
+              : p,
+          ),
+        }));
+      },
+
+      plantOrchard: (plotId) => {
+        set((s) => ({
+          plots: s.plots.map((p) =>
+            p.id === plotId && p.state === "empty" && !p.hasBeenPlanted
+              ? { ...p, state: "planted", hasBeenPlanted: true }
+              : p,
+          ),
+        }));
+      },
+
+      fertilizePlot: (plotId) => {
+        set((s) => ({
+          plots: s.plots.map((p) =>
+            p.id === plotId &&
+            (p.state === "planted" || (p.state === "empty" && p.hasBeenPlanted))
+              ? {
+                  ...p,
+                  state: "fertilized",
+                  nextActionAt: Date.now() + FERTILIZE_WAIT_DURATION,
+                }
+              : p,
+          ),
+        }));
+      },
+
+      tendPlot: (plotId) => {
+        set((s) => ({
+          plots: s.plots.map((p) => {
+            if (
+              p.id !== plotId ||
+              p.state !== "fertilized" ||
+              p.nextActionAt !== null
+            )
+              return p;
+            // Grapes require shoot thinning next; other orchards go straight to growing
+            if (p.cropType === "grapes") {
+              return {
+                ...p,
+                state: "tended",
+                nextActionAt: Date.now() + TEND_WAIT_DURATION,
+              };
+            }
+            return {
+              ...p,
+              state: "growing",
+              plantedAt: Date.now(),
+              nextActionAt: null,
+            };
+          }),
+        }));
+      },
+
+      thinShoots: (plotId) => {
+        set((s) => ({
+          plots: s.plots.map((p) =>
+            p.id === plotId &&
+            p.state === "tended" &&
+            p.cropType === "grapes" &&
+            p.nextActionAt === null
               ? { ...p, state: "growing", plantedAt: Date.now() }
               : p,
           ),
@@ -357,7 +433,7 @@ export const useGameStore = create<GameState & Actions>()(
     }),
     {
       name: "eve-game-state",
-      version: 8,
+      version: 11,
       // Only persist the data fields, not the action functions
       partialize: (state) => ({
         plots: state.plots,
@@ -367,6 +443,7 @@ export const useGameStore = create<GameState & Actions>()(
         meters: state.meters,
         activeDilemma: state.activeDilemma,
         activeDilemmaContext: state.activeDilemmaContext,
+        activePlotId: state.activePlotId,
         purchasedCoords: state.purchasedCoords,
         tileCategories: state.tileCategories,
         savedFieldDecisions: state.savedFieldDecisions,
@@ -439,6 +516,28 @@ export const useGameStore = create<GameState & Actions>()(
           }
           state.savedFieldDecisions = sfd;
           state.activeDilemmaContext = state.activeDilemmaContext ?? null;
+        }
+        if (version < 9) {
+          // Backfill hasBeenPlanted on all existing plots (existing orchards restart from first cycle)
+          state.plots = (state.plots ?? []).map((p: Partial<Plot>) => ({
+            ...p,
+            hasBeenPlanted: p.hasBeenPlanted ?? false,
+          }));
+        }
+        if (version < 10) {
+          // Backfill nextActionAt on all existing plots (no pending timers for existing saves)
+          state.plots = (state.plots ?? []).map((p: Partial<Plot>) => ({
+            ...p,
+            nextActionAt: p.nextActionAt ?? null,
+          }));
+        }
+        if (version < 11) {
+          // Backfill harvestCount on all plots and activePlotId on state
+          state.activePlotId = state.activePlotId ?? null;
+          state.plots = (state.plots ?? []).map((p: Partial<Plot>) => ({
+            ...p,
+            harvestCount: p.harvestCount ?? 0,
+          }));
         }
         return state as GameState;
       },
