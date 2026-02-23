@@ -93,8 +93,12 @@ e2e/
   farmInteraction.spec.ts — Playwright E2E: sow, harvest, buy tile, usePan regression
 src/store/
   gameStore.economy.test.ts    — buyTile + yield/routing basics for field/orchard crops
-  gameStore.dilemmas.test.ts   — saved decisions, auto-resolve, encountered tracking, enabled flags
-  gameStore.orchard.test.ts    — orchard lifecycle, timers, cycle gating, skip-gather behavior
+  gameStore.dilemmas.test.ts   — resolve/save + auto-resolve behavior for field dilemmas
+  gameStore.dilemmas.state-tracking.test.ts — toggle enabled, encountered tracking, enabled-flag gating
+  gameStore.orchard.lifecycle.test.ts — orchard action transitions and nextActionAt timer guards
+  gameStore.orchard.cycle.test.ts — orchard full-cycle progression and hasBeenPlanted/reset behavior
+  gameStore.orchard.saved-decisions.test.ts — saved SHIKCHAH auto-resolve behavior on gather
+  gameStore.orchard.dilemma-gating.test.ts — ORLAH/NETA_REVAI cycle gating + skip-gather resolution
   gameStore.migrations.test.ts — migration behavior checks (v6/v12)
 ```
 

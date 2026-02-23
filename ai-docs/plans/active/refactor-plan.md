@@ -33,6 +33,12 @@
     - `src/store/gameStore.orchard.test.ts`
     - `src/store/gameStore.migrations.test.ts`
     - `src/components/PlotTile.orchard.test.tsx`
+- Further split oversized domain tests into focused files:
+    - `src/store/gameStore.orchard.lifecycle.test.ts`
+    - `src/store/gameStore.orchard.cycle.test.ts`
+    - `src/store/gameStore.orchard.saved-decisions.test.ts`
+    - `src/store/gameStore.orchard.dilemma-gating.test.ts`
+    - `src/store/gameStore.dilemmas.state-tracking.test.ts`
 - Added shared test utilities:
     - `src/test-utils/gameStore.ts`
 - Documentation updated:
@@ -41,10 +47,6 @@
 
 ### Remaining
 
-- Further split still-large domain test files:
-    - `src/store/gameStore.orchard.test.ts` (>500 LOC)
-    - `src/store/gameStore.dilemmas.test.ts` (>500 LOC)
-- Define and execute the next split target (recommended first target: `src/store/gameStore.orchard.test.ts`).
 - Decide and execute naming strategy for non-component files (kebab-case vs keep existing).
 - Perform broader immutability/SRP sweep outside already-refactored store boundaries.
 - Optional hardening: add explicit persisted-state validator/type alias (`PersistedGameState`) beyond current `unknown` narrowing.
@@ -57,7 +59,7 @@
 
 ## Snapshot (Updated)
 
-- `src/store/gameStore.ts` is now small (composition only), but some split test files are still over the 500 LOC guideline.
+- `src/store/gameStore.ts` is now small (composition only), and store domain tests are now split under the 500 LOC guideline.
 - Persist migration `any` cast has been removed; typed narrowing is in place.
 - Mixed file naming conventions remain (camelCase for non-components vs recommended kebab-case).
 - ESLint guardrails are now active; remaining work is mostly structural consistency and naming policy.
@@ -100,13 +102,12 @@
 
 ### File Size (Over 500 LOC)
 
-- Remaining:
-    - `src/store/gameStore.orchard.test.ts` (still over 500)
-    - `src/store/gameStore.dilemmas.test.ts` (still over 500)
 - Completed:
     - `src/store/gameStore.ts` reduced to thin composition layer
     - `src/store/gameStore.test.ts` split by domain
     - `src/components/PlotTile.test.tsx` split (`PlotTile.test.tsx` + `PlotTile.orchard.test.tsx`)
+    - `src/store/gameStore.orchard.test.ts` split into smaller orchard-domain files
+    - `src/store/gameStore.dilemmas.test.ts` split with `gameStore.dilemmas.state-tracking.test.ts`
 
 ### Naming Conventions (File Names)
 

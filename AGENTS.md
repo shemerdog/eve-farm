@@ -63,7 +63,11 @@ Plant → grow (15s) → harvest (+10 wheat) → every 2 harvests show dilemma �
 - Game store tests are split by domain:
   - `src/store/gameStore.economy.test.ts`
   - `src/store/gameStore.dilemmas.test.ts`
-  - `src/store/gameStore.orchard.test.ts`
+  - `src/store/gameStore.dilemmas.state-tracking.test.ts`
+  - `src/store/gameStore.orchard.lifecycle.test.ts`
+  - `src/store/gameStore.orchard.cycle.test.ts`
+  - `src/store/gameStore.orchard.saved-decisions.test.ts`
+  - `src/store/gameStore.orchard.dilemma-gating.test.ts`
   - `src/store/gameStore.migrations.test.ts`
 - E2E tests live in `e2e/` and use `*.spec.ts` naming.
 - Cover game logic in `src/game/` with pure tests where possible.
