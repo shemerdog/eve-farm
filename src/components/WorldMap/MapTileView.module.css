@@ -1,13 +1,13 @@
 .tile {
-  border-radius: 16px;
-  overflow: hidden;
-  position: relative;
+    border-radius: 16px;
+    overflow: hidden;
+    position: relative;
 }
 
 .farm {
-  background: #e8cfa0;
+    background: #e8cfa0;
 }
 
 .locked {
-  background: #2a1a08;
+    background: #2a1a08;
 }

@@ -15,6 +15,7 @@
 ### Task 1: Update types
 
 **Files:**
+
 - Modify: `src/types/index.ts`
 
 Add two fields. No tests needed — TypeScript enforces correctness; broken usages will surface in Task 3.
@@ -25,16 +26,16 @@ In `src/types/index.ts`, add `harvestCount: number;` to the `Plot` type after `n
 
 ```ts
 export type Plot = {
-  id: string;
-  state: PlotState;
-  plantedAt: number | null;
-  growthDuration: number;
-  tileCoord: TileCoord;
-  cropType: CropType;
-  hasBeenPlanted: boolean;
-  nextActionAt: number | null;
-  harvestCount: number;          // NEW: 0 on creation; increments each harvest()
-};
+    id: string
+    state: PlotState
+    plantedAt: number | null
+    growthDuration: number
+    tileCoord: TileCoord
+    cropType: CropType
+    hasBeenPlanted: boolean
+    nextActionAt: number | null
+    harvestCount: number // NEW: 0 on creation; increments each harvest()
+}
 ```
 
 **Step 2: Add `activePlotId` to GameState**
@@ -43,18 +44,18 @@ In `src/types/index.ts`, add `activePlotId: string | null;` to `GameState` after
 
 ```ts
 export type GameState = {
-  plots: Plot[];
-  wheat: number;
-  grapes: number;
-  barley: number;
-  meters: MeterValues;
-  activeDilemma: Dilemma | null;
-  activeDilemmaContext: CropType | null;
-  activePlotId: string | null;   // NEW: plotId that triggered the active dilemma
-  purchasedCoords: TileCoord[];
-  tileCategories: Record<string, TileCategory>;
-  savedFieldDecisions: Record<string, SavedFieldDecision>;
-};
+    plots: Plot[]
+    wheat: number
+    grapes: number
+    barley: number
+    meters: MeterValues
+    activeDilemma: Dilemma | null
+    activeDilemmaContext: CropType | null
+    activePlotId: string | null // NEW: plotId that triggered the active dilemma
+    purchasedCoords: TileCoord[]
+    tileCategories: Record<string, TileCategory>
+    savedFieldDecisions: Record<string, SavedFieldDecision>
+}
 ```
 
 **Step 3: Run the build to surface type errors**
@@ -77,6 +78,7 @@ git commit -m "feat(types): add harvestCount to Plot and activePlotId to GameSta
 ### Task 2: Add NETA_REVAI_DILEMMA
 
 **Files:**
+
 - Modify: `src/game/dilemmas.ts`
 
 **Step 1: Write the failing test**
@@ -84,31 +86,31 @@ git commit -m "feat(types): add harvestCount to Plot and activePlotId to GameSta
 In `src/game/gameTick.test.ts`, add at the top of the file (or a new `dilemmas.test.ts` if one doesn't exist — check with `ls src/game/`):
 
 ```ts
-import { NETA_REVAI_DILEMMA, ORLAH_DILEMMA } from "@/game/dilemmas";
+import { NETA_REVAI_DILEMMA, ORLAH_DILEMMA } from '@/game/dilemmas'
 
-describe("NETA_REVAI_DILEMMA", () => {
-  it("has id 'neta_revai'", () => {
-    expect(NETA_REVAI_DILEMMA.id).toBe("neta_revai");
-  });
+describe('NETA_REVAI_DILEMMA', () => {
+    it("has id 'neta_revai'", () => {
+        expect(NETA_REVAI_DILEMMA.id).toBe('neta_revai')
+    })
 
-  it("has exactly 2 choices", () => {
-    expect(NETA_REVAI_DILEMMA.choices).toHaveLength(2);
-  });
+    it('has exactly 2 choices', () => {
+        expect(NETA_REVAI_DILEMMA.choices).toHaveLength(2)
+    })
 
-  it("choice 0 has no wheat cost", () => {
-    expect(NETA_REVAI_DILEMMA.choices[0].wheatCost).toBe(0);
-  });
+    it('choice 0 has no wheat cost', () => {
+        expect(NETA_REVAI_DILEMMA.choices[0].wheatCost).toBe(0)
+    })
 
-  it("choice 0 gives faithfulness and devotion bonuses", () => {
-    expect(NETA_REVAI_DILEMMA.choices[0].meterEffect.faithfulness).toBe(8);
-    expect(NETA_REVAI_DILEMMA.choices[0].meterEffect.devotion).toBe(5);
-  });
+    it('choice 0 gives faithfulness and devotion bonuses', () => {
+        expect(NETA_REVAI_DILEMMA.choices[0].meterEffect.faithfulness).toBe(8)
+        expect(NETA_REVAI_DILEMMA.choices[0].meterEffect.devotion).toBe(5)
+    })
 
-  it("choice 1 gives morality and devotion penalties", () => {
-    expect(NETA_REVAI_DILEMMA.choices[1].meterEffect.morality).toBe(-8);
-    expect(NETA_REVAI_DILEMMA.choices[1].meterEffect.devotion).toBe(-5);
-  });
-});
+    it('choice 1 gives morality and devotion penalties', () => {
+        expect(NETA_REVAI_DILEMMA.choices[1].meterEffect.morality).toBe(-8)
+        expect(NETA_REVAI_DILEMMA.choices[1].meterEffect.devotion).toBe(-5)
+    })
+})
 ```
 
 **Step 2: Run to verify failure**
@@ -127,39 +129,37 @@ Append after `ORLAH_DILEMMA` export in `src/game/dilemmas.ts`:
 // Neta Revai: fourth-year fruit is holy and must be eaten in purity in Jerusalem.
 // Fires only on the 4th harvest cycle of an orchard plot (harvestCount === 3).
 export const NETA_REVAI_DILEMMA: Dilemma = {
-  id: "neta_revai",
-  title: "נֶטַע רְבָעִי — פְּרִי שְׁנַת הָרְבִיעִית",
-  narrative:
-    "הָעֵץ הִגִּיעַ לְשָׁנָתוֹ הָרְבִיעִית, וּפֵרוֹתָיו קֹדֶשׁ לַה׳. " +
-    "הַמָּסֹרֶת מְצַוָּה לְהַעֲלוֹת אֶת הַפֵּרוֹת לִירוּשָׁלַיִם " +
-    "וּלְאָכְלָם שָׁם בְּטָהֳרָה. מַה תַּעֲשֶׂה עִם הַיְּבוּל הַזֶּה?",
-  choices: [
-    {
-      label: "שְׁמֹר לְמַסַּע הַבָּא לִירוּשָׁלָיִם",
-      description:
-        "אַתָּה שׁוֹמֵר אֶת הַפֵּרוֹת לִמְסִירָתָם בְּטָהֳרָה בִּירוּשָׁלָיִם",
-      wheatCost: 0,
-      meterEffect: { faithfulness: 8, devotion: 5 },
-    },
-    {
-      label: "קַח אֶת הַפֵּרוֹת לְעַצְמְךָ",
-      description:
-        "אַתָּה לוֹקֵחַ אֶת הַפֵּרוֹת לְעַצְמְךָ בְּלִי לְהַקְדִּישָׁם",
-      wheatCost: 0,
-      meterEffect: { morality: -8, devotion: -5 },
-    },
-  ],
-};
+    id: 'neta_revai',
+    title: 'נֶטַע רְבָעִי — פְּרִי שְׁנַת הָרְבִיעִית',
+    narrative:
+        'הָעֵץ הִגִּיעַ לְשָׁנָתוֹ הָרְבִיעִית, וּפֵרוֹתָיו קֹדֶשׁ לַה׳. ' +
+        'הַמָּסֹרֶת מְצַוָּה לְהַעֲלוֹת אֶת הַפֵּרוֹת לִירוּשָׁלַיִם ' +
+        'וּלְאָכְלָם שָׁם בְּטָהֳרָה. מַה תַּעֲשֶׂה עִם הַיְּבוּל הַזֶּה?',
+    choices: [
+        {
+            label: 'שְׁמֹר לְמַסַּע הַבָּא לִירוּשָׁלָיִם',
+            description: 'אַתָּה שׁוֹמֵר אֶת הַפֵּרוֹת לִמְסִירָתָם בְּטָהֳרָה בִּירוּשָׁלָיִם',
+            wheatCost: 0,
+            meterEffect: { faithfulness: 8, devotion: 5 },
+        },
+        {
+            label: 'קַח אֶת הַפֵּרוֹת לְעַצְמְךָ',
+            description: 'אַתָּה לוֹקֵחַ אֶת הַפֵּרוֹת לְעַצְמְךָ בְּלִי לְהַקְדִּישָׁם',
+            wheatCost: 0,
+            meterEffect: { morality: -8, devotion: -5 },
+        },
+    ],
+}
 ```
 
 Also add `NETA_REVAI_DILEMMA` to the `DILEMMAS` array at the bottom:
 
 ```ts
 export const DILEMMAS: Dilemma[] = [
-  // ...existing entries...
-  ORLAH_DILEMMA,
-  NETA_REVAI_DILEMMA,
-];
+    // ...existing entries...
+    ORLAH_DILEMMA,
+    NETA_REVAI_DILEMMA,
+]
 ```
 
 **Step 4: Run tests to verify pass**
@@ -182,6 +182,7 @@ git commit -m "feat(dilemmas): add NETA_REVAI_DILEMMA for 4th orchard cycle"
 ### Task 3: Wire makePlots, initialState, partialize, and migration
 
 **Files:**
+
 - Modify: `src/store/gameStore.ts`
 
 This is pure wiring — no new behavior yet, just makes the build green again.
@@ -189,36 +190,36 @@ This is pure wiring — no new behavior yet, just makes the build green again.
 **Step 1: Add `harvestCount: 0` to makePlots**
 
 ```ts
-const makePlots = (coord: TileCoord, cropType: CropType = "wheat"): Plot[] =>
-  Array.from({ length: PLOT_COUNT }, (_, i) => ({
-    id: `${coord.col}_${coord.row}_${i}`,
-    state: "empty" as const,
-    plantedAt: null,
-    growthDuration: GROWTH_DURATION[cropType],
-    tileCoord: coord,
-    cropType,
-    hasBeenPlanted: false,
-    nextActionAt: null,
-    harvestCount: 0,       // NEW
-  }));
+const makePlots = (coord: TileCoord, cropType: CropType = 'wheat'): Plot[] =>
+    Array.from({ length: PLOT_COUNT }, (_, i) => ({
+        id: `${coord.col}_${coord.row}_${i}`,
+        state: 'empty' as const,
+        plantedAt: null,
+        growthDuration: GROWTH_DURATION[cropType],
+        tileCoord: coord,
+        cropType,
+        hasBeenPlanted: false,
+        nextActionAt: null,
+        harvestCount: 0, // NEW
+    }))
 ```
 
 **Step 2: Add `activePlotId: null` to initialState**
 
 ```ts
 const initialState: GameState = {
-  plots: makePlots(FARM_COORD),
-  wheat: 0,
-  grapes: 0,
-  barley: 0,
-  meters: { ...METER_INITIAL },
-  activeDilemma: null,
-  activeDilemmaContext: null,
-  activePlotId: null,       // NEW
-  purchasedCoords: [],
-  tileCategories: {},
-  savedFieldDecisions: {},
-};
+    plots: makePlots(FARM_COORD),
+    wheat: 0,
+    grapes: 0,
+    barley: 0,
+    meters: { ...METER_INITIAL },
+    activeDilemma: null,
+    activeDilemmaContext: null,
+    activePlotId: null, // NEW
+    purchasedCoords: [],
+    tileCategories: {},
+    savedFieldDecisions: {},
+}
 ```
 
 **Step 3: Add `activePlotId` to partialize**
@@ -245,11 +246,11 @@ Add after the `version < 10` block:
 
 ```ts
 if (version < 11) {
-  state.activePlotId = state.activePlotId ?? null;
-  state.plots = (state.plots ?? []).map((p: Partial<Plot>) => ({
-    ...p,
-    harvestCount: p.harvestCount ?? 0,
-  }));
+    state.activePlotId = state.activePlotId ?? null
+    state.plots = (state.plots ?? []).map((p: Partial<Plot>) => ({
+        ...p,
+        harvestCount: p.harvestCount ?? 0,
+    }))
 }
 ```
 
@@ -291,6 +292,7 @@ git commit -m "feat(store): wire harvestCount + activePlotId into makePlots, ini
 ### Task 4: Update harvest() — orchard detection, harvestCount, cycle gating
 
 **Files:**
+
 - Modify: `src/store/gameStore.ts`
 - Test: `src/store/gameStore.test.ts`
 
@@ -299,7 +301,7 @@ git commit -m "feat(store): wire harvestCount + activePlotId into makePlots, ini
 In `src/store/gameStore.ts`, update the dilemmas import line:
 
 ```ts
-import { DILEMMAS, ORLAH_DILEMMA, NETA_REVAI_DILEMMA } from "@/game/dilemmas";
+import { DILEMMAS, ORLAH_DILEMMA, NETA_REVAI_DILEMMA } from '@/game/dilemmas'
 ```
 
 **Step 2: Write failing tests**
@@ -307,123 +309,129 @@ import { DILEMMAS, ORLAH_DILEMMA, NETA_REVAI_DILEMMA } from "@/game/dilemmas";
 Add a new `describe("harvest – orchard cycle gating")` block in `src/store/gameStore.test.ts`. Add this helper near the top of the test file:
 
 ```ts
-import { GRAPES_PER_HARVEST } from "@/game/constants";
-import type { Plot } from "@/types";
+import { GRAPES_PER_HARVEST } from '@/game/constants'
+import type { Plot } from '@/types'
 
 /** Inject a single "ready" orchard plot at coord {col:3, row:2} into store state. */
 function setupOrchardPlot(harvestCount = 0): string {
-  const coord = { col: 3, row: 2 };
-  const plotId = "3_2_0";
-  const plot: Plot = {
-    id: plotId,
-    state: "ready",
-    plantedAt: Date.now() - 100_000,
-    growthDuration: 30_000,
-    tileCoord: coord,
-    cropType: "grapes",
-    hasBeenPlanted: true,
-    nextActionAt: null,
-    harvestCount,
-  };
-  useGameStore.setState({
-    ...useGameStore.getState(),
-    tileCategories: { "3_2": "orchard" },
-    activeDilemma: null,
-    activeDilemmaContext: null,
-    activePlotId: null,
-    plots: [plot],
-    grapes: 0,
-  });
-  return plotId;
+    const coord = { col: 3, row: 2 }
+    const plotId = '3_2_0'
+    const plot: Plot = {
+        id: plotId,
+        state: 'ready',
+        plantedAt: Date.now() - 100_000,
+        growthDuration: 30_000,
+        tileCoord: coord,
+        cropType: 'grapes',
+        hasBeenPlanted: true,
+        nextActionAt: null,
+        harvestCount,
+    }
+    useGameStore.setState({
+        ...useGameStore.getState(),
+        tileCategories: { '3_2': 'orchard' },
+        activeDilemma: null,
+        activeDilemmaContext: null,
+        activePlotId: null,
+        plots: [plot],
+        grapes: 0,
+    })
+    return plotId
 }
 ```
 
 Then the tests:
 
 ```ts
-describe("harvest – orchard cycle gating", () => {
-  beforeEach(() => useGameStore.setState(useGameStore.getInitialState?.() ?? { ...useGameStore.getState() }));
+describe('harvest – orchard cycle gating', () => {
+    beforeEach(() =>
+        useGameStore.setState(useGameStore.getInitialState?.() ?? { ...useGameStore.getState() }),
+    )
 
-  it("shows ORLAH for cycles 1–3 (harvestCount 0, 1, 2)", () => {
-    for (let count = 0; count < 3; count++) {
-      const plotId = setupOrchardPlot(count);
-      useGameStore.getState().harvest(plotId);
-      expect(useGameStore.getState().activeDilemma?.id).toBe("orlah");
-    }
-  });
+    it('shows ORLAH for cycles 1–3 (harvestCount 0, 1, 2)', () => {
+        for (let count = 0; count < 3; count++) {
+            const plotId = setupOrchardPlot(count)
+            useGameStore.getState().harvest(plotId)
+            expect(useGameStore.getState().activeDilemma?.id).toBe('orlah')
+        }
+    })
 
-  it("shows NETA_REVAI on cycle 4 (harvestCount 3)", () => {
-    const plotId = setupOrchardPlot(3);
-    useGameStore.getState().harvest(plotId);
-    expect(useGameStore.getState().activeDilemma?.id).toBe("neta_revai");
-  });
+    it('shows NETA_REVAI on cycle 4 (harvestCount 3)', () => {
+        const plotId = setupOrchardPlot(3)
+        useGameStore.getState().harvest(plotId)
+        expect(useGameStore.getState().activeDilemma?.id).toBe('neta_revai')
+    })
 
-  it("shows no dilemma from cycle 5 onwards (harvestCount >= 4)", () => {
-    const plotId = setupOrchardPlot(4);
-    useGameStore.getState().harvest(plotId);
-    expect(useGameStore.getState().activeDilemma).toBeNull();
-    expect(useGameStore.getState().activePlotId).toBeNull();
-  });
+    it('shows no dilemma from cycle 5 onwards (harvestCount >= 4)', () => {
+        const plotId = setupOrchardPlot(4)
+        useGameStore.getState().harvest(plotId)
+        expect(useGameStore.getState().activeDilemma).toBeNull()
+        expect(useGameStore.getState().activePlotId).toBeNull()
+    })
 
-  it("increments harvestCount on each orchard harvest", () => {
-    const plotId = setupOrchardPlot(0);
-    useGameStore.getState().harvest(plotId);
-    const plot = useGameStore.getState().plots.find((p) => p.id === plotId);
-    expect(plot?.harvestCount).toBe(1);
-  });
+    it('increments harvestCount on each orchard harvest', () => {
+        const plotId = setupOrchardPlot(0)
+        useGameStore.getState().harvest(plotId)
+        const plot = useGameStore.getState().plots.find((p) => p.id === plotId)
+        expect(plot?.harvestCount).toBe(1)
+    })
 
-  it("sets activePlotId when orchard dilemma fires", () => {
-    const plotId = setupOrchardPlot(0);
-    useGameStore.getState().harvest(plotId);
-    expect(useGameStore.getState().activePlotId).toBe(plotId);
-  });
+    it('sets activePlotId when orchard dilemma fires', () => {
+        const plotId = setupOrchardPlot(0)
+        useGameStore.getState().harvest(plotId)
+        expect(useGameStore.getState().activePlotId).toBe(plotId)
+    })
 
-  it("does NOT increment harvestCount for field crops", () => {
-    // Use store default state (wheat plot at farm coord)
-    const plotId = "2_2_0";
-    useGameStore.setState({
-      ...useGameStore.getState(),
-      tileCategories: {},
-      plots: [{
-        id: plotId,
-        state: "ready",
-        plantedAt: Date.now() - 100_000,
-        growthDuration: 15_000,
-        tileCoord: { col: 2, row: 2 },
-        cropType: "wheat",
-        hasBeenPlanted: false,
-        nextActionAt: null,
-        harvestCount: 0,
-      }],
-    });
-    useGameStore.getState().harvest(plotId);
-    const plot = useGameStore.getState().plots.find((p) => p.id === plotId);
-    expect(plot?.harvestCount).toBe(0);
-  });
+    it('does NOT increment harvestCount for field crops', () => {
+        // Use store default state (wheat plot at farm coord)
+        const plotId = '2_2_0'
+        useGameStore.setState({
+            ...useGameStore.getState(),
+            tileCategories: {},
+            plots: [
+                {
+                    id: plotId,
+                    state: 'ready',
+                    plantedAt: Date.now() - 100_000,
+                    growthDuration: 15_000,
+                    tileCoord: { col: 2, row: 2 },
+                    cropType: 'wheat',
+                    hasBeenPlanted: false,
+                    nextActionAt: null,
+                    harvestCount: 0,
+                },
+            ],
+        })
+        useGameStore.getState().harvest(plotId)
+        const plot = useGameStore.getState().plots.find((p) => p.id === plotId)
+        expect(plot?.harvestCount).toBe(0)
+    })
 
-  it("still shows PEAH for wheat (field crop)", () => {
-    const plotId = "2_2_0";
-    useGameStore.setState({
-      ...useGameStore.getState(),
-      tileCategories: {},
-      activeDilemma: null,
-      savedFieldDecisions: {},
-      plots: [{
-        id: plotId,
-        state: "ready",
-        plantedAt: Date.now() - 100_000,
-        growthDuration: 15_000,
-        tileCoord: { col: 2, row: 2 },
-        cropType: "wheat",
-        hasBeenPlanted: false,
-        nextActionAt: null,
-        harvestCount: 0,
-      }],
-    });
-    useGameStore.getState().harvest(plotId);
-    expect(useGameStore.getState().activeDilemma?.id).toBe("peah");
-  });
-});
+    it('still shows PEAH for wheat (field crop)', () => {
+        const plotId = '2_2_0'
+        useGameStore.setState({
+            ...useGameStore.getState(),
+            tileCategories: {},
+            activeDilemma: null,
+            savedFieldDecisions: {},
+            plots: [
+                {
+                    id: plotId,
+                    state: 'ready',
+                    plantedAt: Date.now() - 100_000,
+                    growthDuration: 15_000,
+                    tileCoord: { col: 2, row: 2 },
+                    cropType: 'wheat',
+                    hasBeenPlanted: false,
+                    nextActionAt: null,
+                    harvestCount: 0,
+                },
+            ],
+        })
+        useGameStore.getState().harvest(plotId)
+        expect(useGameStore.getState().activeDilemma?.id).toBe('peah')
+    })
+})
 ```
 
 **Step 3: Run to verify failure**
@@ -525,11 +533,11 @@ Also add the `Dilemma` type import at the top of the file (it's already in `@/ty
 
 ```ts
 import type {
-  CropType,
-  Dilemma,        // ADD THIS
-  GameState,
-  // ...rest unchanged
-} from "@/types";
+    CropType,
+    Dilemma, // ADD THIS
+    GameState,
+    // ...rest unchanged
+} from '@/types'
 ```
 
 **Step 5: Run tests to verify pass**
@@ -552,6 +560,7 @@ git commit -m "feat(store): orchard harvest gating — ORLAH×3, NETA_REVAI on 4
 ### Task 5: Update resolveDilemma() — skip gather + reset plot
 
 **Files:**
+
 - Modify: `src/store/gameStore.ts`
 - Test: `src/store/gameStore.test.ts`
 
@@ -560,70 +569,70 @@ git commit -m "feat(store): orchard harvest gating — ORLAH×3, NETA_REVAI on 4
 Add a new describe block in `src/store/gameStore.test.ts`:
 
 ```ts
-describe("resolveDilemma – orchard skip-gather behavior", () => {
-  it("ORLAH choice 0 resets plot to empty immediately, no grapes added", () => {
-    const plotId = setupOrchardPlot(0);
-    useGameStore.getState().harvest(plotId);
-    // dilemma is now active
-    expect(useGameStore.getState().activeDilemma?.id).toBe("orlah");
+describe('resolveDilemma – orchard skip-gather behavior', () => {
+    it('ORLAH choice 0 resets plot to empty immediately, no grapes added', () => {
+        const plotId = setupOrchardPlot(0)
+        useGameStore.getState().harvest(plotId)
+        // dilemma is now active
+        expect(useGameStore.getState().activeDilemma?.id).toBe('orlah')
 
-    useGameStore.getState().resolveDilemma(0); // "Leave the fruit"
+        useGameStore.getState().resolveDilemma(0) // "Leave the fruit"
 
-    const plot = useGameStore.getState().plots.find((p) => p.id === plotId);
-    expect(plot?.state).toBe("empty");
-    expect(plot?.plantedAt).toBeNull();
-    expect(useGameStore.getState().grapes).toBe(0);
-    expect(useGameStore.getState().activePlotId).toBeNull();
-    expect(useGameStore.getState().activeDilemma).toBeNull();
-  });
+        const plot = useGameStore.getState().plots.find((p) => p.id === plotId)
+        expect(plot?.state).toBe('empty')
+        expect(plot?.plantedAt).toBeNull()
+        expect(useGameStore.getState().grapes).toBe(0)
+        expect(useGameStore.getState().activePlotId).toBeNull()
+        expect(useGameStore.getState().activeDilemma).toBeNull()
+    })
 
-  it("ORLAH choice 0 keeps hasBeenPlanted true (fertilize available next)", () => {
-    const plotId = setupOrchardPlot(0);
-    useGameStore.getState().harvest(plotId);
-    useGameStore.getState().resolveDilemma(0);
-    const plot = useGameStore.getState().plots.find((p) => p.id === plotId);
-    expect(plot?.hasBeenPlanted).toBe(true);
-  });
+    it('ORLAH choice 0 keeps hasBeenPlanted true (fertilize available next)', () => {
+        const plotId = setupOrchardPlot(0)
+        useGameStore.getState().harvest(plotId)
+        useGameStore.getState().resolveDilemma(0)
+        const plot = useGameStore.getState().plots.find((p) => p.id === plotId)
+        expect(plot?.hasBeenPlanted).toBe(true)
+    })
 
-  it("ORLAH choice 1 does not reset plot — gather step still needed", () => {
-    const plotId = setupOrchardPlot(0);
-    useGameStore.getState().harvest(plotId);
-    useGameStore.getState().resolveDilemma(1); // "Take half"
-    const plot = useGameStore.getState().plots.find((p) => p.id === plotId);
-    // plot is "harvested" still (600ms timer hasn't fired in unit test)
-    expect(plot?.state).toBe("harvested");
-    expect(useGameStore.getState().activePlotId).toBeNull();
-  });
+    it('ORLAH choice 1 does not reset plot — gather step still needed', () => {
+        const plotId = setupOrchardPlot(0)
+        useGameStore.getState().harvest(plotId)
+        useGameStore.getState().resolveDilemma(1) // "Take half"
+        const plot = useGameStore.getState().plots.find((p) => p.id === plotId)
+        // plot is "harvested" still (600ms timer hasn't fired in unit test)
+        expect(plot?.state).toBe('harvested')
+        expect(useGameStore.getState().activePlotId).toBeNull()
+    })
 
-  it("NETA_REVAI choice 0 resets plot to empty, no grapes added", () => {
-    const plotId = setupOrchardPlot(3);
-    useGameStore.getState().harvest(plotId);
-    expect(useGameStore.getState().activeDilemma?.id).toBe("neta_revai");
+    it('NETA_REVAI choice 0 resets plot to empty, no grapes added', () => {
+        const plotId = setupOrchardPlot(3)
+        useGameStore.getState().harvest(plotId)
+        expect(useGameStore.getState().activeDilemma?.id).toBe('neta_revai')
 
-    useGameStore.getState().resolveDilemma(0); // "Save for Jerusalem"
+        useGameStore.getState().resolveDilemma(0) // "Save for Jerusalem"
 
-    const plot = useGameStore.getState().plots.find((p) => p.id === plotId);
-    expect(plot?.state).toBe("empty");
-    expect(useGameStore.getState().grapes).toBe(0);
-    expect(useGameStore.getState().activePlotId).toBeNull();
-  });
+        const plot = useGameStore.getState().plots.find((p) => p.id === plotId)
+        expect(plot?.state).toBe('empty')
+        expect(useGameStore.getState().grapes).toBe(0)
+        expect(useGameStore.getState().activePlotId).toBeNull()
+    })
 
-  it("NETA_REVAI choice 1 does not reset plot — gather step still needed", () => {
-    const plotId = setupOrchardPlot(3);
-    useGameStore.getState().harvest(plotId);
-    useGameStore.getState().resolveDilemma(1); // "Take the fruit"
-    const plot = useGameStore.getState().plots.find((p) => p.id === plotId);
-    expect(plot?.state).toBe("harvested");
-  });
+    it('NETA_REVAI choice 1 does not reset plot — gather step still needed', () => {
+        const plotId = setupOrchardPlot(3)
+        useGameStore.getState().harvest(plotId)
+        useGameStore.getState().resolveDilemma(1) // "Take the fruit"
+        const plot = useGameStore.getState().plots.find((p) => p.id === plotId)
+        expect(plot?.state).toBe('harvested')
+    })
 
-  it("activePlotId is cleared on every resolveDilemma call", () => {
-    const plotId = setupOrchardPlot(0);
-    useGameStore.getState().harvest(plotId);
-    expect(useGameStore.getState().activePlotId).toBe(plotId);
-    useGameStore.getState().resolveDilemma(2); // "Take all"
-    expect(useGameStore.getState().activePlotId).toBeNull();
-  });
-});
+    it('activePlotId is cleared on every resolveDilemma call', () => {
+        const plotId = setupOrchardPlot(0)
+        useGameStore.getState().harvest(plotId)
+        expect(useGameStore.getState().activePlotId).toBe(plotId)
+        useGameStore.getState().resolveDilemma(2) // "Take all"
+        expect(useGameStore.getState().activePlotId).toBeNull()
+    })
+})
 ```
 
 **Step 2: Run to verify failure**
@@ -719,6 +728,7 @@ git commit -m "feat(store): resolveDilemma skips gather for ORLAH/NETA_REVAI cho
 ### Task 6: Confirm tickPlot does not touch harvestCount
 
 **Files:**
+
 - Test: `src/game/gameTick.test.ts`
 
 `tickPlot` only modifies `state`, `plantedAt`, and `nextActionAt`. This test is a regression guard.
@@ -728,21 +738,21 @@ git commit -m "feat(store): resolveDilemma skips gather for ORLAH/NETA_REVAI cho
 In `src/game/gameTick.test.ts`, add inside the existing `tickPlot` describe block:
 
 ```ts
-it("does not modify harvestCount", () => {
-  const plot: Plot = {
-    id: "2_2_0",
-    state: "growing",
-    plantedAt: Date.now() - 5_000,
-    growthDuration: 10_000,
-    tileCoord: { col: 2, row: 2 },
-    cropType: "grapes",
-    hasBeenPlanted: true,
-    nextActionAt: null,
-    harvestCount: 7,
-  };
-  const result = tickPlot(plot, Date.now());
-  expect(result.harvestCount).toBe(7);
-});
+it('does not modify harvestCount', () => {
+    const plot: Plot = {
+        id: '2_2_0',
+        state: 'growing',
+        plantedAt: Date.now() - 5_000,
+        growthDuration: 10_000,
+        tileCoord: { col: 2, row: 2 },
+        cropType: 'grapes',
+        hasBeenPlanted: true,
+        nextActionAt: null,
+        harvestCount: 7,
+    }
+    const result = tickPlot(plot, Date.now())
+    expect(result.harvestCount).toBe(7)
+})
 ```
 
 **Step 2: Run the test**
@@ -783,6 +793,7 @@ Expected: all 6 E2E tests pass (no regressions from store changes).
 **Step 3: Update CLAUDE.md**
 
 In `CLAUDE.md`, update:
+
 - **Source Structure → store/gameStore.ts** — mention `activePlotId`
 - **Dilemma Routing** table — add Neta Revai row
 - **Key Implementation Decisions** — add persist version 11 note + harvestCount note
@@ -790,6 +801,7 @@ In `CLAUDE.md`, update:
 **Step 4: Update MEMORY.md**
 
 In `.claude/projects/-home-gerst-projects-eve/memory/MEMORY.md`:
+
 - Add `activePlotId: string | null` to GameState description
 - Add `harvestCount: number` to Plot description
 - Add Neta Revai to dilemma routing summary
@@ -803,6 +815,7 @@ In `.claude/projects/-home-gerst-projects-eve/memory/MEMORY.md`:
 ```
 
 Format:
+
 ```md
 ## 2026-02-22 — Orchard Dilemma Rework (Orlah Cycles + Neta Revai)
 

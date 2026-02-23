@@ -1,8 +1,8 @@
 .content {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  background: rgba(60, 20, 80, 0.08); /* subtle purple tint for vineyard theme */
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    background: rgba(60, 20, 80, 0.08); /* subtle purple tint for vineyard theme */
 }

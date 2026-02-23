@@ -1,8 +1,8 @@
 .content {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  background: rgba(180, 120, 20, 0.08); /* subtle amber tint for barley field theme */
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    background: rgba(180, 120, 20, 0.08); /* subtle amber tint for barley field theme */
 }

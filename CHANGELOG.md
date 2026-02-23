@@ -97,14 +97,14 @@ Reorganized tile categories from 3 legacy values (`farm`/`vineyard`/`field`) to 
 
 Each farm plot tile now shows a visually distinct background color reflecting its growth stage.
 
-| Stage     | Color    | Visual meaning       |
-|-----------|----------|----------------------|
-| empty     | #8b6914  | dry soil (unchanged) |
-| plowed    | #4a2c10  | dark tilled earth    |
-| growing   | #3a5c20  | lush green growth    |
-| ready     | #b8720a  | golden amber harvest |
-| harvested | #8a7040  | pale straw / stubble |
-| gathered  | #6b5820  | warm cleared field   |
+| Stage     | Color   | Visual meaning       |
+| --------- | ------- | -------------------- |
+| empty     | #8b6914 | dry soil (unchanged) |
+| plowed    | #4a2c10 | dark tilled earth    |
+| growing   | #3a5c20 | lush green growth    |
+| ready     | #b8720a | golden amber harvest |
+| harvested | #8a7040 | pale straw / stubble |
+| gathered  | #6b5820 | warm cleared field   |
 
 `growing`, `ready`, and `gathered` also gain a colored box-shadow glow.
 
@@ -129,6 +129,7 @@ Added barley as a third crop type alongside wheat and grapes, with its own resou
 **Barley stats:** 20s growth, 12 yield per harvest
 
 **Dilemma routing:**
+
 - `harvest` barley → OMER_DILEMMA (first barley sheaf offering)
 - `gatherSheafs` barley → SHIKCHAH_DILEMMA (same as wheat — applies to all grain fields)
 

@@ -8,6 +8,7 @@
 ## Summary
 
 Rework the orchard dilemma system so that:
+
 1. Orlah applies to all orchard sub-types (not just grapes).
 2. Choosing "Leave the fruit" in Orlah skips the gather step and resets the plot to the fertilize stage.
 3. Orlah stops after 3 harvest cycles per plot.
@@ -20,7 +21,7 @@ Rework the orchard dilemma system so that:
 ### `Plot` — new field
 
 ```ts
-harvestCount: number  // 0 on creation; incremented on every harvest() call for this plot
+harvestCount: number // 0 on creation; incremented on every harvest() call for this plot
 ```
 
 `harvestCount` increments unconditionally at harvest time, regardless of which dilemma choice the player makes. The tree ages whether or not the fruit is taken (halachically correct).
@@ -28,7 +29,7 @@ harvestCount: number  // 0 on creation; incremented on every harvest() call for 
 ### `GameState` — new field
 
 ```ts
-activePlotId: string | null  // set alongside activeDilemma; cleared on resolveDilemma
+activePlotId: string | null // set alongside activeDilemma; cleared on resolveDilemma
 ```
 
 Follows the same pattern as `activeDilemmaContext`. Allows `resolveDilemma` to find the triggering plot without threading a `plotId` through the UI.
@@ -40,18 +41,18 @@ Follows the same pattern as `activeDilemmaContext`. Allows `resolveDilemma` to f
 The orchard check in `harvest()` changes from `cropType === "grapes"` to:
 
 ```ts
-tileCategories[`${plot.tileCoord.col}_${plot.tileCoord.row}`] === "orchard"
+tileCategories[`${plot.tileCoord.col}_${plot.tileCoord.row}`] === 'orchard'
 ```
 
 This covers all present and future orchard sub-types.
 
 Cycle routing per plot, keyed on `harvestCount` **before** incrementing:
 
-| `harvestCount` (before harvest) | Dilemma shown |
-|---|---|
-| 0, 1, 2 — cycles 1–3 | ORLAH |
-| 3 — cycle 4 | NETA_REVAI |
-| ≥ 4 — cycle 5+ | none; yield added straight through |
+| `harvestCount` (before harvest) | Dilemma shown                      |
+| ------------------------------- | ---------------------------------- |
+| 0, 1, 2 — cycles 1–3            | ORLAH                              |
+| 3 — cycle 4                     | NETA_REVAI                         |
+| ≥ 4 — cycle 5+                  | none; yield added straight through |
 
 ---
 
@@ -74,27 +75,27 @@ Choices 1 ("Take half") and 2 ("Take all") continue through the gather step norm
 
 ```ts
 export const NETA_REVAI_DILEMMA: Dilemma = {
-  id: "neta_revai",
-  title: "נֶטַע רְבָעִי — פְּרִי שְׁנַת הָרְבִיעִית",
-  narrative:
-    "הָעֵץ הִגִּיעַ לְשָׁנָתוֹ הָרְבִיעִית, וּפֵרוֹתָיו קֹדֶשׁ לַה׳. " +
-    "הַמָּסֹרֶת מְצַוָּה לְהַעֲלוֹת אֶת הַפֵּרוֹת לִירוּשָׁלַיִם " +
-    "וּלְאָכְלָם שָׁם בְּטָהֳרָה. מַה תַּעֲשֶׂה עִם הַיְּבוּל הַזֶּה?",
-  choices: [
-    {
-      label: "שְׁמֹר לְמַסַּע הַבָּא לִירוּשָׁלָיִם",
-      description: "אַתָּה שׁוֹמֵר אֶת הַפֵּרוֹת לִמְסִירָתָם בְּטָהֳרָה בִּירוּשָׁלָיִם",
-      wheatCost: 0,
-      meterEffect: { faithfulness: +8, devotion: +5 },
-    },
-    {
-      label: "קַח אֶת הַפֵּרוֹת לְעַצְמְךָ",
-      description: "אַתָּה לוֹקֵחַ אֶת הַפֵּרוֹת לְעַצְמְךָ בְּלִי לְהַקְדִּישָׁם",
-      wheatCost: 0,
-      meterEffect: { morality: -8, devotion: -5 },
-    },
-  ],
-};
+    id: 'neta_revai',
+    title: 'נֶטַע רְבָעִי — פְּרִי שְׁנַת הָרְבִיעִית',
+    narrative:
+        'הָעֵץ הִגִּיעַ לְשָׁנָתוֹ הָרְבִיעִית, וּפֵרוֹתָיו קֹדֶשׁ לַה׳. ' +
+        'הַמָּסֹרֶת מְצַוָּה לְהַעֲלוֹת אֶת הַפֵּרוֹת לִירוּשָׁלַיִם ' +
+        'וּלְאָכְלָם שָׁם בְּטָהֳרָה. מַה תַּעֲשֶׂה עִם הַיְּבוּל הַזֶּה?',
+    choices: [
+        {
+            label: 'שְׁמֹר לְמַסַּע הַבָּא לִירוּשָׁלָיִם',
+            description: 'אַתָּה שׁוֹמֵר אֶת הַפֵּרוֹת לִמְסִירָתָם בְּטָהֳרָה בִּירוּשָׁלָיִם',
+            wheatCost: 0,
+            meterEffect: { faithfulness: +8, devotion: +5 },
+        },
+        {
+            label: 'קַח אֶת הַפֵּרוֹת לְעַצְמְךָ',
+            description: 'אַתָּה לוֹקֵחַ אֶת הַפֵּרוֹת לְעַצְמְךָ בְּלִי לְהַקְדִּישָׁם',
+            wheatCost: 0,
+            meterEffect: { morality: -8, devotion: -5 },
+        },
+    ],
+}
 ```
 
 **Choice 0 ("Save for Jerusalem"):** No fruit added; plot resets to `{ state: "empty", plantedAt: null }` immediately (same path as Orlah "Leave the fruit"). Handled in `resolveDilemma` via `activePlotId`.
@@ -106,16 +107,16 @@ export const NETA_REVAI_DILEMMA: Dilemma = {
 ## Store Changes (`gameStore.ts`)
 
 1. **`harvest()`**
-   - Replace `cropType === "grapes"` guard with `tileCategories` orchard check.
-   - Set `activePlotId = plotId` when a dilemma fires.
-   - Increment `plot.harvestCount` on every orchard harvest.
-   - Route dilemma by `harvestCount`: < 3 → ORLAH, === 3 → NETA_REVAI, > 3 → no dilemma.
+    - Replace `cropType === "grapes"` guard with `tileCategories` orchard check.
+    - Set `activePlotId = plotId` when a dilemma fires.
+    - Increment `plot.harvestCount` on every orchard harvest.
+    - Route dilemma by `harvestCount`: < 3 → ORLAH, === 3 → NETA_REVAI, > 3 → no dilemma.
 
 2. **`resolveDilemma()`**
-   - After applying meter effects, check if the resolved dilemma requires a plot reset:
-     - `(id === "orlah" && choiceIndex === 0)` → reset plot to empty, no yield
-     - `(id === "neta_revai" && choiceIndex === 0)` → reset plot to empty, no yield
-   - Clear `activePlotId: null` on every resolution.
+    - After applying meter effects, check if the resolved dilemma requires a plot reset:
+        - `(id === "orlah" && choiceIndex === 0)` → reset plot to empty, no yield
+        - `(id === "neta_revai" && choiceIndex === 0)` → reset plot to empty, no yield
+    - Clear `activePlotId: null` on every resolution.
 
 3. **`initialState`** — add `activePlotId: null`.
 
@@ -127,11 +128,11 @@ export const NETA_REVAI_DILEMMA: Dilemma = {
 
 ```ts
 if (version < 11) {
-  state.activePlotId = state.activePlotId ?? null;
-  state.plots = (state.plots ?? []).map((p) => ({
-    ...p,
-    harvestCount: p.harvestCount ?? 0,
-  }));
+    state.activePlotId = state.activePlotId ?? null
+    state.plots = (state.plots ?? []).map((p) => ({
+        ...p,
+        harvestCount: p.harvestCount ?? 0,
+    }))
 }
 ```
 
@@ -139,13 +140,13 @@ if (version < 11) {
 
 ## Files Touched
 
-| File | Change |
-|---|---|
-| `src/types/index.ts` | Add `harvestCount: number` to `Plot`; add `activePlotId: string \| null` to `GameState` |
-| `src/game/dilemmas.ts` | Add and export `NETA_REVAI_DILEMMA` |
-| `src/store/gameStore.ts` | Orchard check by tileCategory; harvestCount; activePlotId; cycle gating; resolveDilemma skip-gather; v11 migration |
-| `src/store/gameStore.test.ts` | Tests: ORLAH leave-fruit plot reset, cycle gating (ORLAH × 3 → NETA_REVAI → none), Neta Revai skip-yield |
-| `src/game/gameTick.test.ts` | Confirm `harvestCount` untouched by `tickPlot` |
+| File                          | Change                                                                                                             |
+| ----------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| `src/types/index.ts`          | Add `harvestCount: number` to `Plot`; add `activePlotId: string \| null` to `GameState`                            |
+| `src/game/dilemmas.ts`        | Add and export `NETA_REVAI_DILEMMA`                                                                                |
+| `src/store/gameStore.ts`      | Orchard check by tileCategory; harvestCount; activePlotId; cycle gating; resolveDilemma skip-gather; v11 migration |
+| `src/store/gameStore.test.ts` | Tests: ORLAH leave-fruit plot reset, cycle gating (ORLAH × 3 → NETA_REVAI → none), Neta Revai skip-yield           |
+| `src/game/gameTick.test.ts`   | Confirm `harvestCount` untouched by `tickPlot`                                                                     |
 
 ---
 

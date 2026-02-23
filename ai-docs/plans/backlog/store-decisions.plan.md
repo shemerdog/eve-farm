@@ -1,12 +1,12 @@
 # Standing Decisions Feature: Household Traditions (מִנְהָג)
 
-**Feature:** Let players store a choice for recurring dilemmas. When the same dilemma fires again, it auto-resolves using the saved choice — no modal interruption. Framed culturally as establishing a household *minhag* (מִנְהָג — custom/tradition).
+**Feature:** Let players store a choice for recurring dilemmas. When the same dilemma fires again, it auto-resolves using the saved choice — no modal interruption. Framed culturally as establishing a household _minhag_ (מִנְהָג — custom/tradition).
 
 ---
 
 ## Vision
 
-In Jewish tradition, a household *minhag* is a recurring practice a family establishes: how they observe certain obligations, year after year. This mechanic translates that concept directly into gameplay. Once you decide how you always handle Peah, the farm runs with that custom unless you consciously change it.
+In Jewish tradition, a household _minhag_ is a recurring practice a family establishes: how they observe certain obligations, year after year. This mechanic translates that concept directly into gameplay. Once you decide how you always handle Peah, the farm runs with that custom unless you consciously change it.
 
 The modal flow gains a second step: after choosing, the player is asked "Make this a household tradition?" If yes, future occurrences of that dilemma auto-resolve silently — with a brief toast confirming it ran. The player retains full control to revoke or change traditions at any time.
 
@@ -57,10 +57,10 @@ Either way → dilemma resolves, modal closes
 ```typescript
 // src/types/index.ts
 export type StandingDecision = {
-  dilemmaId: string
-  choiceIndex: number
-  choiceLabel: string   // snapshot of label text at time of setting
-  setAt: number         // timestamp — display "set 3 days ago" in traditions panel
+    dilemmaId: string
+    choiceIndex: number
+    choiceLabel: string // snapshot of label text at time of setting
+    setAt: number // timestamp — display "set 3 days ago" in traditions panel
 }
 ```
 
@@ -79,6 +79,7 @@ lastAutoResolution: {
 ```
 
 Initialize both to:
+
 ```typescript
 standingDecisions: {},
 lastAutoResolution: null,
@@ -95,6 +96,7 @@ Both fields added to the `partialize` list in `gameStore.ts` so they survive pag
 The key change is inside the existing `harvest` action, at the point where `shouldTrigger` is true.
 
 **Current logic (simplified):**
+
 ```typescript
 if (shouldTrigger) {
   set({ activeDilemma: DILEMMAS[...], dilemmaIndex: ... })
@@ -102,6 +104,7 @@ if (shouldTrigger) {
 ```
 
 **New logic:**
+
 ```typescript
 if (shouldTrigger) {
   const dilemma = DILEMMAS[s.dilemmaIndex % DILEMMAS.length]
@@ -165,11 +168,13 @@ clearAutoResolution: () => void
 ### New flow: two-step inside the same modal
 
 **Step 1 — Choice selection (same as today):**
+
 - Three choice buttons render as before
 - Player taps a button → `pendingChoiceIndex` enters local state (not yet committed)
 - Modal transitions to Step 2
 
 **Step 2 — Tradition prompt (new):**
+
 ```
 ┌───────────────────────────────────────────┐
 │  ✓  הַשְׁאֵר פִּנּוֹת נְדִיבוֹת          │  ← echo the chosen option
@@ -212,11 +217,13 @@ Slide the Step 2 panel up from the bottom of the modal with a `transform: transl
 **Location:** `src/components/MinhagToast/`
 
 **Behavior:**
+
 - Watches `lastAutoResolution` in the store
 - When it becomes non-null, renders a toast for 3 seconds, then calls `clearAutoResolution()`
 - Does not block interaction — positioned above `WheatCounter`, below the farm
 
 **Visual:**
+
 ```
 ┌────────────────────────────────────────────┐
 │  מִנְהָג הַבַּיִת  ·  Peah                 │
@@ -235,6 +242,7 @@ Slide the Step 2 panel up from the bottom of the modal with a `transform: transl
 A scrollable sheet or modal accessible from a small "📜 Traditions" icon in the HUD.
 
 Lists all set traditions:
+
 ```
 📌  פֵּאָה — הַשְׁאֵר פִּנּוֹת נְדִיבוֹת   [Revoke]
 📌  מַעֲשֵׂר — מַעֲשֵׂר שָׁלֵם              [Revoke]
@@ -264,12 +272,12 @@ Currently `resolveDilemma` and the new auto-resolve path both compute meter effe
 ```typescript
 // src/game/constants.ts
 export const applyMeterEffects = (
-  current: MeterValues,
-  effect: Partial<MeterValues>
+    current: MeterValues,
+    effect: Partial<MeterValues>,
 ): MeterValues => ({
-  devotion: clampMeter(current.devotion + (effect.devotion ?? 0)),
-  morality: clampMeter(current.morality + (effect.morality ?? 0)),
-  faithfulness: clampMeter(current.faithfulness + (effect.faithfulness ?? 0)),
+    devotion: clampMeter(current.devotion + (effect.devotion ?? 0)),
+    morality: clampMeter(current.morality + (effect.morality ?? 0)),
+    faithfulness: clampMeter(current.faithfulness + (effect.faithfulness ?? 0)),
 })
 ```
 
@@ -279,23 +287,23 @@ This is a pure function, add tests to `gameTick.test.ts` (or a new `constants.te
 
 ## Files to Create
 
-| File | Purpose |
-|------|---------|
-| `src/components/MinhagToast/MinhagToast.tsx` | Auto-resolution notification |
-| `src/components/MinhagToast/MinhagToast.module.css` | Toast slide animation |
+| File                                                | Purpose                      |
+| --------------------------------------------------- | ---------------------------- |
+| `src/components/MinhagToast/MinhagToast.tsx`        | Auto-resolution notification |
+| `src/components/MinhagToast/MinhagToast.module.css` | Toast slide animation        |
 
 ---
 
 ## Files to Modify
 
-| File | Change |
-|------|--------|
-| `src/types/index.ts` | Add `StandingDecision` type; add `standingDecisions`, `lastAutoResolution` to `GameState` |
-| `src/game/constants.ts` | Add `applyMeterEffects` pure helper |
-| `src/store/gameStore.ts` | Extend initial state; modify `harvest` for auto-resolve; add `setStandingDecision`, `clearStandingDecision`, `clearAutoResolution`; add new fields to `partialize` |
-| `src/components/DilemmaModal/DilemmaModal.tsx` | Add `pendingChoiceIndex` local state; Step 2 tradition prompt UI |
-| `src/components/DilemmaModal/DilemmaModal.module.css` | Step 2 slide-up transition |
-| `src/App.tsx` | Mount `<MinhagToast />` |
+| File                                                  | Change                                                                                                                                                             |
+| ----------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `src/types/index.ts`                                  | Add `StandingDecision` type; add `standingDecisions`, `lastAutoResolution` to `GameState`                                                                          |
+| `src/game/constants.ts`                               | Add `applyMeterEffects` pure helper                                                                                                                                |
+| `src/store/gameStore.ts`                              | Extend initial state; modify `harvest` for auto-resolve; add `setStandingDecision`, `clearStandingDecision`, `clearAutoResolution`; add new fields to `partialize` |
+| `src/components/DilemmaModal/DilemmaModal.tsx`        | Add `pendingChoiceIndex` local state; Step 2 tradition prompt UI                                                                                                   |
+| `src/components/DilemmaModal/DilemmaModal.module.css` | Step 2 slide-up transition                                                                                                                                         |
+| `src/App.tsx`                                         | Mount `<MinhagToast />`                                                                                                                                            |
 
 ---
 

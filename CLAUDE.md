@@ -5,6 +5,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## MCP Tools
 
 Always use:
+
 - **Serena** for semantic code retrieval and editing (symbol lookup, find references, replace symbol bodies)
 - **Context7** for up-to-date documentation on third-party libraries and frameworks
 
@@ -19,6 +20,7 @@ Always use:
 POC is implemented and building. The full core loop is wired: plow → sow → grow → harvest → gather → dilemma → meters. Run with `npm run dev`. Test with `npm test`.
 
 Design documents:
+
 - `poc-actionable-plan.md` — step-by-step build plan with component breakdown
 - `POC_SCAFFOLD.md` — POC scope, core loop, success criteria
 - `research-township.md` — Genre research on Township-style games
@@ -87,16 +89,16 @@ e2e/
 
 ## Dilemma Routing
 
-| Trigger | Crop | Condition | Dilemma | Saveable |
-|---------|------|-----------|---------|----------|
-| `harvest` | wheat | — | PEAH_DILEMMA | yes (`"peah:wheat"`) |
-| `harvest` | barley | — | PEAH_DILEMMA | yes (`"peah:barley"`) |
-| `harvest` | grapes (orchard tile) | `harvestCount` 0–2 (cycles 1–3) | ORLAH_DILEMMA | no |
-| `harvest` | grapes (orchard tile) | `harvestCount` 3 (cycle 4) | NETA_REVAI_DILEMMA | no |
-| `harvest` | grapes (orchard tile) | `harvestCount` ≥ 4 (cycle 5+) | _(none)_ | — |
-| `gatherSheafs` | wheat | — | SHIKCHAH_DILEMMA | yes (`"shikchah:wheat"`) |
-| `gatherSheafs` | barley | — | SHIKCHAH_DILEMMA | yes (`"shikchah:barley"`) |
-| `gatherSheafs` | grapes | — | _(none)_ | — |
+| Trigger        | Crop                  | Condition                       | Dilemma            | Saveable                  |
+| -------------- | --------------------- | ------------------------------- | ------------------ | ------------------------- |
+| `harvest`      | wheat                 | —                               | PEAH_DILEMMA       | yes (`"peah:wheat"`)      |
+| `harvest`      | barley                | —                               | PEAH_DILEMMA       | yes (`"peah:barley"`)     |
+| `harvest`      | grapes (orchard tile) | `harvestCount` 0–2 (cycles 1–3) | ORLAH_DILEMMA      | no                        |
+| `harvest`      | grapes (orchard tile) | `harvestCount` 3 (cycle 4)      | NETA_REVAI_DILEMMA | no                        |
+| `harvest`      | grapes (orchard tile) | `harvestCount` ≥ 4 (cycle 5+)   | _(none)_           | —                         |
+| `gatherSheafs` | wheat                 | —                               | SHIKCHAH_DILEMMA   | yes (`"shikchah:wheat"`)  |
+| `gatherSheafs` | barley                | —                               | SHIKCHAH_DILEMMA   | yes (`"shikchah:barley"`) |
+| `gatherSheafs` | grapes                | —                               | _(none)_           | —                         |
 
 Orchard detection uses `tileCategories[coordKey] === "orchard"` (not `cropType`), so all future orchard subtypes automatically get the same ORLAH/NETA_REVAI cycle. Choosing choice 0 of ORLAH or NETA_REVAI skips gather entirely and resets the plot to `empty`.
 
@@ -121,3 +123,5 @@ Save keys are `"<dilemmaId>:<cropType>"`. When a saved decision is active, the d
 - Devotion/Morality/Faithfulness meter always visible, affected by dilemma choices
 - Monetization (future): cosmetic-only, non-pay-to-win
 - POC excludes: selling/money, production chains, social features
+
+For any feature use the code patterns described at `ai-docs/TYPESCRIPT_BEST_PRACTICES.md`

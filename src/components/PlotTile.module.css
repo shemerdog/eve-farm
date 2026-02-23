@@ -1,114 +1,153 @@
 .tile {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  background: #8b6914;
-  border-radius: 12px;
-  aspect-ratio: 1;
-  cursor: default;
-  overflow: hidden;
-  transition: transform 0.1s ease, box-shadow 0.2s ease;
-  box-shadow: inset 0 -3px 0 rgba(0, 0, 0, 0.25);
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    background: #8b6914;
+    border-radius: 12px;
+    aspect-ratio: 1;
+    cursor: default;
+    overflow: hidden;
+    transition:
+        transform 0.1s ease,
+        box-shadow 0.2s ease;
+    box-shadow: inset 0 -3px 0 rgba(0, 0, 0, 0.25);
 }
 
 .tile.interactive {
-  cursor: pointer;
+    cursor: pointer;
 }
 
 .tile.interactive:active {
-  transform: scale(0.95);
+    transform: scale(0.95);
 }
 
 /* State-based backgrounds — each stage has a distinct hue */
-.tile.plowed     { background: #4a2c10; }                                                                                /* dark tilled earth */
-.tile.growing    { background: #3a5c20; box-shadow: 0 0 8px rgba(60, 120, 30, 0.4), inset 0 -3px 0 rgba(0,0,0,0.25); } /* lush green growth */
-.tile.ready      { background: #b8720a; box-shadow: 0 0 14px rgba(212, 160, 23, 0.7), inset 0 -3px 0 rgba(0,0,0,0.25); } /* golden amber harvest */
-.tile.harvested  { background: #8a7040; }                                                                                /* pale straw / stubble */
-.tile.gathered   { background: #6b5820; box-shadow: 0 0 10px rgba(255, 220, 80, 0.35), inset 0 -3px 0 rgba(0,0,0,0.25); } /* warm cleared field */
+.tile.plowed {
+    background: #4a2c10;
+} /* dark tilled earth */
+.tile.growing {
+    background: #3a5c20;
+    box-shadow:
+        0 0 8px rgba(60, 120, 30, 0.4),
+        inset 0 -3px 0 rgba(0, 0, 0, 0.25);
+} /* lush green growth */
+.tile.ready {
+    background: #b8720a;
+    box-shadow:
+        0 0 14px rgba(212, 160, 23, 0.7),
+        inset 0 -3px 0 rgba(0, 0, 0, 0.25);
+} /* golden amber harvest */
+.tile.harvested {
+    background: #8a7040;
+} /* pale straw / stubble */
+.tile.gathered {
+    background: #6b5820;
+    box-shadow:
+        0 0 10px rgba(255, 220, 80, 0.35),
+        inset 0 -3px 0 rgba(0, 0, 0, 0.25);
+} /* warm cleared field */
 
 .emoji {
-  font-size: 2.2rem;
-  line-height: 1;
-  user-select: none;
+    font-size: 2.2rem;
+    line-height: 1;
+    user-select: none;
 }
 
 .tile.ready .emoji {
-  animation: pulse 1s ease-in-out infinite alternate;
+    animation: pulse 1s ease-in-out infinite alternate;
 }
 
 @keyframes pulse {
-  from { transform: scale(1); }
-  to   { transform: scale(1.1); }
+    from {
+        transform: scale(1);
+    }
+    to {
+        transform: scale(1.1);
+    }
 }
 
 .btn {
-  padding: 6px 14px;
-  border: none;
-  border-radius: 20px;
-  font-size: 12px;
-  font-weight: 700;
-  cursor: pointer;
-  transition: background 0.15s ease;
+    padding: 6px 14px;
+    border: none;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.15s ease;
 }
 
 .plowBtn {
-  background: #7a5230;
-  color: #fff;
+    background: #7a5230;
+    color: #fff;
 }
-.plowBtn:hover { background: #5e3d22; }
+.plowBtn:hover {
+    background: #5e3d22;
+}
 
 .plantBtn {
-  background: #c8860a;
-  color: #fff;
+    background: #c8860a;
+    color: #fff;
 }
-.plantBtn:hover { background: #a86e08; }
+.plantBtn:hover {
+    background: #a86e08;
+}
 
 .harvestBtn {
-  background: #d4a017;
-  color: #3a2a00;
+    background: #d4a017;
+    color: #3a2a00;
 }
-.harvestBtn:hover { background: #b8880f; }
+.harvestBtn:hover {
+    background: #b8880f;
+}
 
 .gatherBtn {
-  background: #e8c840;
-  color: #3a2a00;
+    background: #e8c840;
+    color: #3a2a00;
 }
-.gatherBtn:hover { background: #c8a830; }
+.gatherBtn:hover {
+    background: #c8a830;
+}
 
 .lockedBtn,
 .lockedBtn:hover {
-  background: #5a4a30;
-  color: rgba(255, 255, 255, 0.45);
-  cursor: default;
+    background: #5a4a30;
+    color: rgba(255, 255, 255, 0.45);
+    cursor: default;
 }
 
 /* Radial progress ring */
 .progressRing {
-  position: absolute;
-  bottom: 6px;
-  inset-inline-end: 6px;
+    position: absolute;
+    bottom: 6px;
+    inset-inline-end: 6px;
 }
 
 /* Float-up "+10 🌾" animation */
 .floatUp {
-  position: absolute;
-  top: 20%;
-  font-size: 14px;
-  font-weight: 700;
-  color: #d4a017;
-  pointer-events: none;
-  animation: floatUp 0.6s ease-out forwards;
+    position: absolute;
+    top: 20%;
+    font-size: 14px;
+    font-weight: 700;
+    color: #d4a017;
+    pointer-events: none;
+    animation: floatUp 0.6s ease-out forwards;
 }
 
 @keyframes floatUp {
-  from { opacity: 1; transform: translateY(0); }
-  to   { opacity: 0; transform: translateY(-40px); }
+    from {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    to {
+        opacity: 0;
+        transform: translateY(-40px);
+    }
 }
 
 .progressText {
-  font-size: 10px;
-  color: rgba(255,255,255,0.7);
+    font-size: 10px;
+    color: rgba(255, 255, 255, 0.7);
 }

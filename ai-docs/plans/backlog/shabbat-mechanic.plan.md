@@ -35,6 +35,7 @@ If the player dismisses the prompt (taps away, backgrounds the app), the action 
 ### What "Harvest Anyway" Costs
 
 Choosing to act on Shabbat costs a **Shabbat penalty**:
+
 - **Devotion −** (moderate, not catastrophic — roughly equivalent to a poor dilemma choice)
 - A subtle visual marker on the plot (a small icon, visible only to the player, indicating the harvest happened on Shabbat) — not punitive, just a record
 - The action succeeds fully — the wheat is collected, the plot resets normally
@@ -44,6 +45,7 @@ Critically: **the harvest is not degraded**. The player gets everything they wou
 ### What "Rest" Gains
 
 Choosing to wait:
+
 - No Devotion loss
 - No immediate gain — the reward is the meter staying intact
 - If a plot would over-ripen (future mechanic), Shabbat rest grants a grace window — the ripening timer pauses for the Shabbat day. The land also rests.
@@ -60,21 +62,24 @@ Optional: a subtle visual change to the farm's ambiance as Shabbat approaches (w
 
 ## The Shabbat Dilemma (Elevated Version)
 
-On some Shabbat days, a fuller dilemma modal replaces the simple prompt. This happens when a plot ripens *exactly* on Shabbat — the timing creates maximum tension.
+On some Shabbat days, a fuller dilemma modal replaces the simple prompt. This happens when a plot ripens _exactly_ on Shabbat — the timing creates maximum tension.
 
 > **"שַׁבָּת — The plot is ready."**
 > "The grain is at peak ripeness. If you leave it until tomorrow, it may begin to wither. Today is the day of rest. What do you do?"
 
 **A — Rest. The law is the law.**
+
 - Plot left until after Shabbat; small wither risk (partial yield loss next harvest)
 - Devotion ++, Faithfulness +
 - Flavor text: "You pull your hands back. The field can wait one day."
 
 **B — Harvest, but quietly. Just this once.**
+
 - Full yield collected
 - Devotion −, small flavor text acknowledging the transgression
 
 **C — Harvest because the crop will be lost otherwise.**
+
 - Full yield collected; wither was genuinely imminent
 - Smaller Devotion penalty (the game acknowledges the practical pressure)
 - This choice is only available if wither is actually close (contextual option)

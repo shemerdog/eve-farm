@@ -1,37 +1,45 @@
 /* CSS custom properties — warm earth palette */
 :root {
-  --color-bg:        #f5e6c8;
-  --color-soil:      #8b6914;
-  --color-growing:   #4a7c3f;
-  --color-ready:     #d4a017;
-  --color-devotion:  #d4a017;
-  --color-morality:  #4a7c3f;
-  --color-faith:     #3a6ea5;
+    --color-bg: #f5e6c8;
+    --color-soil: #8b6914;
+    --color-growing: #4a7c3f;
+    --color-ready: #d4a017;
+    --color-devotion: #d4a017;
+    --color-morality: #4a7c3f;
+    --color-faith: #3a6ea5;
 }
 
-*, *::before, *::after {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
 }
 
-html, body {
-  height: 100%;
-  overflow: hidden;
-  background: var(--color-bg);
-  font-family: 'Heebo', -apple-system, BlinkMacSystemFont, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  direction: rtl;
-  unicode-bidi: embed;
+html,
+body {
+    height: 100%;
+    overflow: hidden;
+    background: var(--color-bg);
+    font-family:
+        'Heebo',
+        -apple-system,
+        BlinkMacSystemFont,
+        Arial,
+        sans-serif;
+    -webkit-font-smoothing: antialiased;
+    direction: rtl;
+    unicode-bidi: embed;
 }
 
 button {
-  font-family: inherit;
+    font-family: inherit;
 }
 
 #root {
-  height: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: flex-start;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
 }

@@ -14,12 +14,12 @@ All user-facing text moves to Hebrew. The document direction becomes RTL at the 
 
 ### `index.html`
 
-| What | Current | Target |
-|---|---|---|
-| `<html lang>` | `lang="en"` | `lang="he"` |
-| `<html dir>` | *(missing)* | `dir="rtl"` |
-| `<title>` | `Eve — Heritage Farm` | `חוה — חוות המורשת` |
-| Google Fonts `<link>` | *(missing)* | Add Heebo (see below) |
+| What                  | Current               | Target                |
+| --------------------- | --------------------- | --------------------- |
+| `<html lang>`         | `lang="en"`           | `lang="he"`           |
+| `<html dir>`          | _(missing)_           | `dir="rtl"`           |
+| `<title>`             | `Eve — Heritage Farm` | `חוה — חוות המורשת`   |
+| Google Fonts `<link>` | _(missing)_           | Add Heebo (see below) |
 
 Add inside `<head>` before the Vite entry script:
 
@@ -27,8 +27,8 @@ Add inside `<head>` before the Vite entry script:
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link
-  href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;700&display=swap"
-  rel="stylesheet"
+    href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;700&display=swap"
+    rel="stylesheet"
 />
 ```
 
@@ -42,7 +42,12 @@ Add inside `<head>` before the Vite entry script:
 
 ```css
 /* Replace current font-family declaration */
-font-family: 'Heebo', -apple-system, BlinkMacSystemFont, Arial, sans-serif;
+font-family:
+    'Heebo',
+    -apple-system,
+    BlinkMacSystemFont,
+    Arial,
+    sans-serif;
 ```
 
 ### Direction
@@ -51,8 +56,8 @@ Add to the `*` or `body` block:
 
 ```css
 body {
-  direction: rtl;
-  unicode-bidi: embed;
+    direction: rtl;
+    unicode-bidi: embed;
 }
 ```
 
@@ -70,52 +75,52 @@ Create **`src/game/strings.he.ts`** — the single source of truth for all UI co
 
 ```ts
 export const HE = {
-  // ── App / document ─────────────────────────────────────────
-  appTitle: 'חוה',
+    // ── App / document ─────────────────────────────────────────
+    appTitle: 'חוה',
 
-  // ── Meters bar ─────────────────────────────────────────────
-  meters: {
-    devotion:    'דְּבֵקוּת',   // devekut
-    morality:    'מוּסָרִיּוּת', // musariyut
-    faithfulness:'נֶאֱמָנוּת',  // ne'emanut
-  },
-
-  // ── Plot tile ───────────────────────────────────────────────
-  plot: {
-    plant:   'זְרַע',   // zra (imperative: sow)
-    harvest: 'קְצֹר',   // ktsor (imperative: harvest/reap)
-    floatLabel: '+10 🌾',
-  },
-
-  // ── Wheat counter ───────────────────────────────────────────
-  wheat: {
-    unit: 'חיטה',  // khita (wheat)
-  },
-
-  // ── Dilemma modal ───────────────────────────────────────────
-  dilemma: {
-    keepAll:  'שְׁמֹר הַכֹּל',   // shmor hakol (keep everything)
-    costUnit: '🌾',
-    // Meter abbreviations shown on choice buttons
-    meterAbbrev: {
-      devotion:     'ד',   // dalet
-      morality:     'מ',   // mem
-      faithfulness: 'נ',   // nun
+    // ── Meters bar ─────────────────────────────────────────────
+    meters: {
+        devotion: 'דְּבֵקוּת', // devekut
+        morality: 'מוּסָרִיּוּת', // musariyut
+        faithfulness: 'נֶאֱמָנוּת', // ne'emanut
     },
-  },
-} as const;
+
+    // ── Plot tile ───────────────────────────────────────────────
+    plot: {
+        plant: 'זְרַע', // zra (imperative: sow)
+        harvest: 'קְצֹר', // ktsor (imperative: harvest/reap)
+        floatLabel: '+10 🌾',
+    },
+
+    // ── Wheat counter ───────────────────────────────────────────
+    wheat: {
+        unit: 'חיטה', // khita (wheat)
+    },
+
+    // ── Dilemma modal ───────────────────────────────────────────
+    dilemma: {
+        keepAll: 'שְׁמֹר הַכֹּל', // shmor hakol (keep everything)
+        costUnit: '🌾',
+        // Meter abbreviations shown on choice buttons
+        meterAbbrev: {
+            devotion: 'ד', // dalet
+            morality: 'מ', // mem
+            faithfulness: 'נ', // nun
+        },
+    },
+} as const
 ```
 
 **Translation rationale:**
 
-| English | Hebrew | Transliteration | Note |
-|---|---|---|---|
-| Devotion | דְּבֵקוּת | Devekut | Core kabbalistic/Hasidic concept; strongest cultural fit |
-| Morality | מוּסָרִיּוּת | Musariyut | From מוּסָר (musar), the Jewish ethical tradition |
-| Faithfulness | נֶאֱמָנוּת | Ne'emanut | Standard biblical/modern Hebrew for loyalty/faithfulness |
-| Plant (imperative) | זְרַע | Zra | Biblical agricultural verb (Genesis, Ruth) |
-| Harvest (imperative) | קְצֹר | Ktsor | Biblical harvest verb (Ruth, Leviticus) |
-| Keep all | שְׁמֹר הַכֹּל | Shmor Hakol | Natural imperative form |
+| English              | Hebrew        | Transliteration | Note                                                     |
+| -------------------- | ------------- | --------------- | -------------------------------------------------------- |
+| Devotion             | דְּבֵקוּת     | Devekut         | Core kabbalistic/Hasidic concept; strongest cultural fit |
+| Morality             | מוּסָרִיּוּת  | Musariyut       | From מוּסָר (musar), the Jewish ethical tradition        |
+| Faithfulness         | נֶאֱמָנוּת    | Ne'emanut       | Standard biblical/modern Hebrew for loyalty/faithfulness |
+| Plant (imperative)   | זְרַע         | Zra             | Biblical agricultural verb (Genesis, Ruth)               |
+| Harvest (imperative) | קְצֹר         | Ktsor           | Biblical harvest verb (Ruth, Leviticus)                  |
+| Keep all             | שְׁמֹר הַכֹּל | Shmor Hakol     | Natural imperative form                                  |
 
 ---
 
@@ -206,12 +211,12 @@ Replace button labels:
 
 **CSS:** Replace any `left`/`right` positional properties with logical equivalents:
 
-| Replace | With |
-|---|---|
-| `right: 12px` | `inset-inline-end: 12px` |
-| `left: 12px` | `inset-inline-start: 12px` |
-| `margin-left: ...` | `margin-inline-start: ...` |
-| `margin-right: ...` | `margin-inline-end: ...` |
+| Replace             | With                       |
+| ------------------- | -------------------------- |
+| `right: 12px`       | `inset-inline-end: 12px`   |
+| `left: 12px`        | `inset-inline-start: 12px` |
+| `margin-left: ...`  | `margin-inline-start: ...` |
+| `margin-right: ...` | `margin-inline-end: ...`   |
 
 ---
 
@@ -249,18 +254,18 @@ No user-facing text lives here. No changes needed.
 
 Scan all `*.module.css` files and replace physical properties with logical ones so the layout automatically mirrors under RTL:
 
-| Physical (LTR-specific) | Logical (RTL-safe) |
-|---|---|
-| `text-align: left` | `text-align: start` |
-| `text-align: right` | `text-align: end` |
-| `padding-left` | `padding-inline-start` |
-| `padding-right` | `padding-inline-end` |
-| `margin-left` | `margin-inline-start` |
-| `margin-right` | `margin-inline-end` |
-| `left: N` | `inset-inline-start: N` |
-| `right: N` | `inset-inline-end: N` |
-| `border-left` | `border-inline-start` |
-| `border-right` | `border-inline-end` |
+| Physical (LTR-specific) | Logical (RTL-safe)      |
+| ----------------------- | ----------------------- |
+| `text-align: left`      | `text-align: start`     |
+| `text-align: right`     | `text-align: end`       |
+| `padding-left`          | `padding-inline-start`  |
+| `padding-right`         | `padding-inline-end`    |
+| `margin-left`           | `margin-inline-start`   |
+| `margin-right`          | `margin-inline-end`     |
+| `left: N`               | `inset-inline-start: N` |
+| `right: N`              | `inset-inline-end: N`   |
+| `border-left`           | `border-inline-start`   |
+| `border-right`          | `border-inline-end`     |
 
 Logical properties are fully supported in all modern mobile browsers (Safari 15+, Chrome 89+, Firefox 66+).
 
@@ -283,11 +288,11 @@ The strings in `strings.he.ts` above include niqqud (vowel points) on key words 
 After implementing:
 
 1. **Visual audit** — Open on a 375px viewport. Verify:
-   - All text renders right-to-left
-   - Meter bars fill from right
-   - Buttons are readable in Heebo
-   - DilemmaModal choices align correctly
-   - Progress ring is still centered on tile
+    - All text renders right-to-left
+    - Meter bars fill from right
+    - Buttons are readable in Heebo
+    - DilemmaModal choices align correctly
+    - Progress ring is still centered on tile
 
 2. **Unit tests (`gameTick.test.ts`)** — No string changes in pure game logic; all 11 tests should continue to pass unchanged. Run `npm test` to confirm.
 
@@ -299,19 +304,19 @@ After implementing:
 
 ## File Change Summary
 
-| File | Change type |
-|---|---|
-| `index.html` | `lang`, `dir`, `title`, Google Fonts link |
-| `src/index.css` | font-family, `direction: rtl` on body |
-| `src/game/strings.he.ts` | **New file** — all Hebrew UI strings |
-| `src/game/dilemmas.ts` | Replace all English copy with Hebrew |
-| `src/components/MetersBar.tsx` | Use `HE.meters.*` |
-| `src/components/MetersBar.module.css` | Remove/flip any LTR `text-align` |
-| `src/components/PlotTile.tsx` | Use `HE.plot.plant` / `HE.plot.harvest` |
-| `src/components/PlotTile.module.css` | Physical → logical properties |
-| `src/components/DilemmaModal.tsx` | `HE.dilemma.keepAll`, meter abbrevs |
-| `src/components/DilemmaModal.module.css` | Physical → logical properties |
-| `src/components/WheatCounter.tsx` | Optional: add `HE.wheat.unit` label |
+| File                                     | Change type                               |
+| ---------------------------------------- | ----------------------------------------- |
+| `index.html`                             | `lang`, `dir`, `title`, Google Fonts link |
+| `src/index.css`                          | font-family, `direction: rtl` on body     |
+| `src/game/strings.he.ts`                 | **New file** — all Hebrew UI strings      |
+| `src/game/dilemmas.ts`                   | Replace all English copy with Hebrew      |
+| `src/components/MetersBar.tsx`           | Use `HE.meters.*`                         |
+| `src/components/MetersBar.module.css`    | Remove/flip any LTR `text-align`          |
+| `src/components/PlotTile.tsx`            | Use `HE.plot.plant` / `HE.plot.harvest`   |
+| `src/components/PlotTile.module.css`     | Physical → logical properties             |
+| `src/components/DilemmaModal.tsx`        | `HE.dilemma.keepAll`, meter abbrevs       |
+| `src/components/DilemmaModal.module.css` | Physical → logical properties             |
+| `src/components/WheatCounter.tsx`        | Optional: add `HE.wheat.unit` label       |
 
 **No changes needed:** `src/types/index.ts`, `src/game/constants.ts`, `src/game/gameTick.ts`, `src/game/gameTick.test.ts`, `src/store/gameStore.ts`, `src/hooks/useGameLoop.ts`, `src/App.tsx`, `src/App.module.css`, `src/components/FarmGrid.tsx`, `src/components/FarmGrid.module.css`
 

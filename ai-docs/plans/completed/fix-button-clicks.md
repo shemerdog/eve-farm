@@ -19,12 +19,14 @@ never delivers `pointerup` or `click` to the inner elements (farm plot tiles,
 Buy Land buttons), so their `onClick` handlers never fire.
 
 **Evidence from runtime inspection:**
+
 ```
 tile[13] pointerdown fired   ← arrives
 tile[12] pointerdown fired   ← arrives (bubbles)
 (pointerup  — never fires on tile)
 (click      — never fires on tile)
 ```
+
 The `plantWheat`, `harvest`, and `buyTile` store actions are never called.
 
 ---
@@ -38,6 +40,7 @@ naturally, allowing `click` to fire on inner elements.
 ### Changes to `src/hooks/usePan.ts`
 
 Replace the `dragging` ref pattern with two separate concepts:
+
 - `pointerDown` — a pointer is currently pressed (set on any `pointerdown`)
 - `dragActive` — movement exceeded threshold (gate for actual panning + capture)
 
@@ -108,20 +111,22 @@ and the `LockedTileContent` buy button are all wired correctly.
 ## Tools to Install for Manual + Automated Testing
 
 ### Already Available
+
 - **Playwright** (MCP plugin) — used during this investigation to open the browser,
   click buttons, and inspect the accessibility tree and console.
   Install for the project repo with:
-  ```
-  npm install --save-dev @playwright/test
-  npx playwright install chromium
-  ```
+    ```
+    npm install --save-dev @playwright/test
+    npx playwright install chromium
+    ```
 
 ### Recommended Additions
-| Tool | Purpose | Install |
-|------|---------|---------|
-| `@playwright/test` | E2E browser automation (click, assert DOM state) | `npm i -D @playwright/test` |
-| `@testing-library/react` | Component interaction tests in jsdom | `npm i -D @testing-library/react @testing-library/user-event` |
-| `@testing-library/jest-dom` | Extra assertions (`toBeDisabled`, `toHaveTextContent`) | `npm i -D @testing-library/jest-dom` |
+
+| Tool                        | Purpose                                                | Install                                                       |
+| --------------------------- | ------------------------------------------------------ | ------------------------------------------------------------- |
+| `@playwright/test`          | E2E browser automation (click, assert DOM state)       | `npm i -D @playwright/test`                                   |
+| `@testing-library/react`    | Component interaction tests in jsdom                   | `npm i -D @testing-library/react @testing-library/user-event` |
+| `@testing-library/jest-dom` | Extra assertions (`toBeDisabled`, `toHaveTextContent`) | `npm i -D @testing-library/jest-dom`                          |
 
 The project already uses **Vitest** — all three testing-library packages work
 with Vitest out of the box.
@@ -182,45 +187,47 @@ test('buy button is disabled when cannot afford', () => {
 import { test, expect } from '@playwright/test'
 
 test('sow button plants wheat and shows growing state', async ({ page }) => {
-  await page.goto('/')
-  // Reset to known state
-  await page.evaluate(() => localStorage.clear())
-  await page.reload()
+    await page.goto('/')
+    // Reset to known state
+    await page.evaluate(() => localStorage.clear())
+    await page.reload()
 
-  const firstSowBtn = page.getByRole('button', { name: 'זְרַע' }).first()
-  await firstSowBtn.click()
+    const firstSowBtn = page.getByRole('button', { name: 'זְרַע' }).first()
+    await firstSowBtn.click()
 
-  // Plot should now show growing (progress ring, no sow button)
-  await expect(page.getByRole('button', { name: 'זְרַע' })).toHaveCount(3)
+    // Plot should now show growing (progress ring, no sow button)
+    await expect(page.getByRole('button', { name: 'זְרַע' })).toHaveCount(3)
 })
 
 test('harvest button adds wheat', async ({ page }) => {
-  await page.goto('/')
-  // Force a plot into 'ready' state via store injection
-  await page.evaluate(() => {
-    const store = (window as any).__gameStore?.getState()
-    store?.set?.((s) => { s.plots[0].state = 'ready' })
-  })
-  const before = await page.locator('[class*="wheatCount"]').innerText()
-  await page.getByRole('button', { name: 'קְצֹר' }).first().click()
-  const after = await page.locator('[class*="wheatCount"]').innerText()
-  expect(Number(after)).toBeGreaterThan(Number(before))
+    await page.goto('/')
+    // Force a plot into 'ready' state via store injection
+    await page.evaluate(() => {
+        const store = (window as any).__gameStore?.getState()
+        store?.set?.((s) => {
+            s.plots[0].state = 'ready'
+        })
+    })
+    const before = await page.locator('[class*="wheatCount"]').innerText()
+    await page.getByRole('button', { name: 'קְצֹר' }).first().click()
+    const after = await page.locator('[class*="wheatCount"]').innerText()
+    expect(Number(after)).toBeGreaterThan(Number(before))
 })
 
 test('buy tile button works after earning enough wheat', async ({ page }) => {
-  await page.goto('/')
-  await page.evaluate(() => {
-    const s = JSON.parse(localStorage.getItem('eve-game-state') || '{}')
-    s.state = { ...s.state, wheat: 100 }
-    localStorage.setItem('eve-game-state', JSON.stringify(s))
-  })
-  await page.reload()
+    await page.goto('/')
+    await page.evaluate(() => {
+        const s = JSON.parse(localStorage.getItem('eve-game-state') || '{}')
+        s.state = { ...s.state, wheat: 100 }
+        localStorage.setItem('eve-game-state', JSON.stringify(s))
+    })
+    await page.reload()
 
-  const buyBtn = page.getByRole('button', { name: /buy land/i }).first()
-  await expect(buyBtn).toBeEnabled()
-  await buyBtn.click()
-  // At least one tile should now show the unlocked state
-  await expect(page.locator('[class*="purchased"]')).toHaveCount(1)
+    const buyBtn = page.getByRole('button', { name: /buy land/i }).first()
+    await expect(buyBtn).toBeEnabled()
+    await buyBtn.click()
+    // At least one tile should now show the unlocked state
+    await expect(page.locator('[class*="purchased"]')).toHaveCount(1)
 })
 ```
 
@@ -230,11 +237,11 @@ test('buy tile button works after earning enough wheat', async ({ page }) => {
 
 ```ts
 test('tapping inside map still fires click on inner elements', async ({ page }) => {
-  await page.goto('/')
-  // Check that clicking the sow button works (would fail with the old capture-on-down bug)
-  const sowBtn = page.getByRole('button', { name: 'זְרַע' }).first()
-  await sowBtn.click()
-  await expect(sowBtn).not.toBeVisible()  // plot transitioned away from empty
+    await page.goto('/')
+    // Check that clicking the sow button works (would fail with the old capture-on-down bug)
+    const sowBtn = page.getByRole('button', { name: 'זְרַע' }).first()
+    await sowBtn.click()
+    await expect(sowBtn).not.toBeVisible() // plot transitioned away from empty
 })
 ```
 
@@ -242,8 +249,8 @@ test('tapping inside map still fires click on inner elements', async ({ page }) 
 
 ## Summary
 
-| Issue | Root cause | Fix file | Fix size |
-|-------|-----------|----------|----------|
+| Issue                            | Root cause                                                | Fix file              | Fix size          |
+| -------------------------------- | --------------------------------------------------------- | --------------------- | ----------------- |
 | Sow / Harvest click does nothing | `setPointerCapture` on every `pointerdown` in `usePan.ts` | `src/hooks/usePan.ts` | ~15 lines changed |
-| Buy Tile click does nothing | Same root cause (button is also inside the viewport) | same | (included above) |
-| No automated regression coverage | No component or E2E tests for click interactions | new test files | 3 new test files |
+| Buy Tile click does nothing      | Same root cause (button is also inside the viewport)      | same                  | (included above)  |
+| No automated regression coverage | No component or E2E tests for click interactions          | new test files        | 3 new test files  |

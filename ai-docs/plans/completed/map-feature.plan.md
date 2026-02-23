@@ -46,32 +46,33 @@ Camera offset is stored in Zustand (persisted). Tiles are absolutely positioned 
 export type TileCoord = { col: number; row: number }
 
 export type MapTileType =
-  | 'farm'       // playable farm district (current 4 plots)
-  | 'village'    // future: NPCs, trades
-  | 'market'     // future: selling wheat
-  | 'wilderness' // future: gathering
-  | 'locked'     // not yet unlocked, shows fog
+    | 'farm' // playable farm district (current 4 plots)
+    | 'village' // future: NPCs, trades
+    | 'market' // future: selling wheat
+    | 'wilderness' // future: gathering
+    | 'locked' // not yet unlocked, shows fog
 
 export type MapTile = {
-  id: string           // e.g. "0,0"
-  coord: TileCoord
-  type: MapTileType
-  unlocked: boolean
-  label: string        // display name shown on tile
+    id: string // e.g. "0,0"
+    coord: TileCoord
+    type: MapTileType
+    unlocked: boolean
+    label: string // display name shown on tile
 }
 
 export type CameraState = {
-  x: number  // pixel offset from world origin
-  y: number  // pixel offset from world origin
+    x: number // pixel offset from world origin
+    y: number // pixel offset from world origin
 }
 ```
 
 Add to `GameState`:
+
 ```typescript
 export type GameState = {
-  // ... existing fields ...
-  worldMap: MapTile[]
-  camera: CameraState
+    // ... existing fields ...
+    worldMap: MapTile[]
+    camera: CameraState
 }
 ```
 
@@ -103,12 +104,14 @@ Initial camera centers on (0,0).
 - **Tile stride:** `TILE_STRIDE = TILE_SIZE_PX + TILE_GAP_PX = 328`
 
 Pixel position of a tile at `(col, row)`:
+
 ```
 left = col * TILE_STRIDE
 top  = row * TILE_STRIDE
 ```
 
 Camera offset centers the viewport on world origin (0,0):
+
 ```
 initialCamera = {
   x: viewportWidth  / 2 - TILE_SIZE_PX / 2,
@@ -117,10 +120,11 @@ initialCamera = {
 ```
 
 Tile CSS transform:
+
 ```css
 transform: translate(
-  calc(var(--camera-x) + var(--tile-col) * 328px),
-  calc(var(--camera-y) + var(--tile-row) * 328px)
+    calc(var(--camera-x) + var(--tile-col) * 328px),
+    calc(var(--camera-y) + var(--tile-row) * 328px)
 );
 ```
 
@@ -129,20 +133,24 @@ transform: translate(
 ## Panning Mechanics
 
 ### Input handling (touch + mouse)
+
 - **Touch:** `touchstart` / `touchmove` / `touchend` on the WorldMap container
 - **Mouse:** `mousedown` / `mousemove` / `mouseup`
 - **Both:** Track delta from drag start, apply to camera `{x, y}`
 
 ### Momentum / inertia (optional, polish pass)
+
 - Track velocity (Δx/Δy per frame) on release
 - Apply exponential decay: `velocity *= 0.85` per frame via `requestAnimationFrame`
 - Stop when `|velocity| < 0.5`
 
 ### Bounds clamping
+
 - Keep the world within a comfortable range so the player can't drag into the void
 - `clampCamera(x, y, worldBounds)` → pure function, testable
 
 ### State persistence
+
 - Camera `{x, y}` is persisted via Zustand `persist` so pan position survives refresh
 
 ---
@@ -150,12 +158,14 @@ transform: translate(
 ## Store Changes (`src/store/gameStore.ts`)
 
 New initial state additions:
+
 ```typescript
 worldMap: INITIAL_WORLD_MAP,  // imported from src/game/worldMap.ts
 camera: { x: 0, y: 0 },      // initialized in useWorldMap hook based on viewport
 ```
 
 New actions:
+
 ```typescript
 panCamera: (dx: number, dy: number) => void
 // set((s) => ({ camera: { x: s.camera.x + dx, y: s.camera.y + dy } }))
@@ -172,29 +182,34 @@ unlockTile: (id: string) => void
 ## New Files to Create
 
 ### `src/game/worldMap.ts`
+
 - `TILE_SIZE_PX`, `TILE_GAP_PX`, `TILE_STRIDE` constants
 - `INITIAL_WORLD_MAP: MapTile[]` — the 5×5 grid definition
 - `getTilePosition(tile: MapTile): { left: number; top: number }` — pixel coords
 - `clampCamera(x, y, min, max): CameraState` — pure, testable
 
 ### `src/hooks/useWorldMap.ts`
+
 - Initializes camera to center on (0,0) based on `window.innerWidth/Height`
 - Handles drag events (touch + mouse) and calls `panCamera`
 - Handles momentum decay via `requestAnimationFrame`
 - Returns `{ containerRef, isDragging }` for the WorldMap component
 
 ### `src/components/WorldMap/`
+
 - `WorldMap.tsx` — the draggable outer container; attaches drag listeners via `useWorldMap`
 - `WorldMap.module.css` — `overflow: hidden`, `cursor: grab/grabbing`, `position: relative`
 
 ### `src/components/MapTileView/`
+
 - `MapTileView.tsx` — renders one tile based on its `MapTileType`
-  - `farm` → `<FarmDistrict />` (renamed from FarmGrid, same internals)
-  - `locked` → fog overlay with lock icon + tile label
-  - others → placeholder with label + "Coming Soon"
+    - `farm` → `<FarmDistrict />` (renamed from FarmGrid, same internals)
+    - `locked` → fog overlay with lock icon + tile label
+    - others → placeholder with label + "Coming Soon"
 - `MapTileView.module.css` — absolute positioning, tile size, border-radius, transitions
 
 ### `src/components/FarmDistrict/`
+
 - Rename/move `FarmGrid` → `FarmDistrict` (same internal code, new name fits world context)
 - No behavior changes to plots, PlotTile stays identical
 
@@ -202,14 +217,14 @@ unlockTile: (id: string) => void
 
 ## Files to Modify
 
-| File | Change |
-|------|--------|
-| `src/types/index.ts` | Add `TileCoord`, `MapTileType`, `MapTile`, `CameraState`; extend `GameState` |
-| `src/store/gameStore.ts` | Add `worldMap`, `camera` initial state; add `panCamera`, `setCameraPosition`, `unlockTile` actions |
-| `src/game/constants.ts` | Add `TILE_SIZE_PX`, `TILE_GAP_PX`, `TILE_STRIDE` |
-| `src/App.tsx` | Replace `<FarmGrid>` with `<WorldMap>` as the main content area |
-| `src/App.module.css` | Remove fixed `.farm` padding/centering — WorldMap fills remaining space |
-| `src/components/FarmGrid.tsx` | Rename to `FarmDistrict.tsx` (optional, keeps same logic) |
+| File                          | Change                                                                                             |
+| ----------------------------- | -------------------------------------------------------------------------------------------------- |
+| `src/types/index.ts`          | Add `TileCoord`, `MapTileType`, `MapTile`, `CameraState`; extend `GameState`                       |
+| `src/store/gameStore.ts`      | Add `worldMap`, `camera` initial state; add `panCamera`, `setCameraPosition`, `unlockTile` actions |
+| `src/game/constants.ts`       | Add `TILE_SIZE_PX`, `TILE_GAP_PX`, `TILE_STRIDE`                                                   |
+| `src/App.tsx`                 | Replace `<FarmGrid>` with `<WorldMap>` as the main content area                                    |
+| `src/App.module.css`          | Remove fixed `.farm` padding/centering — WorldMap fills remaining space                            |
+| `src/components/FarmGrid.tsx` | Rename to `FarmDistrict.tsx` (optional, keeps same logic)                                          |
 
 ---
 
@@ -218,16 +233,19 @@ unlockTile: (id: string) => void
 **Overall Aesthetic:** Top-down satellite view, warm parchment-map aesthetic. Tiles have visible borders like parcels on an old land registry. The locked tiles use a linen-texture fog with a subtle ✡ watermark or just soft mist.
 
 **Tile Appearance:**
+
 - Farm tile: soil-brown background, same as current; 2×2 plot grid fills it
 - Locked tiles: desaturated, `opacity: 0.5`, foggy gradient overlay, padlock icon
 - Tile border: `2px solid rgba(0,0,0,0.15)` with a slight drop shadow
 
 **Drag Feel:**
+
 - `cursor: grab` normally, `cursor: grabbing` while dragging
 - Slight `scale(0.98)` on the world container while dragging (gives "physical" feel)
 - Fast response — no artificial smoothing on drag delta (smoothing only on inertia release)
 
 **HUD (unchanged):**
+
 - `MetersBar` stays at top (above the map)
 - `WheatCounter` stays at bottom (below the map)
 - These are outside WorldMap, still fixed in App layout
