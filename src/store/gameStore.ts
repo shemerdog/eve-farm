@@ -27,7 +27,7 @@ import {
   TEND_WAIT_DURATION,
 } from "@/game/constants";
 import { tickPlot } from "@/game/gameTick";
-import { DILEMMAS, ORLAH_DILEMMA } from "@/game/dilemmas";
+import { DILEMMAS, NETA_REVAI_DILEMMA, ORLAH_DILEMMA } from "@/game/dilemmas";
 import { FARM_COORD, isAdjacentToUnlocked, isPurchased } from "@/game/worldMap";
 
 const GROWTH_DURATION: Record<CropType, number> = {
@@ -231,11 +231,29 @@ export const useGameStore = create<GameState & Actions>()(
         const plot = state.plots.find((p) => p.id === plotId);
         if (!plot || plot.state !== "ready") return;
 
-        const dilemmaForCrop =
-          plot.cropType === "grapes" ? ORLAH_DILEMMA : PEAH_DILEMMA;
+        const coordKey = `${plot.tileCoord.col}_${plot.tileCoord.row}`;
+        const isOrchard = state.tileCategories[coordKey] === "orchard";
+
+        let dilemmaToShow: Dilemma | null = null;
+        if (isOrchard) {
+          if (plot.harvestCount < 3) {
+            dilemmaToShow = ORLAH_DILEMMA;
+          } else if (plot.harvestCount === 3) {
+            dilemmaToShow = NETA_REVAI_DILEMMA;
+          }
+          // harvestCount >= 4: no dilemma
+        } else {
+          dilemmaToShow = PEAH_DILEMMA;
+        }
 
         const plotsUpdated = state.plots.map((p) =>
-          p.id === plotId ? { ...p, state: "harvested" as const } : p,
+          p.id === plotId
+            ? {
+                ...p,
+                state: "harvested" as const,
+                harvestCount: isOrchard ? p.harvestCount + 1 : p.harvestCount,
+              }
+            : p,
         );
 
         // Auto-resolve PEAH for wheat/barley when a saved decision exists
@@ -265,14 +283,22 @@ export const useGameStore = create<GameState & Actions>()(
           }
         }
 
+        // Orchard with no dilemma (cycle 5+): just advance to harvested then reset
+        if (isOrchard && dilemmaToShow === null) {
+          set({ plots: plotsUpdated });
+          setTimeout(() => get().resetPlot(plotId), 600);
+          return;
+        }
+
         set((s) => ({
           plots: plotsUpdated,
           activeDilemma:
-            state.activeDilemma === null ? dilemmaForCrop : s.activeDilemma,
+            state.activeDilemma === null ? dilemmaToShow : s.activeDilemma,
           activeDilemmaContext:
             state.activeDilemma === null
               ? plot.cropType
               : s.activeDilemmaContext,
+          activePlotId: state.activeDilemma === null ? plotId : s.activePlotId,
         }));
 
         // Transition harvested → gathered after animation window (600ms)
