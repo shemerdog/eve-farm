@@ -58,6 +58,10 @@ const ProgressRing = ({ plot }: { plot: Plot }) => {
 export const PlotTile = ({ plot }: Props) => {
   const plowPlot = useGameStore((s) => s.plowPlot);
   const plantWheat = useGameStore((s) => s.plantWheat);
+  const plantOrchard = useGameStore((s) => s.plantOrchard);
+  const fertilizePlot = useGameStore((s) => s.fertilizePlot);
+  const tendPlot = useGameStore((s) => s.tendPlot);
+  const thinShoots = useGameStore((s) => s.thinShoots);
   const harvest = useGameStore((s) => s.harvest);
   const gatherSheafs = useGameStore((s) => s.gatherSheafs);
   const [showFloat, setShowFloat] = useState(false);
@@ -72,52 +76,94 @@ export const PlotTile = ({ plot }: Props) => {
   }, [plot.state]);
 
   const stateClass = plot.state !== "empty" ? styles[plot.state] : "";
+  const isGrapes = plot.cropType === "grapes";
+  const isBarley = plot.cropType === "barley";
+  const isOrchard = isGrapes; // extend when more orchard crops are added
+
+  const isTendLocked =
+    plot.state === "fertilized" && plot.nextActionAt !== null;
+  const isThinLocked = plot.state === "tended" && plot.nextActionAt !== null;
+  const secondsLeft =
+    plot.nextActionAt !== null
+      ? Math.max(0, Math.ceil((plot.nextActionAt - Date.now()) / 1000))
+      : 0;
+
   const isInteractive =
     plot.state === "empty" ||
     plot.state === "plowed" ||
+    plot.state === "planted" ||
+    (plot.state === "fertilized" && !isTendLocked) ||
+    (plot.state === "tended" && !isThinLocked) ||
     plot.state === "ready" ||
     plot.state === "gathered";
-
-  const isGrapes = plot.cropType === "grapes";
-  const isBarley = plot.cropType === "barley";
 
   const emoji =
     plot.state === "empty"
       ? "🪵"
       : plot.state === "plowed"
         ? "🟫"
-        : plot.state === "growing"
-          ? isGrapes
+        : plot.state === "planted"
+          ? "🌱"
+          : plot.state === "fertilized"
             ? "🌿"
-            : "🌱"
-          : plot.state === "ready"
-            ? isGrapes
-              ? "🍇"
-              : "🌾"
-            : plot.state === "harvested"
-              ? "✨"
-              : /* gathered */ isGrapes
-                ? "🍇"
-                : isBarley
-                  ? "🌾"
-                  : "🎋";
+            : plot.state === "tended"
+              ? "✂️"
+              : plot.state === "growing"
+                ? isGrapes
+                  ? "🌿"
+                  : "🌱"
+                : plot.state === "ready"
+                  ? isGrapes
+                    ? "🍇"
+                    : "🌾"
+                  : plot.state === "harvested"
+                    ? "✨"
+                    : /* gathered */ isGrapes
+                      ? "🍇"
+                      : isBarley
+                        ? "🌾"
+                        : "🎋";
+
+  const handleClick = () => {
+    if (plot.state === "empty") {
+      if (isOrchard) {
+        if (!plot.hasBeenPlanted) plantOrchard(plot.id);
+        else fertilizePlot(plot.id);
+      } else {
+        plowPlot(plot.id);
+      }
+    } else if (plot.state === "plowed") {
+      plantWheat(plot.id);
+    } else if (plot.state === "planted") {
+      fertilizePlot(plot.id);
+    } else if (plot.state === "fertilized") {
+      if (plot.nextActionAt === null) tendPlot(plot.id);
+    } else if (plot.state === "tended") {
+      if (plot.nextActionAt === null) thinShoots(plot.id);
+    } else if (plot.state === "ready") {
+      harvest(plot.id);
+    } else if (plot.state === "gathered") {
+      gatherSheafs(plot.id);
+    }
+  };
 
   return (
     <div
       className={`${styles.tile} ${stateClass} ${isInteractive ? styles.interactive : ""}`}
       data-state={plot.state}
-      onClick={() => {
-        if (plot.state === "empty") plowPlot(plot.id);
-        else if (plot.state === "plowed") plantWheat(plot.id);
-        else if (plot.state === "ready") harvest(plot.id);
-        else if (plot.state === "gathered") gatherSheafs(plot.id);
-      }}
+      onClick={handleClick}
     >
       <span className={styles.emoji}>{emoji}</span>
 
-      {plot.state === "empty" && (
+      {plot.state === "empty" && !isOrchard && (
         <button className={styles.btn + " " + styles.plowBtn} tabIndex={-1}>
           {HE.plot.plow}
+        </button>
+      )}
+
+      {plot.state === "empty" && isOrchard && (
+        <button className={styles.btn + " " + styles.plantBtn} tabIndex={-1}>
+          {plot.hasBeenPlanted ? HE.plot.fertilize : HE.plot.plantOrchard}
         </button>
       )}
 
@@ -127,9 +173,39 @@ export const PlotTile = ({ plot }: Props) => {
         </button>
       )}
 
+      {plot.state === "planted" && (
+        <button className={styles.btn + " " + styles.plantBtn} tabIndex={-1}>
+          {HE.plot.fertilize}
+        </button>
+      )}
+
+      {plot.state === "fertilized" && (
+        <button
+          className={`${styles.btn} ${styles.plantBtn}${isTendLocked ? " " + styles.lockedBtn : ""}`}
+          tabIndex={-1}
+          disabled={isTendLocked}
+        >
+          {isTendLocked
+            ? `${HE.plot.tendPrune} (${secondsLeft}s)`
+            : HE.plot.tendPrune}
+        </button>
+      )}
+
+      {plot.state === "tended" && (
+        <button
+          className={`${styles.btn} ${styles.plantBtn}${isThinLocked ? " " + styles.lockedBtn : ""}`}
+          tabIndex={-1}
+          disabled={isThinLocked}
+        >
+          {isThinLocked
+            ? `${HE.plot.thinShoots} (${secondsLeft}s)`
+            : HE.plot.thinShoots}
+        </button>
+      )}
+
       {plot.state === "ready" && (
         <button className={styles.btn + " " + styles.harvestBtn} tabIndex={-1}>
-          {HE.plot.harvest}
+          {isGrapes ? HE.plot.pickGrapes : HE.plot.harvest}
         </button>
       )}
 

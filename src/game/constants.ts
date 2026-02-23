@@ -30,6 +30,13 @@ export const applyWheatCost = (current: number, cost: number): number =>
 export const clampMeter = (value: number): number =>
   Math.max(0, Math.min(100, value));
 
+// ── Orchard step wait timers ─────────────────────────────────────────────────
+
+// How long (ms) the Tend button is locked after fertilizing
+export const FERTILIZE_WAIT_DURATION = 10_000;
+// How long (ms) the Thin Shoots button is locked after tending
+export const TEND_WAIT_DURATION = 10_000;
+
 // ── Tile purchasing ───────────────────────────────────────────────────────────
 
 export const BASE_TILE_PRICE = 50;

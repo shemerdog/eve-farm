@@ -78,6 +78,13 @@
 }
 .gatherBtn:hover { background: #c8a830; }
 
+.lockedBtn,
+.lockedBtn:hover {
+  background: #5a4a30;
+  color: rgba(255, 255, 255, 0.45);
+  cursor: default;
+}
+
 /* Radial progress ring */
 .progressRing {
   position: absolute;
