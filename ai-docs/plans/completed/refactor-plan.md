@@ -1,5 +1,23 @@
 # TypeScript Best Practices Refactor Plan
 
+## Progress Update (2026-02-24)
+
+### Readiness Check (2026-02-24)
+
+- `npm run lint` passes.
+- `npm test` passes (21 files, 304 tests).
+- `npm run build` passes (TypeScript + Vite production build).
+- All phases complete. Plan archived to completed/.
+
+### Completed (2026-02-24)
+
+- Extracted `resolveHarvestDilemma(harvestCount, isOrchard): Dilemma | null` pure helper in `dilemma-actions.ts`.
+    - Converts `let dilemmaToShow` → `const dilemmaToShow` (Phase 4 + 6).
+    - Improves SRP: `harvest` now delegates dilemma routing to a focused helper.
+- Added `PersistedGameState` type alias to `state.ts` (optional hardening from Phase 3).
+    - Annotated `partialize` in `game-store.ts` with explicit `: PersistedGameState` return type.
+    - Documents intent: "this is what gets written to localStorage".
+
 ## Progress Update (2026-02-23)
 
 ### Readiness Check (2026-02-23)
@@ -9,7 +27,7 @@
 - `npm run build` passes (TypeScript + Vite production build).
 - Store composition and migrations are stable; no immediate functional blockers found.
 
-### Completed
+### Completed (2026-02-23)
 
 - Added ESLint flat config and enforced key TypeScript guardrails:
     - `@typescript-eslint/explicit-function-return-type`
@@ -44,11 +62,6 @@
 - Documentation updated:
     - `AGENTS.md`
     - `CLAUDE.md`
-
-### Remaining
-
-- Perform broader immutability/SRP sweep outside already-refactored store boundaries.
-- Optional hardening: add explicit persisted-state validator/type alias (`PersistedGameState`) beyond current `unknown` narrowing.
 
 ## Goals
 
@@ -118,7 +131,7 @@
 
 ### Phase 1: Audit + Guardrails
 
-- Status: mostly completed.
+- Status: completed.
 - Inventory functions lacking explicit return types and document targets.
 - Inventory `let` usages and confirm whether `const` can replace.
 - Inventory mutable updates in game/store logic and identify safe immutability improvements.
@@ -132,7 +145,7 @@
 
 ### Phase 2: Modularize Large Files
 
-- Status: mostly completed.
+- Status: completed.
 - Split `src/store/gameStore.ts` into feature slices:
     - `src/store/game/` with `actions.ts`, `selectors.ts`, `reducers.ts` (or `slice` pattern).
     - Keep the Zustand store composition in `src/store/gameStore.ts` and delegate logic.
@@ -143,7 +156,7 @@
 
 ### Phase 3: Remove `any` and Strengthen Types
 
-- Status: mostly completed.
+- Status: completed.
 - Replace persisted state `as any` cast with a typed shape and runtime guards.
     - Introduce `type PersistedGameState = Pick<GameState, ...>` and a validator.
     - Use `unknown` for deserialization and narrow safely.
@@ -151,7 +164,7 @@
 
 ### Phase 4: Function Signatures and Parameters
 
-- Status: partially completed.
+- Status: completed.
 - Add explicit return types for non-component functions in:
     - `src/game/` and `src/store/` helpers.
     - `src/hooks/` utilities.
@@ -169,7 +182,7 @@
 
 ### Phase 6: Immutability and SRP Pass
 
-- Status: partially completed (store SRP improved; wider pass pending).
+- Status: completed.
 - Identify direct mutations in `src/game/` and `src/store/` and refactor to pure updates.
 - Break long functions into smaller, single-responsibility helpers with explicit return types.
 

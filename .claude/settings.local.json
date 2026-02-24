@@ -7,6 +7,7 @@
       "Bash(npm install:*)",
       "Bash(npm test:*)",
       "Bash(npm run build:*)",
+      "Bash(npm run lint:*)",
       "Bash(npx tsc:*)",
       "Bash(npx playwright:*)",
       "Bash(npx vitest run:*)",
@@ -23,7 +24,10 @@
       "mcp__pixellab__create_topdown_tileset",
       "mcp__pixellab__get_topdown_tileset",
       "Bash(grep:*)",
-      "Bash(git mv:*)"
+      "Bash(git mv:*)",
+      "Bash(git worktree:*)",
+      "Bash(head:*)",
+      "Bash(git:*)"
     ]
   }
 }
