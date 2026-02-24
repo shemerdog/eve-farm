@@ -88,9 +88,9 @@ src/
       LockedTileContent.test.tsx   — component tests: buy button enabled/disabled/calls onBuy
   App.tsx                 — root layout: MetersBar / WorldMap / WheatCounter / DilemmaModal / ResetButton
   index.css               — global reset + CSS custom properties (warm earth palette)
-  setup-tests.ts          — imports @testing-library/jest-dom for Vitest
+  setupTests.ts           — imports @testing-library/jest-dom for Vitest
 e2e/
-  farm-interaction.spec.ts — Playwright E2E: sow, harvest, buy tile, use-pan regression
+  farmInteraction.spec.ts — Playwright E2E: sow, harvest, buy tile, usePan regression
 src/store/
   game-store.economy.test.ts    — buyTile + yield/routing basics for field/orchard crops
   game-store.dilemmas.test.ts   — resolve/save + auto-resolve behavior for field dilemmas
