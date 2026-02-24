@@ -32,6 +32,16 @@ function applyDilemmaChoice(
     }
 }
 
+/** Determine which dilemma (if any) should be shown when a plot is harvested. */
+function resolveHarvestDilemma(harvestCount: number, isOrchard: boolean): Dilemma | null {
+    if (isOrchard) {
+        if (harvestCount < 3) return ORLAH_DILEMMA
+        if (harvestCount === 3) return NETA_REVAI_DILEMMA
+        return null // harvestCount >= 4: no dilemma
+    }
+    return PEAH_DILEMMA
+}
+
 /** Decrement cyclesRemaining for a saved decision, removing it when it hits 0. */
 function decrementSaved(
     saved: Record<string, SavedFieldDecision>,
@@ -63,17 +73,7 @@ export const createDilemmaActions = (
         const coordKey = `${plot.tileCoord.col}_${plot.tileCoord.row}`
         const isOrchard = state.tileCategories[coordKey] === 'orchard'
 
-        let dilemmaToShow: Dilemma | null = null
-        if (isOrchard) {
-            if (plot.harvestCount < 3) {
-                dilemmaToShow = ORLAH_DILEMMA
-            } else if (plot.harvestCount === 3) {
-                dilemmaToShow = NETA_REVAI_DILEMMA
-            }
-            // harvestCount >= 4: no dilemma
-        } else {
-            dilemmaToShow = PEAH_DILEMMA
-        }
+        const dilemmaToShow = resolveHarvestDilemma(plot.harvestCount, isOrchard)
 
         const plotsUpdated = state.plots.map((p) =>
             p.id === plotId
@@ -248,7 +248,9 @@ export const createDilemmaActions = (
         const updatedPlots =
             skipGatherAndReset && activePlotId
                 ? plots.map((p) =>
-                      p.id === activePlotId ? { ...p, state: 'empty' as const, plantedAt: null } : p,
+                      p.id === activePlotId
+                          ? { ...p, state: 'empty' as const, plantedAt: null }
+                          : p,
                   )
                 : plots
 

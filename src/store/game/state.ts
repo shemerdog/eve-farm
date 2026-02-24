@@ -1,4 +1,9 @@
 import type { CropType, GameState, Plot, TileCoord } from '@/types'
+
+/** The data shape that Zustand's persist middleware writes to localStorage.
+ *  Equals GameState because all state fields are persisted (actions are excluded
+ *  by the partialize function in game-store.ts). */
+export type PersistedGameState = GameState
 import {
     BARLEY_GROWTH_DURATION,
     GRAPE_GROWTH_DURATION,
