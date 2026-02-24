@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react'
 import type { RefObject } from 'react'
-import { useWorldStore } from '@/store/worldStore'
-import { clampCamera, applyMomentumFrame, zoomAtPoint } from '@/game/worldMap'
+import { useWorldStore } from '@/store/world-store'
+import { clampCamera, applyMomentumFrame, zoomAtPoint } from '@/game/world-map'
 
 // Minimum pointer movement (px) before a press is treated as a drag.
 // Below this threshold the press is a tap and click events reach inner elements.

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { tickPlot, growthProgress } from './gameTick'
+import { tickPlot, growthProgress } from './game-tick'
 import type { Plot } from '@/types'
 
 const makePlot = (overrides: Partial<Plot> = {}): Plot => ({

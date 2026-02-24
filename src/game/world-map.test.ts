@@ -21,7 +21,7 @@ import {
     MIN_ZOOM,
     MAX_ZOOM,
     ZOOM_STEP,
-} from './worldMap'
+} from './world-map'
 import { calcTilePrice } from './constants'
 
 describe('getTileType', () => {

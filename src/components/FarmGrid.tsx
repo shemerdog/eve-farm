@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 import type { TileCoord } from '@/types'
-import { useGameStore } from '@/store/gameStore'
-import { coordsEqual } from '@/game/worldMap'
+import { useGameStore } from '@/store/game-store'
+import { coordsEqual } from '@/game/world-map'
 import { PlotTile } from './PlotTile'
 import styles from './FarmGrid.module.css'
 

@@ -12,7 +12,7 @@ let mockSavedFieldDecisions: Record<
     { choiceIndex: number; cyclesRemaining: number; enabled: boolean }
 > = {}
 
-vi.mock('@/store/gameStore', () => ({
+vi.mock('@/store/game-store', () => ({
     useGameStore: (selector: (s: object) => unknown): unknown =>
         selector({
             encounteredDilemmas: mockEncounteredDilemmas,

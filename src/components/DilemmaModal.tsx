@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useGameStore } from '@/store/gameStore'
+import { useGameStore } from '@/store/game-store'
 import { applyWheatCost } from '@/game/constants'
 import { HE } from '@/game/strings.he'
 import styles from './DilemmaModal.module.css'

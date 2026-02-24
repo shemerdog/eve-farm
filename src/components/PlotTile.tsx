@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import type { Plot } from '@/types'
-import { useGameStore } from '@/store/gameStore'
-import { growthProgress } from '@/game/gameTick'
+import { useGameStore } from '@/store/game-store'
+import { growthProgress } from '@/game/game-tick'
 import { HE } from '@/game/strings.he'
 import styles from './PlotTile.module.css'
 

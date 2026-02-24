@@ -13,7 +13,7 @@ const mockFertilizePlot = vi.fn()
 const mockTendPlot = vi.fn()
 const mockThinShoots = vi.fn()
 
-vi.mock('@/store/gameStore', () => ({
+vi.mock('@/store/game-store', () => ({
     useGameStore: (selector: (s: object) => unknown): unknown =>
         selector({
             plantWheat: mockPlantWheat,

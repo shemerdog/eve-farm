@@ -1,4 +1,4 @@
-import { useGameStore } from '@/store/gameStore'
+import { useGameStore } from '@/store/game-store'
 import type { Plot, TileCategory, TileCoord, TileSubcategory } from '@/types'
 
 export const resetGameStore = (): void => {

@@ -1,12 +1,12 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import { createDilemmaActions } from '@/store/game/dilemmaActions'
-import { createEconomyActions } from '@/store/game/economyActions'
+import { createDilemmaActions } from '@/store/game/dilemma-actions'
+import { createEconomyActions } from '@/store/game/economy-actions'
 import { migratePersistedGameState } from '@/store/game/migrations'
-import { createPlotActions } from '@/store/game/plotActions'
+import { createPlotActions } from '@/store/game/plot-actions'
 import { initialState, makePlots } from '@/store/game/state'
-import type { GameStore } from '@/store/game/storeTypes'
-import { FARM_COORD } from '@/game/worldMap'
+import type { GameStore } from '@/store/game/store-types'
+import { FARM_COORD } from '@/game/world-map'
 
 export const useGameStore = create<GameStore>()(
     persist(

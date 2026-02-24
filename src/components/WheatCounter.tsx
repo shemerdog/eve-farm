@@ -1,4 +1,4 @@
-import { useGameStore } from '@/store/gameStore'
+import { useGameStore } from '@/store/game-store'
 import styles from './WheatCounter.module.css'
 
 export const WheatCounter = (): React.JSX.Element => {

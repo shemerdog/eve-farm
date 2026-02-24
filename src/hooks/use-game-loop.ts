@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react'
-import { useGameStore } from '@/store/gameStore'
+import { useGameStore } from '@/store/game-store'
 
 // Starts a 500ms interval that calls tickGrowth() whenever any plot is growing.
 // Uses wall-clock timestamps — resilient to tab backgrounding.

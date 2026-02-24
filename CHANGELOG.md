@@ -1,5 +1,17 @@
 # Changelog
 
+## 2026-02-24 — Kebab-Case File Rename (Refactor Phase 5)
+
+Renamed all non-component source, hook, store, and test files from camelCase to kebab-case.
+Components retain PascalCase per React convention. 22 files renamed, all import paths updated.
+
+Files changed: `src/game/game-tick.ts`, `src/game/world-map.ts`, `src/hooks/use-game-loop.ts`,
+`src/hooks/use-pan.ts`, `src/store/game-store.ts`, `src/store/world-store.ts`,
+`src/store/game/{dilemma,economy,plot}-actions.ts`, `src/store/game/store-types.ts`,
+`src/test-utils/game-store.ts`, plus 11 test file renames.
+
+Tests: 304 Vitest (all passing).
+
 ## 2026-02-23 — Manage Decisions Panel (persist v12)
 
 Players can now review all dilemmas they have encountered and toggle per-dilemma auto-resolve via a bottom-sheet panel opened with the ⚙ button in MetersBar.

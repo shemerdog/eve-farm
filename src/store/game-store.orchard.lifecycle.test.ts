@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 import { FERTILIZE_WAIT_DURATION, TEND_WAIT_DURATION } from '@/game/constants'
-import { useGameStore } from './gameStore'
-import { buyTileWithWheat, findPlotByCoord, patchPlot, resetGameStore } from '@/test-utils/gameStore'
+import { useGameStore } from './game-store'
+import { buyTileWithWheat, findPlotByCoord, patchPlot, resetGameStore } from '@/test-utils/game-store'
 
 beforeEach(() => {
     resetGameStore()

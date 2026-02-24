@@ -47,27 +47,27 @@ src/
   types/index.ts          — all shared TypeScript types
   game/
     constants.ts          — PLOT_COUNT, growth durations, calcTilePrice, applyWheatCost, clampMeter, FERTILIZE_WAIT_DURATION, TEND_WAIT_DURATION
-    gameTick.ts           — pure tickPlot(plot, now) + growthProgress(plot, now)
-    gameTick.test.ts      — unit tests for pure game logic
-    worldMap.ts           — tile grid, camera math, coordsEqual, isPurchased, isAdjacentToUnlocked
-    worldMap.test.ts      — unit tests for world map helpers
+    game-tick.ts          — pure tickPlot(plot, now) + growthProgress(plot, now)
+    game-tick.test.ts     — unit tests for pure game logic
+    world-map.ts          — tile grid, camera math, coordsEqual, isPurchased, isAdjacentToUnlocked
+    world-map.test.ts     — unit tests for world map helpers
     dilemmas.ts           — DILEMMAS array (PEAH, SHIKCHAH, ORLAH, NETA_REVAI)
     strings.he.ts         — all Hebrew UI strings
   store/
-    gameStore.ts          — root Zustand composer (wires initialState + modular action domains + persist)
+    game-store.ts         — root Zustand composer (wires initialState + modular action domains + persist)
     game/
       state.ts            — initialState + makePlots helpers
-      plotActions.ts      — plot lifecycle actions (plow/plant/fertilize/tend/thin/tickGrowth)
-      dilemmaActions.ts   — harvest/gather routing, auto-resolve, resolveDilemma, toggleDecisionEnabled, resetPlot
-      economyActions.ts   — buyTile + resetGame
+      plot-actions.ts     — plot lifecycle actions (plow/plant/fertilize/tend/thin/tickGrowth)
+      dilemma-actions.ts  — harvest/gather routing, auto-resolve, resolveDilemma, toggleDecisionEnabled, resetPlot
+      economy-actions.ts  — buyTile + resetGame
       migrations.ts       — persist migration logic (v2→v12), typed unknown narrowing
-      storeTypes.ts       — GameActions/GameStore and SetState/GetState helper types
-    worldStore.ts         — camera state only (NOT persisted, re-centers on mount)
+      store-types.ts      — GameActions/GameStore and SetState/GetState helper types
+    world-store.ts        — camera state only (NOT persisted, re-centers on mount)
   test-utils/
-    gameStore.ts          — shared test helpers (resetGameStore, buyTileWithWheat, findPlotByCoord, patchPlot)
+    game-store.ts         — shared test helpers (resetGameStore, buyTileWithWheat, findPlotByCoord, patchPlot)
   hooks/
-    useGameLoop.ts        — setInterval(tickGrowth, 500) while any plot is growing
-    usePan.ts             — pointer-event pan + momentum for WorldMap viewport
+    use-game-loop.ts      — setInterval(tickGrowth, 500) while any plot is growing
+    use-pan.ts            — pointer-event pan + momentum for WorldMap viewport
   components/
     MetersBar             — devotion/morality/faithfulness bars (always visible)
     FarmGrid              — 2×2 grid of PlotTile components
@@ -78,7 +78,7 @@ src/
     ResetButton           — resets all game progress; ResetButton.test.tsx
     DilemmaModal          — full-screen overlay, appears on harvest/gather triggers
     WorldMap/
-      WorldMap.tsx        — pannable + zoomable viewport, mounts TILES grid, wires usePan
+      WorldMap.tsx        — pannable + zoomable viewport, mounts TILES grid, wires use-pan
       MapTileView.tsx     — reads store, computes props, renders FarmTileContent / VineyardTileContent / BarleyFieldTileContent / LockedTileContent
       FarmTileContent.tsx — renders FarmGrid inside the wheat farm map tile
       VineyardTileContent.tsx      — renders FarmGrid for orchard/grape tiles; VineyardTileContent.test.tsx
@@ -88,18 +88,18 @@ src/
       LockedTileContent.test.tsx   — component tests: buy button enabled/disabled/calls onBuy
   App.tsx                 — root layout: MetersBar / WorldMap / WheatCounter / DilemmaModal / ResetButton
   index.css               — global reset + CSS custom properties (warm earth palette)
-  setupTests.ts           — imports @testing-library/jest-dom for Vitest
+  setup-tests.ts          — imports @testing-library/jest-dom for Vitest
 e2e/
-  farmInteraction.spec.ts — Playwright E2E: sow, harvest, buy tile, usePan regression
+  farm-interaction.spec.ts — Playwright E2E: sow, harvest, buy tile, use-pan regression
 src/store/
-  gameStore.economy.test.ts    — buyTile + yield/routing basics for field/orchard crops
-  gameStore.dilemmas.test.ts   — resolve/save + auto-resolve behavior for field dilemmas
-  gameStore.dilemmas.state-tracking.test.ts — toggle enabled, encountered tracking, enabled-flag gating
-  gameStore.orchard.lifecycle.test.ts — orchard action transitions and nextActionAt timer guards
-  gameStore.orchard.cycle.test.ts — orchard full-cycle progression and hasBeenPlanted/reset behavior
-  gameStore.orchard.saved-decisions.test.ts — saved SHIKCHAH auto-resolve behavior on gather
-  gameStore.orchard.dilemma-gating.test.ts — ORLAH/NETA_REVAI cycle gating + skip-gather resolution
-  gameStore.migrations.test.ts — migration behavior checks (v6/v12)
+  game-store.economy.test.ts    — buyTile + yield/routing basics for field/orchard crops
+  game-store.dilemmas.test.ts   — resolve/save + auto-resolve behavior for field dilemmas
+  game-store.dilemmas.state-tracking.test.ts — toggle enabled, encountered tracking, enabled-flag gating
+  game-store.orchard.lifecycle.test.ts — orchard action transitions and nextActionAt timer guards
+  game-store.orchard.cycle.test.ts — orchard full-cycle progression and hasBeenPlanted/reset behavior
+  game-store.orchard.saved-decisions.test.ts — saved SHIKCHAH auto-resolve behavior on gather
+  game-store.orchard.dilemma-gating.test.ts — ORLAH/NETA_REVAI cycle gating + skip-gather resolution
+  game-store.migrations.test.ts — migration behavior checks (v6/v12)
 ```
 
 ## Core Loop
@@ -135,11 +135,11 @@ Save keys are `"<dilemmaId>:<cropType>"`. When a saved decision is active, the d
 - **Dilemmas** are triggered by specific actions per crop: `harvest` wheat/barley → PEAH; `harvest` grapes (orchard tile) → ORLAH (cycles 1–3) / NETA_REVAI (cycle 4) / none (cycle 5+); `gatherSheafs` wheat/barley → SHIKCHAH. `activeDilemma: Dilemma | null` + `activeDilemmaContext: CropType | null` + `activePlotId: string | null` drive the modal. PEAH and SHIKCHAH can be saved for 5 cycles; keys are crop-qualified (`"peah:wheat"`, `"shikchah:barley"`, etc.).
 - **nextActionAt** on `Plot` — `null` = action available; a timestamp = locked until `tickPlot` clears it. Used for orchard step timers (`FERTILIZE_WAIT_DURATION` / `TEND_WAIT_DURATION`, 10 s each).
 - **Wheat rounding**: `applyWheatCost = (current, cost) => current - Math.floor(cost)` — always floors, generous to player, defined in `constants.ts`
-- **Pure game logic**: `tickPlot(plot, now)` lives in `src/game/` with no React/Zustand dependency — fully unit-testable
+- **Pure game logic**: `tickPlot(plot, now)` lives in `src/game/game-tick.ts` with no React/Zustand dependency — fully unit-testable
 - **harvestCount: number** on `Plot` — tracks how many times an orchard plot has been harvested; gates ORLAH (cycles 1–3), NETA_REVAI (cycle 4), no dilemma (cycle 5+). Incremented inside `harvest()`, not in `tickPlot`.
 - **activePlotId: string | null** on `GameState` — set when a dilemma fires from `harvest()`; read by `resolveDilemma()` to reset the correct plot when the player chooses "Leave the fruit" (ORLAH/NETA_REVAI choice 0); cleared after resolution.
 - **Persistence**: Zustand `persist` middleware saves all game state fields to localStorage; only data is persisted, not action functions. **Persist version: 12**; migrations v2–v12 handle all legacy saves (id format, field renames, backfills, `encounteredDilemmas`, `enabled` on saved decisions).
-- **Timer**: `useGameLoop` hook starts/stops `setInterval` based on whether any plot is `growing`; uses wall-clock timestamps so tab backgrounding doesn't break growth
+- **Timer**: `use-game-loop` hook starts/stops `setInterval` based on whether any plot is `growing`; uses wall-clock timestamps so tab backgrounding doesn't break growth
 
 ## Key Design Decisions
 

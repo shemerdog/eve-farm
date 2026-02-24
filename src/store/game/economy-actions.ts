@@ -1,7 +1,7 @@
 import type { CropType, TileCategory, TileCoord, TileSubcategory } from '@/types'
 import { calcTilePrice } from '@/game/constants'
-import { FARM_COORD, isAdjacentToUnlocked, isPurchased } from '@/game/worldMap'
-import type { GameActions, SetState } from './storeTypes'
+import { FARM_COORD, isAdjacentToUnlocked, isPurchased } from '@/game/world-map'
+import type { GameActions, SetState } from './store-types'
 import { initialState, makePlots } from './state'
 
 export const createEconomyActions = (set: SetState): Pick<GameActions, 'buyTile' | 'resetGame'> => ({

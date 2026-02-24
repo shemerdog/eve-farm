@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useGameLoop } from '@/hooks/useGameLoop'
+import { useGameLoop } from '@/hooks/use-game-loop'
 import { MetersBar } from '@/components/MetersBar'
 import { WorldMap } from '@/components/WorldMap'
 import { WheatCounter } from '@/components/WheatCounter'

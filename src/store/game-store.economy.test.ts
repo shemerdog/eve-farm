@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest'
-import { useGameStore } from './gameStore'
-import { buyTileWithWheat, findPlotByCoord, resetGameStore } from '@/test-utils/gameStore'
+import { useGameStore } from './game-store'
+import { buyTileWithWheat, findPlotByCoord, resetGameStore } from '@/test-utils/game-store'
 import {
     GRAPES_PER_HARVEST,
     BARLEY_GROWTH_DURATION,

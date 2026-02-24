@@ -1,4 +1,4 @@
-import { useGameStore } from '@/store/gameStore'
+import { useGameStore } from '@/store/game-store'
 import styles from './ResetButton.module.css'
 
 export const ResetButton = (): React.JSX.Element => {

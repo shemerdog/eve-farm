@@ -1,4 +1,4 @@
-import { useGameStore } from '@/store/gameStore'
+import { useGameStore } from '@/store/game-store'
 import { DILEMMAS } from '@/game/dilemmas'
 import { HE } from '@/game/strings.he'
 import styles from './DecisionsPanel.module.css'

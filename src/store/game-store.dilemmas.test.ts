@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest'
-import { useGameStore } from './gameStore'
+import { useGameStore } from './game-store'
 import { DILEMMAS, ORLAH_DILEMMA } from '@/game/dilemmas'
-import { buyTileWithWheat, findPlotByCoord, resetGameStore } from '@/test-utils/gameStore'
+import { buyTileWithWheat, findPlotByCoord, resetGameStore } from '@/test-utils/game-store'
 
 beforeEach(() => {
     resetGameStore()

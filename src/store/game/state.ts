@@ -6,7 +6,7 @@ import {
     PLOT_COUNT,
     WHEAT_GROWTH_DURATION,
 } from '@/game/constants'
-import { FARM_COORD } from '@/game/worldMap'
+import { FARM_COORD } from '@/game/world-map'
 
 const growthDurationByCropType: Record<CropType, number> = {
     wheat: WHEAT_GROWTH_DURATION,

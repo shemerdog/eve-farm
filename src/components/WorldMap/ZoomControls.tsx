@@ -1,4 +1,4 @@
-import { MIN_ZOOM, MAX_ZOOM } from '@/game/worldMap'
+import { MIN_ZOOM, MAX_ZOOM } from '@/game/world-map'
 import styles from './ZoomControls.module.css'
 
 type Props = {

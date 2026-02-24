@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest'
-import { useGameStore } from './gameStore'
-import { FARM_COORD } from '@/game/worldMap'
+import { useGameStore } from './game-store'
+import { FARM_COORD } from '@/game/world-map'
 import { calcTilePrice } from '@/game/constants'
 import { DILEMMAS } from '@/game/dilemmas'
 

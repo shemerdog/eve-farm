@@ -47,7 +47,6 @@
 
 ### Remaining
 
-- Decide and execute naming strategy for non-component files (kebab-case vs keep existing).
 - Perform broader immutability/SRP sweep outside already-refactored store boundaries.
 - Optional hardening: add explicit persisted-state validator/type alias (`PersistedGameState`) beyond current `unknown` narrowing.
 
@@ -161,11 +160,12 @@
 
 ### Phase 5: File and Directory Naming
 
-- Status: pending decision/execution.
-- Decide and execute naming standard changes for non-component files:
-    - Option A (strict best practice): rename to kebab-case (e.g., `game-store.ts`).
-    - Option B (minimal churn): keep existing file names but enforce within new files.
-- Update barrel exports and import paths after any rename.
+- Status: completed (Option A — all non-component files renamed to kebab-case).
+- Executed naming standard changes for non-component files:
+    - Renamed 22 files to kebab-case (e.g., `game-store.ts`, `game-tick.ts`, `world-map.ts`, `use-pan.ts`, etc.).
+    - Updated all import paths to match renamed files.
+    - Components retain PascalCase per React convention.
+- Build, lint, and tests all passing.
 
 ### Phase 6: Immutability and SRP Pass
 

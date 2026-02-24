@@ -7,7 +7,7 @@ import {
     clampMeter,
 } from '@/game/constants'
 import { DILEMMAS, NETA_REVAI_DILEMMA, ORLAH_DILEMMA } from '@/game/dilemmas'
-import type { GameActions, GetState, SetState } from './storeTypes'
+import type { GameActions, GetState, SetState } from './store-types'
 
 const PEAH_DILEMMA = DILEMMAS.find((d) => d.id === 'peah')!
 const SHIKCHAH_DILEMMA = DILEMMAS.find((d) => d.id === 'shikchah')!

@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event'
 import { vi, describe, test, expect, beforeEach } from 'vitest'
 import { MetersBar } from './MetersBar'
 
-vi.mock('@/store/gameStore', () => ({
+vi.mock('@/store/game-store', () => ({
     useGameStore: (selector: (s: object) => unknown): unknown =>
         selector({
             meters: { devotion: 50, morality: 60, faithfulness: 40 },

@@ -1,4 +1,4 @@
-import { useGameStore } from '@/store/gameStore'
+import { useGameStore } from '@/store/game-store'
 import { HE } from '@/game/strings.he'
 import styles from './MetersBar.module.css'
 

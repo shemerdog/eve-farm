@@ -1,6 +1,6 @@
 import { useLayoutEffect, useRef } from 'react'
-import { useWorldStore } from '@/store/worldStore'
-import { usePan } from '@/hooks/usePan'
+import { useWorldStore } from '@/store/world-store'
+import { usePan } from '@/hooks/use-pan'
 import {
     buildTileGrid,
     WORLD_WIDTH,
@@ -12,7 +12,7 @@ import {
     initialCamera,
     zoomAtPoint,
     ZOOM_STEP,
-} from '@/game/worldMap'
+} from '@/game/world-map'
 import { MapTileView } from './MapTileView'
 import { ZoomControls } from './ZoomControls'
 import styles from './WorldMap.module.css'

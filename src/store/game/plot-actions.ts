@@ -2,8 +2,8 @@ import {
     FERTILIZE_WAIT_DURATION,
     TEND_WAIT_DURATION,
 } from '@/game/constants'
-import { tickPlot } from '@/game/gameTick'
-import type { GameActions, SetState } from './storeTypes'
+import { tickPlot } from '@/game/game-tick'
+import type { GameActions, SetState } from './store-types'
 
 export const createPlotActions = (set: SetState): Pick<
     GameActions,
