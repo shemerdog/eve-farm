@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { tickPlot, growthProgress } from './game-tick'
+import { tickPlot, growthProgress, stepWaitProgress } from './game-tick'
 import type { Plot } from '@/types'
 
 const makePlot = (overrides: Partial<Plot> = {}): Plot => ({
@@ -11,6 +11,7 @@ const makePlot = (overrides: Partial<Plot> = {}): Plot => ({
     cropType: 'wheat',
     hasBeenPlanted: false,
     nextActionAt: null,
+    stepWaitDuration: null,
     harvestCount: 0,
     ...overrides,
 })
@@ -158,6 +159,20 @@ describe('tickPlot — nextActionAt unlock', () => {
         expect(result).not.toBe(plot)
     })
 
+    it('clears stepWaitDuration when nextActionAt clears', () => {
+        const now = Date.now()
+        const plot = makePlot({
+            state: 'fertilized',
+            plantedAt: null,
+            cropType: 'grapes',
+            nextActionAt: now - 1,
+            stepWaitDuration: 10_000,
+        })
+        const result = tickPlot(plot, now)
+        expect(result.nextActionAt).toBeNull()
+        expect(result.stepWaitDuration).toBeNull()
+    })
+
     it('does not advance growing→ready while nextActionAt is pending (clear happens first)', () => {
         // A growing plot with both nextActionAt pending and growth complete:
         // nextActionAt clear takes priority in the first tick, ready on the next.
@@ -196,5 +211,45 @@ describe('growthProgress', () => {
         const now = Date.now()
         const plot = makePlot({ plantedAt: now - 30_000 })
         expect(growthProgress(plot, now)).toBe(1)
+    })
+})
+
+describe('stepWaitProgress', () => {
+    it('returns 0 when nextActionAt is null', () => {
+        const plot = makePlot({ nextActionAt: null, stepWaitDuration: 10_000 })
+        expect(stepWaitProgress(plot)).toBe(0)
+    })
+
+    it('returns 0 when stepWaitDuration is null', () => {
+        const now = Date.now()
+        const plot = makePlot({ nextActionAt: now + 5_000, stepWaitDuration: null })
+        expect(stepWaitProgress(plot, now)).toBe(0)
+    })
+
+    it('returns ~0 at the very start of the wait', () => {
+        const now = Date.now()
+        const duration = 10_000
+        const plot = makePlot({ nextActionAt: now + duration, stepWaitDuration: duration })
+        expect(stepWaitProgress(plot, now)).toBeCloseTo(0, 1)
+    })
+
+    it('returns ~0.5 halfway through the wait', () => {
+        const duration = 10_000
+        const startedAt = Date.now() - duration / 2
+        const plot = makePlot({
+            nextActionAt: startedAt + duration,
+            stepWaitDuration: duration,
+        })
+        expect(stepWaitProgress(plot, startedAt + duration / 2)).toBeCloseTo(0.5)
+    })
+
+    it('clamps to 1 when past duration', () => {
+        const duration = 10_000
+        const startedAt = Date.now() - duration * 2
+        const plot = makePlot({
+            nextActionAt: startedAt + duration,
+            stepWaitDuration: duration,
+        })
+        expect(stepWaitProgress(plot, startedAt + duration * 2)).toBe(1)
     })
 })
