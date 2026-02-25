@@ -13,8 +13,17 @@ export type PlotState =
 
 export type CropType = 'wheat' | 'grapes' | 'barley'
 
-export type TileCategory = 'field' | 'orchard'
-export type TileSubcategory = 'wheat' | 'barley' | 'grapes'
+export type TileCategory = 'field' | 'orchard' | 'structure'
+export type TileSubcategory = 'wheat' | 'barley' | 'grapes' | 'structure'
+
+export type BuildingType = 'farmhouse' | 'barn' | 'sheepfold' | 'silo'
+
+export type BuildingSlot = {
+    id: string // format: "s{col}_{row}_{i}" e.g. "s2_1_0"
+    tileCoord: TileCoord
+    buildingType: BuildingType | null // null = empty slot
+    state: 'empty' | 'built'
+}
 
 export type Plot = {
     id: string // "col_row_idx", e.g. "2_2_0"
@@ -25,6 +34,7 @@ export type Plot = {
     cropType: CropType // what crop grows on this plot
     hasBeenPlanted: boolean // orchard: true after first plantOrchard; skips plant step on subsequent cycles
     nextActionAt: number | null // null = action available now; timestamp = locked until this time
+    stepWaitDuration: number | null // ms duration of the current step wait (set alongside nextActionAt, cleared with it)
     harvestCount: number // increments each harvest(); used to gate ORLAH (cycles 1–3) and NETA_REVAI (cycle 4)
 }
 
@@ -70,6 +80,7 @@ export type GameState = {
     // Keyed by "<dilemmaId>:<cropType>" (e.g. "peah:wheat", "shikchah:barley"); only field-crop dilemmas are saveable
     savedFieldDecisions: Record<string, SavedFieldDecision>
     encounteredDilemmas: string[] // e.g. ["peah:wheat", "shikchah:barley"]
+    buildingSlots: BuildingSlot[]
 }
 
 // ── World Map ────────────────────────────────────────────────────────────────
