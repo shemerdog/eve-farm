@@ -1,6 +1,7 @@
 import type { MeterValues } from '@/types'
 
 export const PLOT_COUNT = 4
+export const BUILDING_SLOT_COUNT = 4
 
 // 15 seconds — fast enough to test, slow enough to feel like waiting
 export const WHEAT_GROWTH_DURATION = 15_000

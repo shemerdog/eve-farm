@@ -38,6 +38,16 @@ export const HE = {
         savedCyclesLeft: 'מחזורים נותרים', // cycles remaining
     },
 
+    // ── Buildings ───────────────────────────────────────────────
+    buildings: {
+        categoryLabel: 'מבנים',
+        emptySlotLabel: 'בנה', // "Build"
+        farmhouse: 'בית',
+        barn: 'אסם',
+        sheepfold: 'דיר',
+        silo: 'סילו',
+    },
+
     // ── Decisions panel ─────────────────────────────────────────
     decisionsPanel: {
         title: 'נהל החלטות', // Manage Decisions
