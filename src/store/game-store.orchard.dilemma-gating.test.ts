@@ -19,6 +19,7 @@ function setupOrchardPlot(harvestCount = 0): string {
         cropType: 'grapes',
         hasBeenPlanted: true,
         nextActionAt: null,
+        stepWaitDuration: null,
         harvestCount,
     }
     useGameStore.setState({
@@ -83,6 +84,7 @@ describe('harvest orchard cycle gating', () => {
                     cropType: 'wheat',
                     hasBeenPlanted: false,
                     nextActionAt: null,
+                    stepWaitDuration: null,
                     harvestCount: 0,
                 },
             ],
@@ -109,6 +111,7 @@ describe('harvest orchard cycle gating', () => {
                     cropType: 'wheat',
                     hasBeenPlanted: false,
                     nextActionAt: null,
+                    stepWaitDuration: null,
                     harvestCount: 0,
                 },
             ],

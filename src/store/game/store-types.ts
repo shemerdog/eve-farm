@@ -1,5 +1,5 @@
 import type { StateCreator } from 'zustand'
-import type { GameState, TileCategory, TileCoord, TileSubcategory } from '@/types'
+import type { BuildingType, GameState, TileCategory, TileCoord, TileSubcategory } from '@/types'
 
 export type GameActions = {
     plowPlot: (plotId: string) => void
@@ -15,6 +15,7 @@ export type GameActions = {
     toggleDecisionEnabled: (key: string) => void
     resetPlot: (plotId: string) => void
     buyTile: (coord: TileCoord, category: TileCategory, subcategory: TileSubcategory) => void
+    buildStructure: (slotId: string, buildingType: BuildingType) => void
     resetGame: () => void
 }
 

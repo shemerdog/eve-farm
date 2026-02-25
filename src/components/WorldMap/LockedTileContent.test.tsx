@@ -21,11 +21,12 @@ describe('LockedTileContent — inaccessible tile', () => {
     })
 })
 
-describe('LockedTileContent — root step (2 category buttons)', () => {
-    test('renders category buttons', (): void => {
+describe('LockedTileContent — root step (3 category buttons)', () => {
+    test('renders category buttons including structure', (): void => {
         render(<LockedTileContent purchasable canAfford price={50} onBuy={() => {}} />)
         expect(screen.getByRole('button', { name: /שדה|field/i })).toBeInTheDocument()
         expect(screen.getByRole('button', { name: /כרם|orchard/i })).toBeInTheDocument()
+        expect(screen.getByRole('button', { name: /מבנים|structure/i })).toBeInTheDocument()
     })
 
     test('shows price badge', (): void => {
@@ -50,6 +51,15 @@ describe('LockedTileContent — root step (2 category buttons)', () => {
         expect(onBuy).not.toHaveBeenCalled()
         // Should now show vineyard button
         expect(screen.getByRole('button', { name: /כרם|vineyard/i })).toBeInTheDocument()
+    })
+
+    test('structure button calls onBuy("structure", "structure") immediately', async (): Promise<void> => {
+        const onBuy = vi.fn<(c: TileCategory, s: TileSubcategory) => void>()
+        render(<LockedTileContent purchasable canAfford price={50} onBuy={onBuy} />)
+        await userEvent.click(screen.getByRole('button', { name: /מבנים|structure/i }))
+        expect(onBuy).toHaveBeenCalledWith('structure', 'structure')
+        // Returns to root step
+        expect(screen.getByRole('button', { name: /שדה|field/i })).toBeInTheDocument()
     })
 
     test('disables buttons when cannot afford', (): void => {

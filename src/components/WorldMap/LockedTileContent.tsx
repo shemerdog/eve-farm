@@ -51,6 +51,13 @@ export const LockedTileContent = ({
                             >
                                 🍇 כרם
                             </button>
+                            <button
+                                className={styles.buyButton}
+                                disabled={!canAfford}
+                                onClick={() => handleBuy('structure', 'structure')}
+                            >
+                                🏗️ מבנים
+                            </button>
                         </div>
                     )}
 

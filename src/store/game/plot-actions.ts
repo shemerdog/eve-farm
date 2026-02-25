@@ -1,13 +1,18 @@
-import {
-    FERTILIZE_WAIT_DURATION,
-    TEND_WAIT_DURATION,
-} from '@/game/constants'
+import { FERTILIZE_WAIT_DURATION, TEND_WAIT_DURATION } from '@/game/constants'
 import { tickPlot } from '@/game/game-tick'
 import type { GameActions, SetState } from './store-types'
 
-export const createPlotActions = (set: SetState): Pick<
+export const createPlotActions = (
+    set: SetState,
+): Pick<
     GameActions,
-    'plowPlot' | 'plantWheat' | 'plantOrchard' | 'fertilizePlot' | 'tendPlot' | 'thinShoots' | 'tickGrowth'
+    | 'plowPlot'
+    | 'plantWheat'
+    | 'plantOrchard'
+    | 'fertilizePlot'
+    | 'tendPlot'
+    | 'thinShoots'
+    | 'tickGrowth'
 > => ({
     plowPlot: (plotId: string): void => {
         set((s) => ({
@@ -40,11 +45,13 @@ export const createPlotActions = (set: SetState): Pick<
     fertilizePlot: (plotId: string): void => {
         set((s) => ({
             plots: s.plots.map((p) =>
-                p.id === plotId && (p.state === 'planted' || (p.state === 'empty' && p.hasBeenPlanted))
+                p.id === plotId &&
+                (p.state === 'planted' || (p.state === 'empty' && p.hasBeenPlanted))
                     ? {
                           ...p,
                           state: 'fertilized',
                           nextActionAt: Date.now() + FERTILIZE_WAIT_DURATION,
+                          stepWaitDuration: FERTILIZE_WAIT_DURATION,
                       }
                     : p,
             ),
@@ -61,6 +68,7 @@ export const createPlotActions = (set: SetState): Pick<
                         ...p,
                         state: 'tended',
                         nextActionAt: Date.now() + TEND_WAIT_DURATION,
+                        stepWaitDuration: TEND_WAIT_DURATION,
                     }
                 }
                 return {
@@ -76,7 +84,10 @@ export const createPlotActions = (set: SetState): Pick<
     thinShoots: (plotId: string): void => {
         set((s) => ({
             plots: s.plots.map((p) =>
-                p.id === plotId && p.state === 'tended' && p.cropType === 'grapes' && p.nextActionAt === null
+                p.id === plotId &&
+                p.state === 'tended' &&
+                p.cropType === 'grapes' &&
+                p.nextActionAt === null
                     ? { ...p, state: 'growing', plantedAt: Date.now() }
                     : p,
             ),

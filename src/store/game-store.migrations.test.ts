@@ -110,6 +110,65 @@ describe('v12 migration logic', () => {
     })
 })
 
+describe('v14 migration logic', () => {
+    it('backfills buildingSlots: [] when missing', () => {
+        const raw = {
+            plots: [],
+            wheat: 0,
+            grapes: 0,
+            barley: 0,
+            meters: { devotion: 50, morality: 50, faithfulness: 50 },
+            activeDilemma: null,
+            activeDilemmaContext: null,
+            activePlotId: null,
+            purchasedCoords: [],
+            tileCategories: {},
+            savedFieldDecisions: {},
+            encounteredDilemmas: [],
+            // buildingSlots intentionally absent (old save)
+        }
+        const result = migratePersistedGameState({
+            persisted: raw,
+            version: 13,
+            farmCoord: { col: 2, row: 2 },
+            makePlots,
+        })
+        expect(result.buildingSlots).toEqual([])
+    })
+
+    it('preserves existing buildingSlots when already present', () => {
+        const existingSlot = {
+            id: 's2_1_0',
+            tileCoord: { col: 2, row: 1 },
+            buildingType: 'barn',
+            state: 'built',
+        }
+        const raw = {
+            plots: [],
+            wheat: 0,
+            grapes: 0,
+            barley: 0,
+            meters: { devotion: 50, morality: 50, faithfulness: 50 },
+            activeDilemma: null,
+            activeDilemmaContext: null,
+            activePlotId: null,
+            purchasedCoords: [],
+            tileCategories: {},
+            savedFieldDecisions: {},
+            encounteredDilemmas: [],
+            buildingSlots: [existingSlot],
+        }
+        const result = migratePersistedGameState({
+            persisted: raw,
+            version: 13,
+            farmCoord: { col: 2, row: 2 },
+            makePlots,
+        })
+        expect(result.buildingSlots).toHaveLength(1)
+        expect(result.buildingSlots[0].id).toBe('s2_1_0')
+    })
+})
+
 describe('v13 migration logic', () => {
     it('backfills stepWaitDuration: null when missing', () => {
         const raw = {

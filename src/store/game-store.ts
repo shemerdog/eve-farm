@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
+import { createBuildingActions } from '@/store/game/building-actions'
 import { createDilemmaActions } from '@/store/game/dilemma-actions'
 import { createEconomyActions } from '@/store/game/economy-actions'
 import { migratePersistedGameState } from '@/store/game/migrations'
@@ -15,10 +16,11 @@ export const useGameStore = create<GameStore>()(
             ...createPlotActions(set),
             ...createDilemmaActions(set, get),
             ...createEconomyActions(set),
+            ...createBuildingActions(set),
         }),
         {
             name: 'eve-game-state',
-            version: 13,
+            version: 14,
             // Only persist the data fields, not the action functions
             partialize: (state): PersistedGameState => ({
                 plots: state.plots,
@@ -33,6 +35,7 @@ export const useGameStore = create<GameStore>()(
                 tileCategories: state.tileCategories,
                 savedFieldDecisions: state.savedFieldDecisions,
                 encounteredDilemmas: state.encounteredDilemmas,
+                buildingSlots: state.buildingSlots,
             }),
             migrate: (persisted, version) =>
                 migratePersistedGameState({

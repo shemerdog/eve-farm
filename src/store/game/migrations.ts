@@ -156,5 +156,10 @@ export const migratePersistedGameState = ({
         }))
     }
 
+    if (version < 14) {
+        // Backfill buildingSlots for saves that predate the structures feature.
+        state.buildingSlots = Array.isArray(state.buildingSlots) ? state.buildingSlots : []
+    }
+
     return state as GameState
 }

@@ -56,11 +56,12 @@ src/
   store/
     game-store.ts         — root Zustand composer (wires initialState + modular action domains + persist)
     game/
-      state.ts            — initialState + makePlots helpers
+      state.ts            — initialState + makePlots + makeStructureSlots helpers
       plot-actions.ts     — plot lifecycle actions (plow/plant/fertilize/tend/thin/tickGrowth)
       dilemma-actions.ts  — harvest/gather routing, auto-resolve, resolveDilemma, toggleDecisionEnabled, resetPlot
       economy-actions.ts  — buyTile + resetGame
-      migrations.ts       — persist migration logic (v2→v12), typed unknown narrowing
+      building-actions.ts — constructBuilding + demolishBuilding store actions
+      migrations.ts       — persist migration logic (v2→v14), typed unknown narrowing
       store-types.ts      — GameActions/GameStore and SetState/GetState helper types
     world-store.ts        — camera state only (NOT persisted, re-centers on mount)
   test-utils/
@@ -71,6 +72,8 @@ src/
   components/
     MetersBar             — devotion/morality/faithfulness bars (always visible)
     FarmGrid              — 2×2 grid of PlotTile components
+    BuildingGrid          — 2×2 grid of BuildingSlotTile components; reads buildingSlots from store; BuildingGrid.test.tsx
+    BuildingSlotTile      — per-slot tile showing building type or empty prompt; BuildingSlotTile.test.tsx
     PlotTile              — per-plot visual + plant/harvest interaction + progress ring
     PlotTile.test.tsx     — field-crop component tests
     PlotTile.orchard.test.tsx — orchard cycle + nextActionAt component tests
@@ -79,13 +82,14 @@ src/
     DilemmaModal          — full-screen overlay, appears on harvest/gather triggers
     WorldMap/
       WorldMap.tsx        — pannable + zoomable viewport, mounts TILES grid, wires use-pan
-      MapTileView.tsx     — reads store, computes props, renders FarmTileContent / VineyardTileContent / BarleyFieldTileContent / LockedTileContent
+      MapTileView.tsx     — reads store, routes purchased tiles to FarmTileContent / VineyardTileContent / BarleyFieldTileContent / BuildingTileContent / LockedTileContent
       FarmTileContent.tsx — renders FarmGrid inside the wheat farm map tile
       VineyardTileContent.tsx      — renders FarmGrid for orchard/grape tiles; VineyardTileContent.test.tsx
       BarleyFieldTileContent.tsx   — renders FarmGrid for barley field tiles; BarleyFieldTileContent.test.tsx
+      BuildingTileContent.tsx      — renders BuildingGrid for structure tiles; BuildingTileContent.test.tsx
       ZoomControls.tsx             — zoom in/out buttons; ZoomControls.test.tsx
-      LockedTileContent.tsx        — price badge, 2-step buy flow (category → crop), fog-dissolve animation
-      LockedTileContent.test.tsx   — component tests: buy button enabled/disabled/calls onBuy
+      LockedTileContent.tsx        — price badge, 3-step buy flow (root: Field/Orchard/Structure → sub-step for field/orchard), fog-dissolve animation
+      LockedTileContent.test.tsx   — component tests: 3 root buttons, buy routing, back navigation
   App.tsx                 — root layout: MetersBar / WorldMap / WheatCounter / DilemmaModal / ResetButton
   index.css               — global reset + CSS custom properties (warm earth palette)
   setupTests.ts           — imports @testing-library/jest-dom for Vitest
@@ -99,7 +103,8 @@ src/store/
   game-store.orchard.cycle.test.ts — orchard full-cycle progression and hasBeenPlanted/reset behavior
   game-store.orchard.saved-decisions.test.ts — saved SHIKCHAH auto-resolve behavior on gather
   game-store.orchard.dilemma-gating.test.ts — ORLAH/NETA_REVAI cycle gating + skip-gather resolution
-  game-store.migrations.test.ts — migration behavior checks (v6/v12/v13)
+  game-store.migrations.test.ts — migration behavior checks (v6/v12/v13/v14)
+  game-store.buildings.test.ts  — structure tile purchase, buildingSlots initialization
 ```
 
 ## Core Loop
@@ -140,7 +145,8 @@ Save keys are `"<dilemmaId>:<cropType>"`. When a saved decision is active, the d
 - **Pure game logic**: `tickPlot(plot, now)` lives in `src/game/game-tick.ts` with no React/Zustand dependency — fully unit-testable
 - **harvestCount: number** on `Plot` — tracks how many times an orchard plot has been harvested; gates ORLAH (cycles 1–3), NETA_REVAI (cycle 4), no dilemma (cycle 5+). Incremented inside `harvest()`, not in `tickPlot`.
 - **activePlotId: string | null** on `GameState` — set when a dilemma fires from `harvest()`; read by `resolveDilemma()` to reset the correct plot when the player chooses "Leave the fruit" (ORLAH/NETA_REVAI choice 0); cleared after resolution.
-- **Persistence**: Zustand `persist` middleware saves all game state fields to localStorage; only data is persisted, not action functions. **Persist version: 13**; migrations v2–v13 handle all legacy saves (id format, field renames, backfills, `encounteredDilemmas`, `enabled` on saved decisions, `stepWaitDuration`).
+- **Structure tiles**: Purchasing a tile with `category === 'structure'` creates 4 `BuildingSlot` entries via `makeStructureSlots(coord)` stored in `buildingSlots: BuildingSlot[]`. Each slot has `buildingType: BuildingType | null` (null = empty). `MapTileView` routes structure tiles to `BuildingTileContent` → `BuildingGrid` → `BuildingSlotTile`. `LockedTileContent` root step has a third button (🏗️ מבנים) that calls `onBuy('structure', 'structure')` directly with no sub-step.
+- **Persistence**: Zustand `persist` middleware saves all game state fields to localStorage; only data is persisted, not action functions. **Persist version: 14**; migrations v2–v14 handle all legacy saves (id format, field renames, backfills, `encounteredDilemmas`, `enabled` on saved decisions, `stepWaitDuration`, `buildingSlots`).
 - **Timer**: `use-game-loop` hook starts/stops `setInterval` based on whether any plot is `growing`; uses wall-clock timestamps so tab backgrounding doesn't break growth
 
 ## Key Design Decisions

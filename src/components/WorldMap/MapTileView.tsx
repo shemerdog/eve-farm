@@ -6,6 +6,7 @@ import { calcTilePrice } from '@/game/constants'
 import { FarmTileContent } from './FarmTileContent'
 import { VineyardTileContent } from './VineyardTileContent'
 import { BarleyFieldTileContent } from './BarleyFieldTileContent'
+import { BuildingTileContent } from './BuildingTileContent'
 import { LockedTileContent } from './LockedTileContent'
 import styles from './MapTileView.module.css'
 
@@ -39,7 +40,9 @@ export const MapTileView = ({ tile }: Props): React.JSX.Element => {
         const firstCropType = tilePlots[0]?.cropType ?? 'wheat'
         return (
             <div className={`${styles.tile} ${styles.farm}`}>
-                {category === 'orchard' ? (
+                {category === 'structure' ? (
+                    <BuildingTileContent tileCoord={tile.coord} />
+                ) : category === 'orchard' ? (
                     <VineyardTileContent tileCoord={tile.coord} />
                 ) : firstCropType === 'barley' ? (
                     <BarleyFieldTileContent tileCoord={tile.coord} />

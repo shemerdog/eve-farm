@@ -2,9 +2,11 @@ import type { CropType, TileCategory, TileCoord, TileSubcategory } from '@/types
 import { calcTilePrice } from '@/game/constants'
 import { FARM_COORD, isAdjacentToUnlocked, isPurchased } from '@/game/world-map'
 import type { GameActions, SetState } from './store-types'
-import { initialState, makePlots } from './state'
+import { initialState, makePlots, makeStructureSlots } from './state'
 
-export const createEconomyActions = (set: SetState): Pick<GameActions, 'buyTile' | 'resetGame'> => ({
+export const createEconomyActions = (
+    set: SetState,
+): Pick<GameActions, 'buyTile' | 'resetGame'> => ({
     buyTile: (coord: TileCoord, category: TileCategory, subcategory: TileSubcategory): void => {
         set((s) => {
             const price = calcTilePrice(s.purchasedCoords.length)
@@ -14,13 +16,22 @@ export const createEconomyActions = (set: SetState): Pick<GameActions, 'buyTile'
                 isPurchased(coord, s.purchasedCoords)
             )
                 return s
-            const cropType: CropType = subcategory
             const key = `${coord.col}_${coord.row}`
-            return {
+            const base = {
                 wheat: Math.max(0, s.wheat - price),
                 purchasedCoords: [...s.purchasedCoords, coord],
-                plots: [...s.plots, ...makePlots(coord, cropType)],
                 tileCategories: { ...s.tileCategories, [key]: category },
+            }
+            if (category === 'structure') {
+                return {
+                    ...base,
+                    buildingSlots: [...s.buildingSlots, ...makeStructureSlots(coord)],
+                }
+            }
+            const cropType = subcategory as CropType
+            return {
+                ...base,
+                plots: [...s.plots, ...makePlots(coord, cropType)],
             }
         })
     },

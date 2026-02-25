@@ -1,5 +1,19 @@
 # Changelog
 
+## 2026-02-25 — Farm Structures / Buildings (persist v14)
+
+Players can now purchase structure tiles (🏗️ מבנים) and build one of four structures in each of the tile's four slots: Farmhouse, Barn, Sheep Fold, or Silo.
+
+- **`BuildingGrid`** — 2×2 grid component that reads `buildingSlots` from store and renders `BuildingSlotTile` for the given `tileCoord` (mirrors `FarmGrid`).
+- **`BuildingTileContent`** — thin wrapper around `BuildingGrid`, analogous to `FarmTileContent`.
+- **`MapTileView`** updated: purchased tiles with `category === 'structure'` now render `BuildingTileContent`.
+- **`LockedTileContent`** updated: root buy step now has a third button (🏗️ מבנים) that purchases a structure tile directly (no sub-step needed).
+- **Pre-existing TS fix**: backfilled missing `stepWaitDuration: null` on `Plot` literals in `PlotTile.test.tsx` and `game-store.orchard.dilemma-gating.test.ts`.
+
+Files: `src/components/BuildingGrid.tsx`, `src/components/BuildingGrid.module.css`, `src/components/WorldMap/BuildingTileContent.tsx`, `src/components/WorldMap/MapTileView.tsx`, `src/components/WorldMap/LockedTileContent.tsx`, `src/components/PlotTile.test.tsx`, `src/store/game-store.orchard.dilemma-gating.test.ts`
+
+Tests: 344 Vitest (+28 net: 4 BuildingGrid, 1 BuildingTileContent, 2 LockedTileContent structure routing, plus prior session's 10 store + 10 BuildingSlotTile tests).
+
 ## 2026-02-25 — Orchard Step-Wait Progress Ring (persist v13)
 
 Orchard plots in the `fertilized` and `tended` states now show a teal progress ring while their step-wait timer counts down (analogous to the gold growth ring during `growing`).

@@ -37,6 +37,7 @@ const emptyPlot: Plot = {
     cropType: 'wheat',
     hasBeenPlanted: false,
     nextActionAt: null,
+    stepWaitDuration: null,
     harvestCount: 0,
 }
 const plowedPlot: Plot = {
@@ -48,6 +49,7 @@ const plowedPlot: Plot = {
     cropType: 'wheat',
     hasBeenPlanted: false,
     nextActionAt: null,
+    stepWaitDuration: null,
     harvestCount: 0,
 }
 const growingPlot: Plot = {
@@ -59,6 +61,7 @@ const growingPlot: Plot = {
     cropType: 'wheat',
     hasBeenPlanted: false,
     nextActionAt: null,
+    stepWaitDuration: null,
     harvestCount: 0,
 }
 const readyPlot: Plot = {
@@ -70,6 +73,7 @@ const readyPlot: Plot = {
     cropType: 'wheat',
     hasBeenPlanted: false,
     nextActionAt: null,
+    stepWaitDuration: null,
     harvestCount: 0,
 }
 const harvestedPlot: Plot = {
@@ -81,6 +85,7 @@ const harvestedPlot: Plot = {
     cropType: 'wheat',
     hasBeenPlanted: false,
     nextActionAt: null,
+    stepWaitDuration: null,
     harvestCount: 0,
 }
 const gatheredPlot: Plot = {
@@ -92,6 +97,7 @@ const gatheredPlot: Plot = {
     cropType: 'wheat',
     hasBeenPlanted: false,
     nextActionAt: null,
+    stepWaitDuration: null,
     harvestCount: 0,
 }
 
@@ -250,6 +256,7 @@ describe('PlotTile — barley crop type', () => {
         cropType: 'barley',
         hasBeenPlanted: false,
         nextActionAt: null,
+        stepWaitDuration: null,
         harvestCount: 0,
     }
     const barleyGatheredPlot: Plot = {
@@ -261,6 +268,7 @@ describe('PlotTile — barley crop type', () => {
         cropType: 'barley',
         hasBeenPlanted: false,
         nextActionAt: null,
+        stepWaitDuration: null,
         harvestCount: 0,
     }
 
