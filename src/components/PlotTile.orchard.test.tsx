@@ -50,6 +50,7 @@ describe('PlotTile — orchard first cycle (grapes, hasBeenPlanted=false)', () =
         cropType: 'grapes',
         hasBeenPlanted: false,
         nextActionAt: null,
+        stepWaitDuration: null,
         harvestCount: 0,
     }
 
@@ -75,6 +76,7 @@ describe('PlotTile — orchard first cycle (grapes, hasBeenPlanted=false)', () =
         cropType: 'grapes',
         hasBeenPlanted: true,
         nextActionAt: null,
+        stepWaitDuration: null,
         harvestCount: 0,
     }
 
@@ -99,6 +101,7 @@ describe('PlotTile — orchard first cycle (grapes, hasBeenPlanted=false)', () =
         cropType: 'grapes',
         hasBeenPlanted: true,
         nextActionAt: null,
+        stepWaitDuration: null,
         harvestCount: 0,
     }
 
@@ -123,6 +126,7 @@ describe('PlotTile — orchard first cycle (grapes, hasBeenPlanted=false)', () =
         cropType: 'grapes',
         hasBeenPlanted: true,
         nextActionAt: null,
+        stepWaitDuration: null,
         harvestCount: 0,
     }
 
@@ -147,6 +151,7 @@ describe('PlotTile — orchard first cycle (grapes, hasBeenPlanted=false)', () =
         cropType: 'grapes',
         hasBeenPlanted: true,
         nextActionAt: null,
+        stepWaitDuration: null,
         harvestCount: 0,
     }
 
@@ -175,6 +180,7 @@ describe('PlotTile — orchard subsequent cycle (grapes, hasBeenPlanted=true)', 
         cropType: 'grapes',
         hasBeenPlanted: true,
         nextActionAt: null,
+        stepWaitDuration: null,
         harvestCount: 0,
     }
 
@@ -206,6 +212,7 @@ describe('PlotTile — data-state for new orchard states', () => {
             cropType: 'grapes',
             hasBeenPlanted: true,
             nextActionAt: null,
+            stepWaitDuration: null,
             harvestCount: 0,
         }
         const { container } = render(<PlotTile plot={plot} />)
@@ -222,6 +229,7 @@ describe('PlotTile — data-state for new orchard states', () => {
             cropType: 'grapes',
             hasBeenPlanted: true,
             nextActionAt: null,
+            stepWaitDuration: null,
             harvestCount: 0,
         }
         const { container } = render(<PlotTile plot={plot} />)
@@ -238,6 +246,7 @@ describe('PlotTile — data-state for new orchard states', () => {
             cropType: 'grapes',
             hasBeenPlanted: true,
             nextActionAt: null,
+            stepWaitDuration: null,
             harvestCount: 0,
         }
         const { container } = render(<PlotTile plot={plot} />)
@@ -260,6 +269,7 @@ describe('PlotTile — nextActionAt countdown / disabled buttons', () => {
         cropType: 'grapes',
         hasBeenPlanted: true,
         nextActionAt: futureTime,
+        stepWaitDuration: 10_000,
         harvestCount: 0,
     }
 
@@ -272,6 +282,7 @@ describe('PlotTile — nextActionAt countdown / disabled buttons', () => {
         cropType: 'grapes',
         hasBeenPlanted: true,
         nextActionAt: futureTime,
+        stepWaitDuration: 10_000,
         harvestCount: 0,
     }
 
@@ -312,5 +323,78 @@ describe('PlotTile — nextActionAt countdown / disabled buttons', () => {
         const tile = screen.getByRole('button', { name: /דַּלֵּל/ }).closest('[data-state]')!
         await userEvent.click(tile)
         expect(mockThinShoots).not.toHaveBeenCalled()
+    })
+})
+
+describe('PlotTile — ProgressRing step-wait visibility', () => {
+    const grapeCoord = { col: 3, row: 2 }
+    const futureTime = Date.now() + 8000
+
+    test('renders progress ring (svg) on locked fertilized plot', (): void => {
+        const plot: Plot = {
+            id: '3_2_0',
+            state: 'fertilized',
+            plantedAt: null,
+            growthDuration: 30000,
+            tileCoord: grapeCoord,
+            cropType: 'grapes',
+            hasBeenPlanted: true,
+            nextActionAt: futureTime,
+            stepWaitDuration: 10_000,
+            harvestCount: 0,
+        }
+        const { container } = render(<PlotTile plot={plot} />)
+        expect(container.querySelector('svg')).toBeInTheDocument()
+    })
+
+    test('renders progress ring (svg) on locked tended plot', (): void => {
+        const plot: Plot = {
+            id: '3_2_0',
+            state: 'tended',
+            plantedAt: null,
+            growthDuration: 30000,
+            tileCoord: grapeCoord,
+            cropType: 'grapes',
+            hasBeenPlanted: true,
+            nextActionAt: futureTime,
+            stepWaitDuration: 10_000,
+            harvestCount: 0,
+        }
+        const { container } = render(<PlotTile plot={plot} />)
+        expect(container.querySelector('svg')).toBeInTheDocument()
+    })
+
+    test('does not render progress ring on unlocked fertilized plot', (): void => {
+        const plot: Plot = {
+            id: '3_2_0',
+            state: 'fertilized',
+            plantedAt: null,
+            growthDuration: 30000,
+            tileCoord: grapeCoord,
+            cropType: 'grapes',
+            hasBeenPlanted: true,
+            nextActionAt: null,
+            stepWaitDuration: null,
+            harvestCount: 0,
+        }
+        const { container } = render(<PlotTile plot={plot} />)
+        expect(container.querySelector('svg')).not.toBeInTheDocument()
+    })
+
+    test('does not render progress ring on unlocked tended plot', (): void => {
+        const plot: Plot = {
+            id: '3_2_0',
+            state: 'tended',
+            plantedAt: null,
+            growthDuration: 30000,
+            tileCoord: grapeCoord,
+            cropType: 'grapes',
+            hasBeenPlanted: true,
+            nextActionAt: null,
+            stepWaitDuration: null,
+            harvestCount: 0,
+        }
+        const { container } = render(<PlotTile plot={plot} />)
+        expect(container.querySelector('svg')).not.toBeInTheDocument()
     })
 })

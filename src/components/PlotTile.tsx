@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import type { Plot } from '@/types'
 import { useGameStore } from '@/store/game-store'
-import { growthProgress } from '@/game/game-tick'
+import { growthProgress, stepWaitProgress } from '@/game/game-tick'
 import { HE } from '@/game/strings.he'
 import styles from './PlotTile.module.css'
 
@@ -13,15 +13,20 @@ const RING_CIRCUMFERENCE = 2 * Math.PI * RING_R
 const ProgressRing = ({ plot }: { plot: Plot }): React.JSX.Element => {
     const [progress, setProgress] = useState(0)
 
+    const isStepWait =
+        (plot.state === 'fertilized' || plot.state === 'tended') && plot.nextActionAt !== null
+
     useEffect((): void | (() => void) => {
-        if (plot.state !== 'growing') return
-        const update = (): void => setProgress(growthProgress(plot))
+        if (plot.state !== 'growing' && !isStepWait) return
+        const update = (): void =>
+            setProgress(isStepWait ? stepWaitProgress(plot) : growthProgress(plot))
         update()
         const id = setInterval(update, 200)
         return (): void => clearInterval(id)
-    }, [plot])
+    }, [plot, isStepWait])
 
     const dashOffset = RING_CIRCUMFERENCE * (1 - progress)
+    const strokeColor = isStepWait ? '#7cb9a0' : '#d4a017'
 
     return (
         <svg className={styles.progressRing} width={36} height={36} viewBox="0 0 36 36">
@@ -38,7 +43,7 @@ const ProgressRing = ({ plot }: { plot: Plot }): React.JSX.Element => {
                 cy={18}
                 r={RING_R}
                 fill="none"
-                stroke="#d4a017"
+                stroke={strokeColor}
                 strokeWidth={3}
                 strokeDasharray={RING_CIRCUMFERENCE}
                 strokeDashoffset={dashOffset}
@@ -205,7 +210,9 @@ export const PlotTile = ({ plot }: Props): React.JSX.Element => {
                 </button>
             )}
 
-            {plot.state === 'growing' && <ProgressRing plot={plot} />}
+            {(plot.state === 'growing' ||
+                ((plot.state === 'fertilized' || plot.state === 'tended') &&
+                    plot.nextActionAt !== null)) && <ProgressRing plot={plot} />}
 
             {showFloat && (
                 <span className={styles.floatUp}>
