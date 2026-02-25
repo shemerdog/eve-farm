@@ -1,5 +1,18 @@
 # Changelog
 
+## 2026-02-25 — Orchard Step-Wait Progress Ring (persist v13)
+
+Orchard plots in the `fertilized` and `tended` states now show a teal progress ring while their step-wait timer counts down (analogous to the gold growth ring during `growing`).
+
+- **`Plot.stepWaitDuration: number | null`** — stores the duration of the current step wait, set alongside `nextActionAt` by `fertilizePlot` / `tendPlot`, cleared in `tickPlot`.
+- **`stepWaitProgress(plot, now)`** — pure function in `game-tick.ts` that computes `[0, 1]` progress for the step-wait timer.
+- **`ProgressRing`** updated to handle step-wait states (`fertilized`/`tended` with `nextActionAt !== null`) in addition to `growing`; teal `#7cb9a0` color for step-wait vs gold `#d4a017` for growth.
+- **v13 migration** backfills `stepWaitDuration: null` on all existing plots.
+
+Files: `src/types/index.ts`, `src/game/game-tick.ts`, `src/store/game/plot-actions.ts`, `src/store/game/state.ts`, `src/store/game/migrations.ts`, `src/store/game-store.ts`, `src/components/PlotTile.tsx`
+
+Tests: 316 Vitest (+12: 6 `stepWaitProgress` unit, 2 v13 migration, 4 ProgressRing visibility).
+
 ## 2026-02-24 — Kebab-Case File Rename (Refactor Phase 5)
 
 Renamed all non-component source, hook, store, and test files from camelCase to kebab-case.

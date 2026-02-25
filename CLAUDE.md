@@ -47,7 +47,7 @@ src/
   types/index.ts          — all shared TypeScript types
   game/
     constants.ts          — PLOT_COUNT, growth durations, calcTilePrice, applyWheatCost, clampMeter, FERTILIZE_WAIT_DURATION, TEND_WAIT_DURATION
-    game-tick.ts          — pure tickPlot(plot, now) + growthProgress(plot, now)
+    game-tick.ts          — pure tickPlot(plot, now) + growthProgress(plot, now) + stepWaitProgress(plot, now)
     game-tick.test.ts     — unit tests for pure game logic
     world-map.ts          — tile grid, camera math, coordsEqual, isPurchased, isAdjacentToUnlocked
     world-map.test.ts     — unit tests for world map helpers
@@ -99,7 +99,7 @@ src/store/
   game-store.orchard.cycle.test.ts — orchard full-cycle progression and hasBeenPlanted/reset behavior
   game-store.orchard.saved-decisions.test.ts — saved SHIKCHAH auto-resolve behavior on gather
   game-store.orchard.dilemma-gating.test.ts — ORLAH/NETA_REVAI cycle gating + skip-gather resolution
-  game-store.migrations.test.ts — migration behavior checks (v6/v12)
+  game-store.migrations.test.ts — migration behavior checks (v6/v12/v13)
 ```
 
 ## Core Loop
@@ -134,11 +134,13 @@ Save keys are `"<dilemmaId>:<cropType>"`. When a saved decision is active, the d
 - **PlotState** has 9 states — field crops use `empty → plowed → growing → ready → harvested → gathered`; orchards add `planted → fertilized → tended` before `growing`. On subsequent orchard cycles `hasBeenPlanted = true` skips the `planted` step.
 - **Dilemmas** are triggered by specific actions per crop: `harvest` wheat/barley → PEAH; `harvest` grapes (orchard tile) → ORLAH (cycles 1–3) / NETA_REVAI (cycle 4) / none (cycle 5+); `gatherSheafs` wheat/barley → SHIKCHAH. `activeDilemma: Dilemma | null` + `activeDilemmaContext: CropType | null` + `activePlotId: string | null` drive the modal. PEAH and SHIKCHAH can be saved for 5 cycles; keys are crop-qualified (`"peah:wheat"`, `"shikchah:barley"`, etc.).
 - **nextActionAt** on `Plot` — `null` = action available; a timestamp = locked until `tickPlot` clears it. Used for orchard step timers (`FERTILIZE_WAIT_DURATION` / `TEND_WAIT_DURATION`, 10 s each).
+- **stepWaitDuration: number | null** on `Plot` — stores the total duration (ms) of the current step-wait timer; set alongside `nextActionAt` by `fertilizePlot`/`tendPlot`, cleared by `tickPlot` when `nextActionAt` clears. Used by `stepWaitProgress(plot, now)` to compute ring fill.
+- **ProgressRing** — renders gold ring (`#d4a017`) for `growing` state; teal ring (`#7cb9a0`) for `fertilized`/`tended` states when `nextActionAt !== null`. Controlled by a single render condition in `PlotTile`.
 - **Wheat rounding**: `applyWheatCost = (current, cost) => current - Math.floor(cost)` — always floors, generous to player, defined in `constants.ts`
 - **Pure game logic**: `tickPlot(plot, now)` lives in `src/game/game-tick.ts` with no React/Zustand dependency — fully unit-testable
 - **harvestCount: number** on `Plot` — tracks how many times an orchard plot has been harvested; gates ORLAH (cycles 1–3), NETA_REVAI (cycle 4), no dilemma (cycle 5+). Incremented inside `harvest()`, not in `tickPlot`.
 - **activePlotId: string | null** on `GameState` — set when a dilemma fires from `harvest()`; read by `resolveDilemma()` to reset the correct plot when the player chooses "Leave the fruit" (ORLAH/NETA_REVAI choice 0); cleared after resolution.
-- **Persistence**: Zustand `persist` middleware saves all game state fields to localStorage; only data is persisted, not action functions. **Persist version: 12**; migrations v2–v12 handle all legacy saves (id format, field renames, backfills, `encounteredDilemmas`, `enabled` on saved decisions).
+- **Persistence**: Zustand `persist` middleware saves all game state fields to localStorage; only data is persisted, not action functions. **Persist version: 13**; migrations v2–v13 handle all legacy saves (id format, field renames, backfills, `encounteredDilemmas`, `enabled` on saved decisions, `stepWaitDuration`).
 - **Timer**: `use-game-loop` hook starts/stops `setInterval` based on whether any plot is `growing`; uses wall-clock timestamps so tab backgrounding doesn't break growth
 
 ## Key Design Decisions
