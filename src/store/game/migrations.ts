@@ -148,5 +148,13 @@ export const migratePersistedGameState = ({
         state.savedFieldDecisions = savedFieldDecisions
     }
 
+    if (version < 13) {
+        // Backfill stepWaitDuration on all plots (null = no active step wait).
+        mapPlots(state, (plot) => ({
+            ...plot,
+            stepWaitDuration: plot.stepWaitDuration ?? null,
+        }))
+    }
+
     return state as GameState
 }

@@ -1,6 +1,8 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { useGameStore } from './game-store'
 import { resetGameStore } from '@/test-utils/game-store'
+import { migratePersistedGameState } from './game/migrations'
+import { makePlots } from './game/state'
 
 beforeEach(() => {
     resetGameStore()
@@ -105,5 +107,81 @@ describe('v12 migration logic', () => {
             state.encounteredDilemmas = state.encounteredDilemmas ?? []
         }
         expect(state.encounteredDilemmas).toEqual(['peah:wheat'])
+    })
+})
+
+describe('v13 migration logic', () => {
+    it('backfills stepWaitDuration: null when missing', () => {
+        const raw = {
+            plots: [
+                {
+                    id: '2_2_0',
+                    state: 'fertilized',
+                    plantedAt: null,
+                    growthDuration: 30_000,
+                    tileCoord: { col: 2, row: 2 },
+                    cropType: 'grapes',
+                    hasBeenPlanted: true,
+                    nextActionAt: null,
+                    harvestCount: 0,
+                    // stepWaitDuration intentionally absent (old save)
+                },
+            ],
+            wheat: 0,
+            grapes: 0,
+            barley: 0,
+            meters: { devotion: 50, morality: 50, faithfulness: 50 },
+            activeDilemma: null,
+            activeDilemmaContext: null,
+            activePlotId: null,
+            purchasedCoords: [],
+            tileCategories: {},
+            savedFieldDecisions: {},
+            encounteredDilemmas: [],
+        }
+        const result = migratePersistedGameState({
+            persisted: raw,
+            version: 12,
+            farmCoord: { col: 2, row: 2 },
+            makePlots,
+        })
+        expect(result.plots[0].stepWaitDuration).toBeNull()
+    })
+
+    it('preserves existing stepWaitDuration value when present', () => {
+        const raw = {
+            plots: [
+                {
+                    id: '2_2_0',
+                    state: 'fertilized',
+                    plantedAt: null,
+                    growthDuration: 30_000,
+                    tileCoord: { col: 2, row: 2 },
+                    cropType: 'grapes',
+                    hasBeenPlanted: true,
+                    nextActionAt: Date.now() + 5_000,
+                    harvestCount: 0,
+                    stepWaitDuration: 10_000,
+                },
+            ],
+            wheat: 0,
+            grapes: 0,
+            barley: 0,
+            meters: { devotion: 50, morality: 50, faithfulness: 50 },
+            activeDilemma: null,
+            activeDilemmaContext: null,
+            activePlotId: null,
+            purchasedCoords: [],
+            tileCategories: {},
+            savedFieldDecisions: {},
+            encounteredDilemmas: [],
+        }
+        const result = migratePersistedGameState({
+            persisted: raw,
+            version: 12,
+            farmCoord: { col: 2, row: 2 },
+            makePlots,
+        })
+        expect(result.plots[0].stepWaitDuration).toBe(10_000)
     })
 })
