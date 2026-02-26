@@ -161,5 +161,10 @@ export const migratePersistedGameState = ({
         state.buildingSlots = Array.isArray(state.buildingSlots) ? state.buildingSlots : []
     }
 
+    if (version < 15) {
+        // Backfill shekels for saves that predate the monetary system.
+        state.shekels = typeof state.shekels === 'number' ? state.shekels : 5_000
+    }
+
     return state as GameState
 }

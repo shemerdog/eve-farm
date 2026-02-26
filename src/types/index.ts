@@ -69,6 +69,7 @@ export type GameState = {
     wheat: number
     grapes: number
     barley: number
+    shekels: number
     meters: MeterValues
     activeDilemma: Dilemma | null
     // Which crop type triggered the current dilemma (set alongside activeDilemma)

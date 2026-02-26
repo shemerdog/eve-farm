@@ -1,4 +1,4 @@
-import type { MeterValues } from '@/types'
+import type { CropType, MeterValues } from '@/types'
 
 export const PLOT_COUNT = 4
 export const BUILDING_SLOT_COUNT = 4
@@ -35,6 +35,12 @@ export const clampMeter = (value: number): number => Math.max(0, Math.min(100, v
 export const FERTILIZE_WAIT_DURATION = 10_000
 // How long (ms) the Thin Shoots button is locked after tending
 export const TEND_WAIT_DURATION = 10_000
+
+// ── Monetary system ───────────────────────────────────────────────────────────
+
+export const INITIAL_SHEKELS = 5_000
+export const SELL_BULK_SIZE = 10
+export const SELL_PRICE: Record<CropType, number> = { wheat: 5, barley: 7, grapes: 10 }
 
 // ── Tile purchasing ───────────────────────────────────────────────────────────
 

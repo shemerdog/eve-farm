@@ -10,6 +10,7 @@ beforeEach(() => {
     useGameStore.setState({
         plots: initial.plots,
         wheat: initial.wheat,
+        shekels: initial.shekels,
         meters: initial.meters,
         activeDilemma: initial.activeDilemma,
         purchasedCoords: initial.purchasedCoords,
@@ -73,8 +74,8 @@ describe('gameStore — buyTile creates plots', () => {
         }
     })
 
-    it('does not create plots if purchase fails (not enough wheat)', () => {
-        useGameStore.setState({ wheat: 0 })
+    it('does not create plots if purchase fails (not enough shekels)', () => {
+        useGameStore.setState({ shekels: 0 })
 
         useGameStore.getState().buyTile(adjacentCoord, 'field', 'wheat')
 

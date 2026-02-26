@@ -46,7 +46,7 @@ Plan document lifecycle:
 src/
   types/index.ts          — all shared TypeScript types
   game/
-    constants.ts          — PLOT_COUNT, growth durations, calcTilePrice, applyWheatCost, clampMeter, FERTILIZE_WAIT_DURATION, TEND_WAIT_DURATION
+    constants.ts          — PLOT_COUNT, growth durations, calcTilePrice, applyWheatCost, clampMeter, FERTILIZE_WAIT_DURATION, TEND_WAIT_DURATION, INITIAL_SHEKELS, SELL_BULK_SIZE, SELL_PRICE
     game-tick.ts          — pure tickPlot(plot, now) + growthProgress(plot, now) + stepWaitProgress(plot, now)
     game-tick.test.ts     — unit tests for pure game logic
     world-map.ts          — tile grid, camera math, coordsEqual, isPurchased, isAdjacentToUnlocked
@@ -59,9 +59,9 @@ src/
       state.ts            — initialState + makePlots + makeStructureSlots helpers
       plot-actions.ts     — plot lifecycle actions (plow/plant/fertilize/tend/thin/tickGrowth)
       dilemma-actions.ts  — harvest/gather routing, auto-resolve, resolveDilemma, toggleDecisionEnabled, resetPlot
-      economy-actions.ts  — buyTile + resetGame
+      economy-actions.ts  — buyTile (shekels) + sellCrops + resetGame
       building-actions.ts — constructBuilding + demolishBuilding store actions
-      migrations.ts       — persist migration logic (v2→v14), typed unknown narrowing
+      migrations.ts       — persist migration logic (v2→v15), typed unknown narrowing
       store-types.ts      — GameActions/GameStore and SetState/GetState helper types
     world-store.ts        — camera state only (NOT persisted, re-centers on mount)
   test-utils/
@@ -77,7 +77,7 @@ src/
     PlotTile              — per-plot visual + plant/harvest interaction + progress ring
     PlotTile.test.tsx     — field-crop component tests
     PlotTile.orchard.test.tsx — orchard cycle + nextActionAt component tests
-    WheatCounter          — wheat/barley/grapes totals in bottom HUD
+    WheatCounter          — shekels + wheat/barley/grapes totals with sell buttons in bottom HUD
     ResetButton           — resets all game progress; ResetButton.test.tsx
     DilemmaModal          — full-screen overlay, appears on harvest/gather triggers
     WorldMap/
@@ -103,7 +103,7 @@ src/store/
   game-store.orchard.cycle.test.ts — orchard full-cycle progression and hasBeenPlanted/reset behavior
   game-store.orchard.saved-decisions.test.ts — saved SHIKCHAH auto-resolve behavior on gather
   game-store.orchard.dilemma-gating.test.ts — ORLAH/NETA_REVAI cycle gating + skip-gather resolution
-  game-store.migrations.test.ts — migration behavior checks (v6/v12/v13/v14)
+  game-store.migrations.test.ts — migration behavior checks (v6/v12/v13/v14/v15)
   game-store.buildings.test.ts  — structure tile purchase, buildingSlots initialization
 ```
 
@@ -113,7 +113,7 @@ src/store/
 
 **Orchard (grapes):** First cycle: Plant → Fertilize → (10 s wait) → Tend → (10 s wait) → Thin Shoots → `growing` → Harvest (ORLAH or NETA_REVAI dilemma, cycle-gated) → Gather → `empty`. Subsequent cycles skip the Plant step (`hasBeenPlanted = true`). Choosing "Leave the fruit" (choice 0 of ORLAH/NETA_REVAI) skips the gather step and resets the plot to `empty` with no yield.
 
-**Resources:** wheat (field harvest), barley (field harvest), grapes (orchard harvest) — each tracked independently in `GameState`.
+**Resources:** wheat (field harvest), barley (field harvest), grapes (orchard harvest) — each tracked independently in `GameState`. Crops can be sold in bulk of 10 for shekels (₪5/wheat, ₪7/barley, ₪10/grapes). **Shekels (₪)** are the monetary currency used to purchase new tiles; players start with ₪5,000.
 
 **Dilemma choices** apply wheat cost (floored) and update meters; PEAH and SHIKCHAH can be saved for 5 future cycles.
 
@@ -146,7 +146,8 @@ Save keys are `"<dilemmaId>:<cropType>"`. When a saved decision is active, the d
 - **harvestCount: number** on `Plot` — tracks how many times an orchard plot has been harvested; gates ORLAH (cycles 1–3), NETA_REVAI (cycle 4), no dilemma (cycle 5+). Incremented inside `harvest()`, not in `tickPlot`.
 - **activePlotId: string | null** on `GameState` — set when a dilemma fires from `harvest()`; read by `resolveDilemma()` to reset the correct plot when the player chooses "Leave the fruit" (ORLAH/NETA_REVAI choice 0); cleared after resolution.
 - **Structure tiles**: Purchasing a tile with `category === 'structure'` creates 4 `BuildingSlot` entries via `makeStructureSlots(coord)` stored in `buildingSlots: BuildingSlot[]`. Each slot has `buildingType: BuildingType | null` (null = empty). `MapTileView` routes structure tiles to `BuildingTileContent` → `BuildingGrid` → `BuildingSlotTile`. `LockedTileContent` root step has a third button (🏗️ מבנים) that calls `onBuy('structure', 'structure')` directly with no sub-step.
-- **Persistence**: Zustand `persist` middleware saves all game state fields to localStorage; only data is persisted, not action functions. **Persist version: 14**; migrations v2–v14 handle all legacy saves (id format, field renames, backfills, `encounteredDilemmas`, `enabled` on saved decisions, `stepWaitDuration`, `buildingSlots`).
+- **Shekels economy**: `shekels: number` on `GameState` (initial: 5,000). `buyTile` guards on `s.shekels < price` and deducts shekels. `sellCrops(cropType)` sells 10 of a crop for `10 * SELL_PRICE[cropType]` shekels (wheat=₪5, barley=₪7, grapes=₪10). `SELL_BULK_SIZE = 10`, `INITIAL_SHEKELS = 5_000` in `constants.ts`. Dilemma wheat costs are unchanged.
+- **Persistence**: Zustand `persist` middleware saves all game state fields to localStorage; only data is persisted, not action functions. **Persist version: 15**; migrations v2–v15 handle all legacy saves (id format, field renames, backfills, `encounteredDilemmas`, `enabled` on saved decisions, `stepWaitDuration`, `buildingSlots`, `shekels`).
 - **Timer**: `use-game-loop` hook starts/stops `setInterval` based on whether any plot is `growing`; uses wall-clock timestamps so tab backgrounding doesn't break growth
 
 ## Key Design Decisions
@@ -155,6 +156,7 @@ Save keys are `"<dilemmaId>:<cropType>"`. When a saved decision is active, the d
 - Tithes breakdown: community teachings/Levi 10%, poor 1–3%, worship 1%; player keeps remainder
 - Devotion/Morality/Faithfulness meter always visible, affected by dilemma choices
 - Monetization (future): cosmetic-only, non-pay-to-win
-- POC excludes: selling/money, production chains, social features
+- Shekels (₪) are the monetary currency; crops remain morally significant resources (dilemma costs stay in wheat/crops)
+- POC excludes: production chains, social features
 
 For any feature use the code patterns described at `ai-docs/TYPESCRIPT_BEST_PRACTICES.md`

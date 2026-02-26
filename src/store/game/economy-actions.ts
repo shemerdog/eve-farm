@@ -1,24 +1,24 @@
 import type { CropType, TileCategory, TileCoord, TileSubcategory } from '@/types'
-import { calcTilePrice } from '@/game/constants'
+import { SELL_BULK_SIZE, SELL_PRICE, calcTilePrice } from '@/game/constants'
 import { FARM_COORD, isAdjacentToUnlocked, isPurchased } from '@/game/world-map'
 import type { GameActions, SetState } from './store-types'
 import { initialState, makePlots, makeStructureSlots } from './state'
 
 export const createEconomyActions = (
     set: SetState,
-): Pick<GameActions, 'buyTile' | 'resetGame'> => ({
+): Pick<GameActions, 'buyTile' | 'sellCrops' | 'resetGame'> => ({
     buyTile: (coord: TileCoord, category: TileCategory, subcategory: TileSubcategory): void => {
         set((s) => {
             const price = calcTilePrice(s.purchasedCoords.length)
             if (
-                s.wheat < price ||
+                s.shekels < price ||
                 !isAdjacentToUnlocked(coord, s.purchasedCoords) ||
                 isPurchased(coord, s.purchasedCoords)
             )
                 return s
             const key = `${coord.col}_${coord.row}`
             const base = {
-                wheat: Math.max(0, s.wheat - price),
+                shekels: Math.max(0, s.shekels - price),
                 purchasedCoords: [...s.purchasedCoords, coord],
                 tileCategories: { ...s.tileCategories, [key]: category },
             }
@@ -32,6 +32,16 @@ export const createEconomyActions = (
             return {
                 ...base,
                 plots: [...s.plots, ...makePlots(coord, cropType)],
+            }
+        })
+    },
+
+    sellCrops: (cropType: CropType): void => {
+        set((s) => {
+            if (s[cropType] < SELL_BULK_SIZE) return s
+            return {
+                [cropType]: s[cropType] - SELL_BULK_SIZE,
+                shekels: s.shekels + SELL_BULK_SIZE * SELL_PRICE[cropType],
             }
         })
     },

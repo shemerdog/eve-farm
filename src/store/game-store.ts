@@ -20,13 +20,14 @@ export const useGameStore = create<GameStore>()(
         }),
         {
             name: 'eve-game-state',
-            version: 14,
+            version: 15,
             // Only persist the data fields, not the action functions
             partialize: (state): PersistedGameState => ({
                 plots: state.plots,
                 wheat: state.wheat,
                 grapes: state.grapes,
                 barley: state.barley,
+                shekels: state.shekels,
                 meters: state.meters,
                 activeDilemma: state.activeDilemma,
                 activeDilemmaContext: state.activeDilemmaContext,

@@ -1,5 +1,20 @@
 # Changelog
 
+## 2026-02-26 — Monetary System / Shekels (persist v15)
+
+Players now have a proper monetary currency (₪ shekels). Tile purchases deduct shekels instead of wheat. Crops can be sold in bulk for shekels via new sell buttons in the HUD.
+
+- **`shekels: number`** added to `GameState`; initial value 5,000₪.
+- **`sellCrops(cropType)`** action — sells 10 of a crop for: wheat=₪50, barley=₪70, grapes=₪100.
+- **`buyTile`** now deducts shekels (not wheat); guard changed to `s.shekels < price`.
+- **`WheatCounter`** HUD updated: shows `₪ {shekels}` row at top; sell buttons appear next to each crop (disabled when < 10).
+- **Constants**: `INITIAL_SHEKELS = 5_000`, `SELL_BULK_SIZE = 10`, `SELL_PRICE` record.
+- **v15 migration**: backfills `shekels: 5000` on old saves; preserves existing value if present.
+
+Files: `src/types/index.ts`, `src/game/constants.ts`, `src/store/game/state.ts`, `src/store/game/store-types.ts`, `src/store/game/economy-actions.ts`, `src/store/game/migrations.ts`, `src/store/game-store.ts`, `src/components/WheatCounter.tsx`, `src/components/WheatCounter.module.css`
+
+Tests: 356 Vitest (+12 net: 8 sellCrops + 2 buyTile-shekels + 2 v15 migration tests).
+
 ## 2026-02-25 — Farm Structures / Buildings (persist v14)
 
 Players can now purchase structure tiles (🏗️ מבנים) and build one of four structures in each of the tile's four slots: Farmhouse, Barn, Sheep Fold, or Silo.

@@ -6,6 +6,8 @@ import {
     BARLEY_GROWTH_DURATION,
     BARLEY_PER_HARVEST,
     WHEAT_GROWTH_DURATION,
+    SELL_BULK_SIZE,
+    INITIAL_SHEKELS,
 } from '@/game/constants'
 
 beforeEach(() => {
@@ -14,7 +16,7 @@ beforeEach(() => {
 
 describe('buyTile with category + subcategory', () => {
     it('buyTile("field", "wheat") creates wheat plots and stores category "field"', () => {
-        useGameStore.setState({ wheat: 1000 })
+        useGameStore.setState({ shekels: 1000 })
 
         const coord = { col: 2, row: 1 } // adjacent to default farm at (2,2)
         useGameStore.getState().buyTile(coord, 'field', 'wheat')
@@ -31,7 +33,7 @@ describe('buyTile with category + subcategory', () => {
     })
 
     it('buyTile("field", "barley") creates barley plots and stores category "field"', () => {
-        useGameStore.setState({ wheat: 1000 })
+        useGameStore.setState({ shekels: 1000 })
 
         const coord = { col: 2, row: 1 }
         useGameStore.getState().buyTile(coord, 'field', 'barley')
@@ -51,7 +53,7 @@ describe('buyTile with category + subcategory', () => {
     })
 
     it('buyTile("orchard", "grapes") creates grape plots and stores category "orchard"', () => {
-        useGameStore.setState({ wheat: 1000 })
+        useGameStore.setState({ shekels: 1000 })
 
         const coord = { col: 2, row: 1 }
         useGameStore.getState().buyTile(coord, 'orchard', 'grapes')
@@ -68,7 +70,7 @@ describe('buyTile with category + subcategory', () => {
     })
 
     it('grape plots have longer growthDuration than wheat', () => {
-        useGameStore.setState({ wheat: 1000 })
+        useGameStore.setState({ shekels: 1000 })
 
         const wheatCoord = { col: 2, row: 1 }
         const grapeCoord = { col: 3, row: 2 }
@@ -88,7 +90,7 @@ describe('buyTile with category + subcategory', () => {
     })
 
     it('buyTile fails when not adjacent (no category stored)', () => {
-        useGameStore.setState({ wheat: 1000 })
+        useGameStore.setState({ shekels: 1000 })
         const farCoord = { col: 0, row: 0 } // not adjacent to (2,2)
         useGameStore.getState().buyTile(farCoord, 'orchard', 'grapes')
 
@@ -96,8 +98,25 @@ describe('buyTile with category + subcategory', () => {
         expect(state.tileCategories[`${farCoord.col}_${farCoord.row}`]).toBeUndefined()
     })
 
+    it('buyTile fails when shekels < price (no category stored)', () => {
+        useGameStore.setState({ shekels: 0 })
+        const coord = { col: 2, row: 1 }
+        useGameStore.getState().buyTile(coord, 'field', 'wheat')
+
+        const state = useGameStore.getState()
+        expect(state.tileCategories[`${coord.col}_${coord.row}`]).toBeUndefined()
+    })
+
+    it('buyTile deducts shekels on success', () => {
+        useGameStore.setState({ shekels: 1000 })
+        const coord = { col: 2, row: 1 }
+        useGameStore.getState().buyTile(coord, 'field', 'wheat')
+
+        expect(useGameStore.getState().shekels).toBeLessThan(1000)
+    })
+
     it('barley plots have growthDuration between wheat and grapes', () => {
-        useGameStore.setState({ wheat: 1000 })
+        useGameStore.setState({ shekels: 1000 })
         const barleyCoord = { col: 2, row: 1 }
         useGameStore.getState().buyTile(barleyCoord, 'field', 'barley')
 
@@ -398,5 +417,59 @@ describe('harvest dilemma routing', () => {
         useGameStore.getState().harvest(wheatPlot.id)
 
         expect(useGameStore.getState().activeDilemmaContext).toBe('wheat')
+    })
+})
+
+describe('sellCrops', () => {
+    it('initial shekels is INITIAL_SHEKELS', () => {
+        expect(useGameStore.getState().shekels).toBe(INITIAL_SHEKELS)
+    })
+
+    it('selling wheat when < SELL_BULK_SIZE is a no-op', () => {
+        useGameStore.setState({ wheat: SELL_BULK_SIZE - 1, shekels: INITIAL_SHEKELS })
+        useGameStore.getState().sellCrops('wheat')
+        expect(useGameStore.getState().wheat).toBe(SELL_BULK_SIZE - 1)
+        expect(useGameStore.getState().shekels).toBe(INITIAL_SHEKELS)
+    })
+
+    it('selling 10 wheat deducts 10 wheat and adds 50₪', () => {
+        useGameStore.setState({ wheat: 10, shekels: 0 })
+        useGameStore.getState().sellCrops('wheat')
+        expect(useGameStore.getState().wheat).toBe(0)
+        expect(useGameStore.getState().shekels).toBe(50)
+    })
+
+    it('selling 10 barley deducts 10 barley and adds 70₪', () => {
+        useGameStore.setState({ barley: 10, shekels: 0 })
+        useGameStore.getState().sellCrops('barley')
+        expect(useGameStore.getState().barley).toBe(0)
+        expect(useGameStore.getState().shekels).toBe(70)
+    })
+
+    it('selling 10 grapes deducts 10 grapes and adds 100₪', () => {
+        useGameStore.setState({ grapes: 10, shekels: 0 })
+        useGameStore.getState().sellCrops('grapes')
+        expect(useGameStore.getState().grapes).toBe(0)
+        expect(useGameStore.getState().shekels).toBe(100)
+    })
+
+    it('selling when exactly SELL_BULK_SIZE succeeds', () => {
+        useGameStore.setState({ wheat: SELL_BULK_SIZE, shekels: 0 })
+        useGameStore.getState().sellCrops('wheat')
+        expect(useGameStore.getState().wheat).toBe(0)
+        expect(useGameStore.getState().shekels).toBe(50)
+    })
+
+    it('selling when more than SELL_BULK_SIZE deducts exactly 10', () => {
+        useGameStore.setState({ wheat: 25, shekels: 0 })
+        useGameStore.getState().sellCrops('wheat')
+        expect(useGameStore.getState().wheat).toBe(15)
+        expect(useGameStore.getState().shekels).toBe(50)
+    })
+
+    it('resetGame resets shekels to INITIAL_SHEKELS', () => {
+        useGameStore.setState({ shekels: 99 })
+        useGameStore.getState().resetGame()
+        expect(useGameStore.getState().shekels).toBe(INITIAL_SHEKELS)
     })
 })

@@ -169,6 +169,60 @@ describe('v14 migration logic', () => {
     })
 })
 
+describe('v15 migration logic', () => {
+    it('backfills shekels: 5000 when absent', () => {
+        const raw = {
+            plots: [],
+            wheat: 0,
+            grapes: 0,
+            barley: 0,
+            meters: { devotion: 50, morality: 50, faithfulness: 50 },
+            activeDilemma: null,
+            activeDilemmaContext: null,
+            activePlotId: null,
+            purchasedCoords: [],
+            tileCategories: {},
+            savedFieldDecisions: {},
+            encounteredDilemmas: [],
+            buildingSlots: [],
+            // shekels intentionally absent (old save)
+        }
+        const result = migratePersistedGameState({
+            persisted: raw,
+            version: 14,
+            farmCoord: { col: 2, row: 2 },
+            makePlots,
+        })
+        expect(result.shekels).toBe(5_000)
+    })
+
+    it('preserves existing shekels when already present', () => {
+        const raw = {
+            plots: [],
+            wheat: 0,
+            grapes: 0,
+            barley: 0,
+            shekels: 1234,
+            meters: { devotion: 50, morality: 50, faithfulness: 50 },
+            activeDilemma: null,
+            activeDilemmaContext: null,
+            activePlotId: null,
+            purchasedCoords: [],
+            tileCategories: {},
+            savedFieldDecisions: {},
+            encounteredDilemmas: [],
+            buildingSlots: [],
+        }
+        const result = migratePersistedGameState({
+            persisted: raw,
+            version: 14,
+            farmCoord: { col: 2, row: 2 },
+            makePlots,
+        })
+        expect(result.shekels).toBe(1234)
+    })
+})
+
 describe('v13 migration logic', () => {
     it('backfills stepWaitDuration: null when missing', () => {
         const raw = {
