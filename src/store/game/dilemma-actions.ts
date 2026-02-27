@@ -6,24 +6,29 @@ import {
     applyWheatCost,
     clampMeter,
 } from '@/game/constants'
-import { DILEMMAS, NETA_REVAI_DILEMMA, ORLAH_DILEMMA } from '@/game/dilemmas'
+import {
+    DILEMMAS,
+    NETA_REVAI_DILEMMA,
+    ORLAH_DILEMMA,
+    PERET_OLLELOT_DILEMMA,
+} from '@/game/dilemmas'
 import type { GameActions, GetState, SetState } from './store-types'
 
 const PEAH_DILEMMA = DILEMMAS.find((d) => d.id === 'peah')!
 const SHIKCHAH_DILEMMA = DILEMMAS.find((d) => d.id === 'shikchah')!
 
-const SAVEABLE_DILEMMA_IDS = new Set(['peah', 'shikchah'])
+const SAVEABLE_DILEMMA_IDS = new Set(['peah', 'shikchah', 'peret_ollelot'])
 
-/** Apply a dilemma choice to wheat + meters and return the new values. */
+/** Apply a dilemma choice to a crop amount + meters and return the new values. */
 function applyDilemmaChoice(
     dilemma: Dilemma,
     choiceIndex: number,
-    wheat: number,
+    cropAmount: number,
     meters: MeterValues,
-): { wheat: number; meters: MeterValues } {
+): { newCropAmount: number; meters: MeterValues } {
     const choice = dilemma.choices[choiceIndex]
     return {
-        wheat: Math.max(0, applyWheatCost(wheat, choice.wheatCost)),
+        newCropAmount: Math.max(0, applyWheatCost(cropAmount, choice.cropCost)),
         meters: {
             devotion: clampMeter(meters.devotion + (choice.meterEffect.devotion ?? 0)),
             morality: clampMeter(meters.morality + (choice.meterEffect.morality ?? 0)),
@@ -32,12 +37,12 @@ function applyDilemmaChoice(
     }
 }
 
-/** Determine which dilemma (if any) should be shown when a plot is harvested. */
+/** Determine which dilemma should be shown when a plot is harvested. */
 function resolveHarvestDilemma(harvestCount: number, isOrchard: boolean): Dilemma | null {
     if (isOrchard) {
         if (harvestCount < 3) return ORLAH_DILEMMA
         if (harvestCount === 3) return NETA_REVAI_DILEMMA
-        return null // harvestCount >= 4: no dilemma
+        return PERET_OLLELOT_DILEMMA // harvestCount >= 4: cycle 5+
     }
     return PEAH_DILEMMA
 }
@@ -85,28 +90,37 @@ export const createDilemmaActions = (
                 : p,
         )
 
-        // Auto-resolve PEAH for wheat/barley when a saved decision exists
         const isFieldCropHarvest = plot.cropType === 'wheat' || plot.cropType === 'barley'
 
-        // Track encounter for PEAH dilemma
+        // Track encounter for PEAH (field crops) and PERET_OLLELOT (orchard cycle 5+)
         const peahKey = `peah:${plot.cropType}`
-        const newEncounteredDilemmas =
-            isFieldCropHarvest && !state.encounteredDilemmas.includes(peahKey)
-                ? [...state.encounteredDilemmas, peahKey]
-                : state.encounteredDilemmas
+        const peretOllelotKey = 'peret_ollelot:grapes'
+        let newEncounteredDilemmas = state.encounteredDilemmas
+        if (isFieldCropHarvest && !newEncounteredDilemmas.includes(peahKey)) {
+            newEncounteredDilemmas = [...newEncounteredDilemmas, peahKey]
+        }
+        if (isOrchard && plot.harvestCount >= 4 && !newEncounteredDilemmas.includes(peretOllelotKey)) {
+            newEncounteredDilemmas = [...newEncounteredDilemmas, peretOllelotKey]
+        }
 
+        // Auto-resolve PEAH for wheat/barley when a saved decision exists
         if (isFieldCropHarvest && state.activeDilemma === null) {
             const saved = state.savedFieldDecisions[peahKey]
             if (saved && saved.cyclesRemaining > 0 && saved.enabled) {
-                const { wheat, meters } = applyDilemmaChoice(
+                const cropAmount = plot.cropType === 'barley' ? state.barley : state.wheat
+                const { newCropAmount, meters } = applyDilemmaChoice(
                     PEAH_DILEMMA,
                     saved.choiceIndex,
-                    state.wheat,
+                    cropAmount,
                     state.meters,
                 )
+                const cropUpdate =
+                    plot.cropType === 'barley'
+                        ? { wheat: state.wheat, barley: newCropAmount }
+                        : { wheat: newCropAmount, barley: state.barley }
                 set({
                     plots: plotsUpdated,
-                    wheat,
+                    ...cropUpdate,
                     meters,
                     savedFieldDecisions: decrementSaved(state.savedFieldDecisions, peahKey),
                     encounteredDilemmas: newEncounteredDilemmas,
@@ -116,14 +130,26 @@ export const createDilemmaActions = (
             }
         }
 
-        // Orchard with no dilemma (cycle 5+): just advance to harvested then reset
-        if (isOrchard && dilemmaToShow === null) {
-            set({
-                plots: plotsUpdated,
-                encounteredDilemmas: newEncounteredDilemmas,
-            })
-            setTimeout(() => get().resetPlot(plotId), 600)
-            return
+        // Auto-resolve Peret/Ollelot for orchard (cycle 5+) when a saved decision exists
+        if (isOrchard && dilemmaToShow?.id === 'peret_ollelot' && state.activeDilemma === null) {
+            const saved = state.savedFieldDecisions[peretOllelotKey]
+            if (saved && saved.cyclesRemaining > 0 && saved.enabled) {
+                const { newCropAmount, meters } = applyDilemmaChoice(
+                    PERET_OLLELOT_DILEMMA,
+                    saved.choiceIndex,
+                    state.grapes,
+                    state.meters,
+                )
+                set({
+                    plots: plotsUpdated,
+                    grapes: newCropAmount,
+                    meters,
+                    savedFieldDecisions: decrementSaved(state.savedFieldDecisions, peretOllelotKey),
+                    encounteredDilemmas: newEncounteredDilemmas,
+                })
+                setTimeout(() => get().resetPlot(plotId), 600)
+                return
+            }
         }
 
         set((s) => ({
@@ -174,17 +200,22 @@ export const createDilemmaActions = (
         if (triggerShikchah) {
             const saved = state.savedFieldDecisions[shikchahKey]
             if (saved && saved.cyclesRemaining > 0 && saved.enabled) {
-                const { wheat, meters } = applyDilemmaChoice(
+                const cropAmountAfterYield =
+                    plot.cropType === 'barley' ? barleyAfterYield : wheatAfterYield
+                const { newCropAmount, meters } = applyDilemmaChoice(
                     SHIKCHAH_DILEMMA,
                     saved.choiceIndex,
-                    wheatAfterYield,
+                    cropAmountAfterYield,
                     state.meters,
                 )
+                const cropUpdate =
+                    plot.cropType === 'barley'
+                        ? { wheat: wheatAfterYield, barley: newCropAmount }
+                        : { wheat: newCropAmount, barley: barleyAfterYield }
                 set({
                     plots: plotsReset,
-                    wheat,
+                    ...cropUpdate,
                     grapes: grapesAfterYield,
-                    barley: barleyAfterYield,
                     meters,
                     savedFieldDecisions: decrementSaved(state.savedFieldDecisions, shikchahKey),
                     encounteredDilemmas: newEncounteredDilemmas,
@@ -210,6 +241,8 @@ export const createDilemmaActions = (
             activeDilemmaContext,
             activePlotId,
             wheat,
+            barley,
+            grapes,
             meters,
             savedFieldDecisions,
             plots,
@@ -219,12 +252,26 @@ export const createDilemmaActions = (
         const choice = activeDilemma.choices[choiceIndex]
         if (!choice) return
 
-        const { wheat: newWheat, meters: newMeters } = applyDilemmaChoice(
+        const cropAmount =
+            activeDilemmaContext === 'grapes'
+                ? grapes
+                : activeDilemmaContext === 'barley'
+                  ? barley
+                  : wheat
+
+        const { newCropAmount, meters: newMeters } = applyDilemmaChoice(
             activeDilemma,
             choiceIndex,
-            wheat,
+            cropAmount,
             meters,
         )
+
+        const cropUpdate =
+            activeDilemmaContext === 'grapes'
+                ? { wheat, barley, grapes: newCropAmount }
+                : activeDilemmaContext === 'barley'
+                  ? { wheat, barley: newCropAmount, grapes }
+                  : { wheat: newCropAmount, barley, grapes }
 
         const isSaveable = SAVEABLE_DILEMMA_IDS.has(activeDilemma.id)
         const saveKey =
@@ -256,7 +303,7 @@ export const createDilemmaActions = (
 
         set({
             plots: updatedPlots,
-            wheat: newWheat,
+            ...cropUpdate,
             meters: newMeters,
             activeDilemma: null,
             activeDilemmaContext: null,

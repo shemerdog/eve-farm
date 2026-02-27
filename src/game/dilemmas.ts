@@ -14,19 +14,19 @@ export const ORLAH_DILEMMA: Dilemma = {
         {
             label: 'הַשְׁאֵר אֶת הַפְּרִי',
             description: 'אַתָּה מְכַבֵּד אֶת הַמָּסֹרֶת וּמַשְׁאִיר אֶת הַפֵּרוֹת',
-            wheatCost: 0,
+            cropCost: 0,
             meterEffect: { morality: +10, devotion: +8 },
         },
         {
             label: 'קְחַח מֶחֱצָה',
             description: 'אַתָּה לוֹקֵחַ מֶחֱצִית וּמַשְׁאִיר מֶחֱצִית',
-            wheatCost: 0,
+            cropCost: 0,
             meterEffect: { morality: +3, devotion: +2 },
         },
         {
             label: 'קַח הַכֹּל',
             description: 'אַתָּה לוֹקֵחַ אֶת כָּל הָעֲנָבִים לְעַצְמְךָ',
-            wheatCost: 0,
+            cropCost: 0,
             meterEffect: { morality: -8, devotion: -5 },
         },
     ],
@@ -45,13 +45,50 @@ export const NETA_REVAI_DILEMMA: Dilemma = {
         {
             label: 'שְׁמֹר לְמַסַּע הַבָּא לִירוּשָׁלָיִם',
             description: 'אַתָּה שׁוֹמֵר אֶת הַפֵּרוֹת לִמְסִירָתָם בְּטָהֳרָה בִּירוּשָׁלָיִם',
-            wheatCost: 0,
+            cropCost: 0,
             meterEffect: { faithfulness: 8, devotion: 5 },
         },
         {
             label: 'קַח אֶת הַפֵּרוֹת לְעַצְמְךָ',
             description: 'אַתָּה לוֹקֵחַ אֶת הַפֵּרוֹת לְעַצְמְךָ בְּלִי לְהַקְדִּישָׁם',
-            wheatCost: 0,
+            cropCost: 0,
+            meterEffect: { morality: -8, devotion: -5 },
+        },
+    ],
+}
+
+// Peret & Ollelot: individual fallen grapes and small clusters must be left for the poor.
+// Fires on every mature vineyard harvest (cycle 5+, harvestCount >= 4).
+export const PERET_OLLELOT_DILEMMA: Dilemma = {
+    id: 'peret_ollelot',
+    title: 'פֶּרֶט וְעוֹלְלוֹת — לֶקֶט הַכֶּרֶם',
+    narrative:
+        'וְכַרְמְךָ לֹא תְעוֹלֵל וּפֶרֶט כַּרְמְךָ לֹא תְלַקֵּט לֶעָנִי וְלַגֵּר תַּעֲזֹב אֹתָם (ויקרא יט:י). ' +
+        'נָפְלוּ עֲנָבִים בֵּין הַגְּפָנִים וְנִשְׁאֲרוּ אֶשְׁכּוֹלוֹת קְטַנּוֹת עַל הַגֶּפֶן. מַה תַּעֲשֶׂה?',
+    choices: [
+        {
+            label: 'עֲזֹב פֶּרֶט וְעוֹלְלוֹת לָעֲנִי',
+            description:
+                'אַתָּה מַשְׁאִיר גַּם אֶת הָעֲנָבִים הַנּוֹפְלִים וְגַם אֶת הָאֶשְׁכּוֹלוֹת הַקְּטַנּוֹת לָעֲנִיִּים',
+            cropCost: 5,
+            meterEffect: { morality: +10, devotion: +8 },
+        },
+        {
+            label: 'עֲזֹב אֶת-הַפֶּרֶט בִּלְבַד',
+            description: 'אַתָּה מַשְׁאִיר אֶת הָעֲנָבִים הַנּוֹפְלִים בִּלְבַד לָעֲנִיִּים',
+            cropCost: 2,
+            meterEffect: { morality: +5, devotion: +3 },
+        },
+        {
+            label: 'עֲזֹב אֶת-הָעוֹלְלוֹת בִּלְבַד',
+            description: 'אַתָּה מַשְׁאִיר אֶת הָאֶשְׁכּוֹלוֹת הַקְּטַנּוֹת בִּלְבַד לָעֲנִיִּים',
+            cropCost: 2,
+            meterEffect: { morality: +5, devotion: +3 },
+        },
+        {
+            label: 'קְחֵהוּ הַכֹּל',
+            description: 'אַתָּה לוֹקֵחַ אֶת כָּל הָעֲנָבִים — הַנּוֹפְלִים וְהָאֶשְׁכּוֹלוֹת',
+            cropCost: 0,
             meterEffect: { morality: -8, devotion: -5 },
         },
     ],
@@ -67,19 +104,19 @@ export const DILEMMAS: Dilemma[] = [
             {
                 label: 'הַשְׁאֵר פִּנּוֹת נְדִיבוֹת',
                 description: 'אַתָּה מַשְׁאִיר שְׁלֹשָׁה אֲחוּזִים מִן הַיְּבוּל לָעֲנִיִּים',
-                wheatCost: 3,
+                cropCost: 3,
                 meterEffect: { morality: +10, devotion: +5 },
             },
             {
                 label: 'הַשְׁאֵר פִּנּוֹת מִינִימָלִיּוֹת',
                 description: 'אַתָּה מַשְׁאִיר אֶחָד אֶחוּזִים בִּלְבַד',
-                wheatCost: 1,
+                cropCost: 1,
                 meterEffect: { morality: +3, devotion: +1 },
             },
             {
                 label: 'שְׁמֹר הַכֹּל',
                 description: 'אַתָּה לוֹקֵחַ אֶת כָּל הַקָּצִיר לְעַצְמְךָ',
-                wheatCost: 0,
+                cropCost: 0,
                 meterEffect: { morality: -5, devotion: -3 },
             },
         ],
@@ -93,19 +130,19 @@ export const DILEMMAS: Dilemma[] = [
             {
                 label: 'הַשְׁאֵר שְׁנֵי עֳמָרִים',
                 description: 'אַתָּה מַשְׁאִיר שְׁנֵי עֳמָרִים לָעֲנִיִּים כַּמִּצְוָה',
-                wheatCost: 2,
+                cropCost: 2,
                 meterEffect: { morality: +12, devotion: +6 },
             },
             {
                 label: 'הַשְׁאֵר עֹמֶר אֶחָד',
                 description: 'אַתָּה מַשְׁאִיר עֹמֶר אֶחָד לָעֲנִיִּים',
-                wheatCost: 1,
+                cropCost: 1,
                 meterEffect: { morality: +5, devotion: +2 },
             },
             {
                 label: 'שׁוּב וְקַח הַכֹּל',
                 description: 'אַתָּה חוֹזֵר וְלוֹקֵחַ אֶת כָּל הָעֳמָרִים לְעַצְמְךָ',
-                wheatCost: 0,
+                cropCost: 0,
                 meterEffect: { morality: -6, devotion: -3 },
             },
         ],
@@ -119,23 +156,24 @@ export const DILEMMAS: Dilemma[] = [
             {
                 label: 'מַעֲשֵׂר שָׁלֵם',
                 description: 'אַתָּה נוֹתֵן אֶת הַחֵלֶק הַמָּלֵא לַקְּהִלָּה',
-                wheatCost: 1.4, // 14% of WHEAT_PER_HARVEST (10) = 1.4; floors to 1
+                cropCost: 1.4, // 14% of WHEAT_PER_HARVEST (10) = 1.4; floors to 1
                 meterEffect: { faithfulness: +8, devotion: +5, morality: +5 },
             },
             {
                 label: 'מַעֲשֵׂר חָלְקִי',
                 description: 'אַתָּה נוֹתֵן מַחֲצִית מִן הַמַּעֲשֵׂר',
-                wheatCost: 1, // 10% of 10 = 1
+                cropCost: 1, // 10% of 10 = 1
                 meterEffect: { faithfulness: +4, devotion: +2 },
             },
             {
                 label: 'וַיַּעֲבֹר אֶל דַּרְכּוֹ',
                 description: 'אַתָּה מַשְׁאִיר אֶת הַכֹּל לְעַצְמְךָ הַפַּעַם',
-                wheatCost: 0,
+                cropCost: 0,
                 meterEffect: { faithfulness: -5, devotion: -3 },
             },
         ],
     },
     ORLAH_DILEMMA,
     NETA_REVAI_DILEMMA,
+    PERET_OLLELOT_DILEMMA,
 ]

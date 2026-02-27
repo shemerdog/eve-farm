@@ -47,7 +47,7 @@ export type MeterValues = {
 export type DilemmaChoice = {
     label: string
     description: string
-    wheatCost: number // fractional allowed; applyWheatCost floors before deducting
+    cropCost: number // fractional allowed; applyWheatCost floors before deducting. Deducted from the context crop (wheat/barley/grapes).
     meterEffect: Partial<MeterValues>
 }
 

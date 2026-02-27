@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it, vi, afterEach } from 'vitest'
 import type { Plot } from '@/types'
 import { useGameStore } from './game-store'
 import { resetGameStore } from '@/test-utils/game-store'
@@ -49,11 +49,11 @@ describe('harvest orchard cycle gating', () => {
         expect(useGameStore.getState().activeDilemma?.id).toBe('neta_revai')
     })
 
-    it('shows no dilemma from cycle 5 onwards (harvestCount >= 4)', () => {
+    it('shows PERET_OLLELOT from cycle 5 onwards (harvestCount >= 4)', () => {
         const plotId = setupOrchardPlot(4)
         useGameStore.getState().harvest(plotId)
-        expect(useGameStore.getState().activeDilemma).toBeNull()
-        expect(useGameStore.getState().activePlotId).toBeNull()
+        expect(useGameStore.getState().activeDilemma?.id).toBe('peret_ollelot')
+        expect(useGameStore.getState().activePlotId).toBe(plotId)
     })
 
     it('increments harvestCount on each orchard harvest', () => {
@@ -181,5 +181,173 @@ describe('resolveDilemma orchard skip-gather behavior', () => {
         expect(useGameStore.getState().activePlotId).toBe(plotId)
         useGameStore.getState().resolveDilemma(2)
         expect(useGameStore.getState().activePlotId).toBeNull()
+    })
+})
+
+describe('PERET_OLLELOT dilemma (cycle 5+, harvestCount >= 4)', () => {
+    afterEach(() => {
+        vi.restoreAllMocks()
+    })
+
+    it('fires PERET_OLLELOT on harvestCount 4 (cycle 5)', () => {
+        const plotId = setupOrchardPlot(4)
+        useGameStore.getState().harvest(plotId)
+        expect(useGameStore.getState().activeDilemma?.id).toBe('peret_ollelot')
+    })
+
+    it('fires PERET_OLLELOT on harvestCount 10 (cycle 11)', () => {
+        const plotId = setupOrchardPlot(10)
+        useGameStore.getState().harvest(plotId)
+        expect(useGameStore.getState().activeDilemma?.id).toBe('peret_ollelot')
+    })
+
+    it('does NOT fire PERET_OLLELOT on cycle 4 (NETA_REVAI fires instead)', () => {
+        const plotId = setupOrchardPlot(3)
+        useGameStore.getState().harvest(plotId)
+        expect(useGameStore.getState().activeDilemma?.id).toBe('neta_revai')
+    })
+
+    it('choice 0 deducts 5 grapes; morality +10, devotion +8', () => {
+        const plotId = setupOrchardPlot(4)
+        useGameStore.setState({
+            ...useGameStore.getState(),
+            grapes: 20,
+            meters: { devotion: 50, morality: 50, faithfulness: 50 },
+        })
+        useGameStore.getState().harvest(plotId)
+        useGameStore.getState().resolveDilemma(0)
+        expect(useGameStore.getState().grapes).toBe(15) // 20 - 5
+        expect(useGameStore.getState().meters.morality).toBe(60) // +10
+        expect(useGameStore.getState().meters.devotion).toBe(58) // +8
+    })
+
+    it('choice 1 deducts 2 grapes; morality +5, devotion +3', () => {
+        const plotId = setupOrchardPlot(4)
+        useGameStore.setState({
+            ...useGameStore.getState(),
+            grapes: 20,
+            meters: { devotion: 50, morality: 50, faithfulness: 50 },
+        })
+        useGameStore.getState().harvest(plotId)
+        useGameStore.getState().resolveDilemma(1)
+        expect(useGameStore.getState().grapes).toBe(18) // 20 - 2
+        expect(useGameStore.getState().meters.morality).toBe(55) // +5
+        expect(useGameStore.getState().meters.devotion).toBe(53) // +3
+    })
+
+    it('choice 2 deducts 2 grapes; morality +5, devotion +3', () => {
+        const plotId = setupOrchardPlot(4)
+        useGameStore.setState({
+            ...useGameStore.getState(),
+            grapes: 20,
+            meters: { devotion: 50, morality: 50, faithfulness: 50 },
+        })
+        useGameStore.getState().harvest(plotId)
+        useGameStore.getState().resolveDilemma(2)
+        expect(useGameStore.getState().grapes).toBe(18) // 20 - 2
+        expect(useGameStore.getState().meters.morality).toBe(55) // +5
+        expect(useGameStore.getState().meters.devotion).toBe(53) // +3
+    })
+
+    it('choice 3 deducts 0 grapes; morality -8, devotion -5', () => {
+        const plotId = setupOrchardPlot(4)
+        useGameStore.setState({
+            ...useGameStore.getState(),
+            grapes: 20,
+            meters: { devotion: 50, morality: 50, faithfulness: 50 },
+        })
+        useGameStore.getState().harvest(plotId)
+        useGameStore.getState().resolveDilemma(3)
+        expect(useGameStore.getState().grapes).toBe(20) // unchanged
+        expect(useGameStore.getState().meters.morality).toBe(42) // -8
+        expect(useGameStore.getState().meters.devotion).toBe(45) // -5
+    })
+
+    it('adds peret_ollelot:grapes to encounteredDilemmas on first cycle-5 harvest', () => {
+        const plotId = setupOrchardPlot(4)
+        useGameStore.setState({ ...useGameStore.getState(), encounteredDilemmas: [] })
+        useGameStore.getState().harvest(plotId)
+        expect(useGameStore.getState().encounteredDilemmas).toContain('peret_ollelot:grapes')
+    })
+
+    it('does not add peret_ollelot:grapes to encounteredDilemmas on cycle 4 (NETA_REVAI)', () => {
+        const plotId = setupOrchardPlot(3)
+        useGameStore.setState({ ...useGameStore.getState(), encounteredDilemmas: [] })
+        useGameStore.getState().harvest(plotId)
+        expect(useGameStore.getState().encounteredDilemmas).not.toContain('peret_ollelot:grapes')
+    })
+
+    it('peret_ollelot is saveable — resolveDilemma with save=true stores decision', () => {
+        const plotId = setupOrchardPlot(4)
+        useGameStore.getState().harvest(plotId)
+        useGameStore.getState().resolveDilemma(0, true)
+        const saved = useGameStore.getState().savedFieldDecisions['peret_ollelot:grapes']
+        expect(saved).toBeDefined()
+        expect(saved?.choiceIndex).toBe(0)
+        expect(saved?.cyclesRemaining).toBe(5)
+    })
+
+    it('saved peret_ollelot decision auto-resolves on next cycle-5+ harvest', () => {
+        const plotId = setupOrchardPlot(4)
+        useGameStore.setState({
+            ...useGameStore.getState(),
+            grapes: 30,
+            savedFieldDecisions: {
+                'peret_ollelot:grapes': { choiceIndex: 0, cyclesRemaining: 3, enabled: true },
+            },
+        })
+        useGameStore.getState().harvest(plotId)
+        // Should have auto-resolved — no modal
+        expect(useGameStore.getState().activeDilemma).toBeNull()
+        // Grapes should have been deducted
+        expect(useGameStore.getState().grapes).toBe(25) // 30 - 5
+    })
+
+    it('saved peret_ollelot decision decrements cyclesRemaining on auto-resolve', () => {
+        useGameStore.setState({
+            ...useGameStore.getState(),
+            savedFieldDecisions: {
+                'peret_ollelot:grapes': { choiceIndex: 1, cyclesRemaining: 3, enabled: true },
+            },
+        })
+        const plotId = setupOrchardPlot(4)
+        useGameStore.getState().harvest(plotId)
+        expect(
+            useGameStore.getState().savedFieldDecisions['peret_ollelot:grapes']?.cyclesRemaining,
+        ).toBe(2)
+    })
+
+    it('PEAH on barley harvest deducts barley (not wheat)', () => {
+        const plotId = '2_2_0'
+        useGameStore.setState({
+            ...useGameStore.getState(),
+            tileCategories: {},
+            activeDilemma: null,
+            savedFieldDecisions: {},
+            wheat: 50,
+            barley: 50,
+            meters: { devotion: 50, morality: 50, faithfulness: 50 },
+            plots: [
+                {
+                    id: plotId,
+                    state: 'ready',
+                    plantedAt: Date.now() - 100_000,
+                    growthDuration: 20_000,
+                    tileCoord: { col: 2, row: 2 },
+                    cropType: 'barley',
+                    hasBeenPlanted: false,
+                    nextActionAt: null,
+                    stepWaitDuration: null,
+                    harvestCount: 0,
+                },
+            ],
+        })
+        useGameStore.getState().harvest(plotId)
+        expect(useGameStore.getState().activeDilemma?.id).toBe('peah')
+
+        // Resolve with choice 0 (cropCost=3)
+        useGameStore.getState().resolveDilemma(0)
+        expect(useGameStore.getState().barley).toBe(47) // 50 - 3
+        expect(useGameStore.getState().wheat).toBe(50) // unchanged
     })
 })

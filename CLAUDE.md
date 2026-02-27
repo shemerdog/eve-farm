@@ -51,7 +51,7 @@ src/
     game-tick.test.ts     — unit tests for pure game logic
     world-map.ts          — tile grid, camera math, coordsEqual, isPurchased, isAdjacentToUnlocked
     world-map.test.ts     — unit tests for world map helpers
-    dilemmas.ts           — DILEMMAS array (PEAH, SHIKCHAH, ORLAH, NETA_REVAI)
+    dilemmas.ts           — DILEMMAS array (PEAH, SHIKCHAH, ORLAH, NETA_REVAI, PERET_OLLELOT)
     strings.he.ts         — all Hebrew UI strings
   store/
     game-store.ts         — root Zustand composer (wires initialState + modular action domains + persist)
@@ -125,7 +125,7 @@ src/store/
 | `harvest`      | barley                | —                               | PEAH_DILEMMA       | yes (`"peah:barley"`)     |
 | `harvest`      | grapes (orchard tile) | `harvestCount` 0–2 (cycles 1–3) | ORLAH_DILEMMA      | no                        |
 | `harvest`      | grapes (orchard tile) | `harvestCount` 3 (cycle 4)      | NETA_REVAI_DILEMMA | no                        |
-| `harvest`      | grapes (orchard tile) | `harvestCount` ≥ 4 (cycle 5+)   | _(none)_           | —                         |
+| `harvest`      | grapes (orchard tile) | `harvestCount` ≥ 4 (cycle 5+)   | PERET_OLLELOT_DILEMMA | yes (`"peret_ollelot:grapes"`) |
 | `gatherSheafs` | wheat                 | —                               | SHIKCHAH_DILEMMA   | yes (`"shikchah:wheat"`)  |
 | `gatherSheafs` | barley                | —                               | SHIKCHAH_DILEMMA   | yes (`"shikchah:barley"`) |
 | `gatherSheafs` | grapes                | —                               | _(none)_           | —                         |
@@ -137,13 +137,13 @@ Save keys are `"<dilemmaId>:<cropType>"`. When a saved decision is active, the d
 ## Key Implementation Decisions
 
 - **PlotState** has 9 states — field crops use `empty → plowed → growing → ready → harvested → gathered`; orchards add `planted → fertilized → tended` before `growing`. On subsequent orchard cycles `hasBeenPlanted = true` skips the `planted` step.
-- **Dilemmas** are triggered by specific actions per crop: `harvest` wheat/barley → PEAH; `harvest` grapes (orchard tile) → ORLAH (cycles 1–3) / NETA_REVAI (cycle 4) / none (cycle 5+); `gatherSheafs` wheat/barley → SHIKCHAH. `activeDilemma: Dilemma | null` + `activeDilemmaContext: CropType | null` + `activePlotId: string | null` drive the modal. PEAH and SHIKCHAH can be saved for 5 cycles; keys are crop-qualified (`"peah:wheat"`, `"shikchah:barley"`, etc.).
+- **Dilemmas** are triggered by specific actions per crop: `harvest` wheat/barley → PEAH; `harvest` grapes (orchard tile) → ORLAH (cycles 1–3) / NETA_REVAI (cycle 4) / PERET_OLLELOT (cycle 5+); `gatherSheafs` wheat/barley → SHIKCHAH. `activeDilemma: Dilemma | null` + `activeDilemmaContext: CropType | null` + `activePlotId: string | null` drive the modal. PEAH, SHIKCHAH, and PERET_OLLELOT can be saved for 5 cycles; keys are crop-qualified (`"peah:wheat"`, `"shikchah:barley"`, `"peret_ollelot:grapes"`, etc.). `DilemmaChoice.cropCost` (renamed from `wheatCost`) is deducted from the context crop (wheat/barley/grapes).
 - **nextActionAt** on `Plot` — `null` = action available; a timestamp = locked until `tickPlot` clears it. Used for orchard step timers (`FERTILIZE_WAIT_DURATION` / `TEND_WAIT_DURATION`, 10 s each).
 - **stepWaitDuration: number | null** on `Plot` — stores the total duration (ms) of the current step-wait timer; set alongside `nextActionAt` by `fertilizePlot`/`tendPlot`, cleared by `tickPlot` when `nextActionAt` clears. Used by `stepWaitProgress(plot, now)` to compute ring fill.
 - **ProgressRing** — renders gold ring (`#d4a017`) for `growing` state; teal ring (`#7cb9a0`) for `fertilized`/`tended` states when `nextActionAt !== null`. Controlled by a single render condition in `PlotTile`.
 - **Wheat rounding**: `applyWheatCost = (current, cost) => current - Math.floor(cost)` — always floors, generous to player, defined in `constants.ts`
 - **Pure game logic**: `tickPlot(plot, now)` lives in `src/game/game-tick.ts` with no React/Zustand dependency — fully unit-testable
-- **harvestCount: number** on `Plot` — tracks how many times an orchard plot has been harvested; gates ORLAH (cycles 1–3), NETA_REVAI (cycle 4), no dilemma (cycle 5+). Incremented inside `harvest()`, not in `tickPlot`.
+- **harvestCount: number** on `Plot` — tracks how many times an orchard plot has been harvested; gates ORLAH (cycles 1–3), NETA_REVAI (cycle 4), PERET_OLLELOT (cycle 5+). Incremented inside `harvest()`, not in `tickPlot`.
 - **activePlotId: string | null** on `GameState` — set when a dilemma fires from `harvest()`; read by `resolveDilemma()` to reset the correct plot when the player chooses "Leave the fruit" (ORLAH/NETA_REVAI choice 0); cleared after resolution.
 - **Structure tiles**: Purchasing a tile with `category === 'structure'` creates 4 `BuildingSlot` entries via `makeStructureSlots(coord)` stored in `buildingSlots: BuildingSlot[]`. Each slot has `buildingType: BuildingType | null` (null = empty). `MapTileView` routes structure tiles to `BuildingTileContent` → `BuildingGrid` → `BuildingSlotTile`. `LockedTileContent` root step has a third button (🏗️ מבנים) that calls `onBuy('structure', 'structure')` directly with no sub-step.
 - **Shekels economy**: `shekels: number` on `GameState` (initial: 5,000). `buyTile` guards on `s.shekels < price` and deducts shekels. `sellCrops(cropType)` sells 10 of a crop for `10 * SELL_PRICE[cropType]` shekels (wheat=₪5, barley=₪7, grapes=₪10). `SELL_BULK_SIZE = 10`, `INITIAL_SHEKELS = 5_000` in `constants.ts`. Dilemma wheat costs are unchanged.

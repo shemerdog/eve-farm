@@ -213,7 +213,7 @@ describe('harvest auto-resolves saved PEAH for wheat', () => {
     })
 
     it('applies wheat cost and meter effects when auto-resolving PEAH choice 0', () => {
-        // PEAH choice 0: wheatCost=3, morality+10, devotion+5
+        // PEAH choice 0: cropCost=3, morality+10, devotion+5
         const state = useGameStore.getState()
         const wheatPlot = state.plots[0]
         useGameStore.setState({

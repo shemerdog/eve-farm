@@ -52,19 +52,19 @@ describe('DILEMMAS — shikchah', () => {
 
     it('choice 0 leaves 2 sheaves — costs 2 wheat and boosts morality', () => {
         const choice = shikchah?.choices[0]
-        expect(choice?.wheatCost).toBe(2)
+        expect(choice?.cropCost).toBe(2)
         expect(choice?.meterEffect.morality ?? 0).toBeGreaterThan(0)
     })
 
     it('choice 1 leaves 1 sheaf — costs 1 wheat and boosts morality', () => {
         const choice = shikchah?.choices[1]
-        expect(choice?.wheatCost).toBe(1)
+        expect(choice?.cropCost).toBe(1)
         expect(choice?.meterEffect.morality ?? 0).toBeGreaterThan(0)
     })
 
     it('choice 2 takes all — costs 0 wheat and penalises morality', () => {
         const choice = shikchah?.choices[2]
-        expect(choice?.wheatCost).toBe(0)
+        expect(choice?.cropCost).toBe(0)
         expect(choice?.meterEffect.morality ?? 0).toBeLessThan(0)
     })
 
@@ -86,7 +86,7 @@ describe('NETA_REVAI_DILEMMA', () => {
     })
 
     it('choice 0 has no wheat cost', () => {
-        expect(NETA_REVAI_DILEMMA.choices[0].wheatCost).toBe(0)
+        expect(NETA_REVAI_DILEMMA.choices[0].cropCost).toBe(0)
     })
 
     it('choice 0 gives faithfulness and devotion bonuses', () => {

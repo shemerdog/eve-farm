@@ -10,12 +10,12 @@ const METER_ABBREV: Record<string, string> = {
     faithfulness: HE.dilemma.meterAbbrev.faithfulness,
 }
 
-const SAVEABLE_IDS = new Set(['peah', 'shikchah'])
+const SAVEABLE_IDS = new Set(['peah', 'shikchah', 'peret_ollelot'])
 
-const formatCost = (cost: number, wheat: number): string => {
+const formatCost = (cost: number, amount: number, emoji: string): string => {
     const actual = Math.floor(cost)
     if (actual <= 0) return HE.dilemma.free
-    return `-${actual} 🌾 (${wheat - applyWheatCost(wheat, cost)} ${HE.dilemma.keptByCommunity})`
+    return `-${actual} ${emoji} (${amount - applyWheatCost(amount, cost)} ${HE.dilemma.keptByCommunity})`
 }
 
 const formatEffect = (effect: Record<string, number>): string => {
@@ -29,11 +29,21 @@ export const DilemmaModal = (): React.JSX.Element | null => {
     const activeDilemma = useGameStore((s) => s.activeDilemma)
     const activeDilemmaContext = useGameStore((s) => s.activeDilemmaContext)
     const wheat = useGameStore((s) => s.wheat)
+    const barley = useGameStore((s) => s.barley)
+    const grapes = useGameStore((s) => s.grapes)
     const savedFieldDecisions = useGameStore((s) => s.savedFieldDecisions)
     const resolveDilemma = useGameStore((s) => s.resolveDilemma)
     const [saveChecked, setSaveChecked] = useState(false)
 
     if (!activeDilemma) return null
+
+    const cropAmount =
+        activeDilemmaContext === 'grapes'
+            ? grapes
+            : activeDilemmaContext === 'barley'
+              ? barley
+              : wheat
+    const cropEmoji = activeDilemmaContext === 'grapes' ? '🍇' : '🌾'
 
     const isSaveable = SAVEABLE_IDS.has(activeDilemma.id)
     const saveKey =
@@ -76,11 +86,11 @@ export const DilemmaModal = (): React.JSX.Element | null => {
                             <span className={styles.choiceLabel}>{choice.label}</span>
                             <span className={styles.choiceMeta}>
                                 <span
-                                    className={`${styles.costBadge} ${choice.wheatCost === 0 ? styles.zeroCost : ''}`}
+                                    className={`${styles.costBadge} ${choice.cropCost === 0 ? styles.zeroCost : ''}`}
                                 >
-                                    {choice.wheatCost === 0
+                                    {choice.cropCost === 0
                                         ? HE.dilemma.keepAll
-                                        : formatCost(choice.wheatCost, wheat)}
+                                        : formatCost(choice.cropCost, cropAmount, cropEmoji)}
                                 </span>
                                 {formatEffect(choice.meterEffect as Record<string, number>)}
                             </span>

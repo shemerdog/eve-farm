@@ -190,3 +190,14 @@ Added barley as a third crop type alongside wheat and grapes, with its own resou
 **Files modified:** `types/index.ts`, `game/constants.ts`, `game/dilemmas.ts`, `store/gameStore.ts` (persist v5 + migration), `PlotTile.tsx`, `WheatCounter.tsx`, `WorldMap/MapTileView.tsx`, `WorldMap/LockedTileContent.tsx` (3rd buy button)
 **Files created:** `WorldMap/BarleyFieldTileContent.tsx`, `WorldMap/BarleyFieldTileContent.module.css`
 **Tests:** +18 Vitest (total: 176)
+
+---
+
+## 2026-02-26 — Peret & Ollelot Vineyard Dilemma + cropCost rename
+
+Added `PERET_OLLELOT_DILEMMA` that fires on every mature vineyard harvest (cycle 5+, `harvestCount >= 4`). The dilemma presents four choices for handling fallen individual grapes (פרט) and small underdeveloped clusters (עוללות), per Leviticus 19:10. It is saveable like PEAH/SHIKCHAH using the key `"peret_ollelot:grapes"`.
+
+Renamed `DilemmaChoice.wheatCost` → `cropCost` to make cost deductions context-aware across all crop types. This also fixes a pre-existing bug where PEAH on barley harvests incorrectly deducted wheat instead of barley.
+
+**Files modified:** `src/types/index.ts`, `src/game/dilemmas.ts`, `src/store/game/dilemma-actions.ts`, `src/components/DilemmaModal.tsx`, `src/game/dilemmas.test.ts`, `src/store/game-store.dilemmas.test.ts`, `src/store/game-store.orchard.dilemma-gating.test.ts`
+**Tests:** +13 Vitest (total: 369 Vitest + 7 Playwright E2E)
