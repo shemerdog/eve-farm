@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi, afterEach } from 'vitest'
 import type { Plot } from '@/types'
+import { PlotState, CropType, TileCategory } from '@/types'
 import { useGameStore } from './game-store'
 import { resetGameStore } from '@/test-utils/game-store'
 
@@ -12,11 +13,11 @@ function setupOrchardPlot(harvestCount = 0): string {
     const plotId = '3_2_0'
     const plot: Plot = {
         id: plotId,
-        state: 'ready',
+        state: PlotState.Ready,
         plantedAt: Date.now() - 100_000,
         growthDuration: 30_000,
         tileCoord: coord,
-        cropType: 'grapes',
+        cropType: CropType.Grapes,
         hasBeenPlanted: true,
         nextActionAt: null,
         stepWaitDuration: null,
@@ -24,7 +25,7 @@ function setupOrchardPlot(harvestCount = 0): string {
     }
     useGameStore.setState({
         ...useGameStore.getState(),
-        tileCategories: { '3_2': 'orchard' },
+        tileCategories: { '3_2': TileCategory.Orchard },
         activeDilemma: null,
         activeDilemmaContext: null,
         activePlotId: null,
@@ -77,11 +78,11 @@ describe('harvest orchard cycle gating', () => {
             plots: [
                 {
                     id: plotId,
-                    state: 'ready',
+                    state: PlotState.Ready,
                     plantedAt: Date.now() - 100_000,
                     growthDuration: 15_000,
                     tileCoord: { col: 2, row: 2 },
-                    cropType: 'wheat',
+                    cropType: CropType.Wheat,
                     hasBeenPlanted: false,
                     nextActionAt: null,
                     stepWaitDuration: null,
@@ -104,11 +105,11 @@ describe('harvest orchard cycle gating', () => {
             plots: [
                 {
                     id: plotId,
-                    state: 'ready',
+                    state: PlotState.Ready,
                     plantedAt: Date.now() - 100_000,
                     growthDuration: 15_000,
                     tileCoord: { col: 2, row: 2 },
-                    cropType: 'wheat',
+                    cropType: CropType.Wheat,
                     hasBeenPlanted: false,
                     nextActionAt: null,
                     stepWaitDuration: null,
@@ -130,7 +131,7 @@ describe('resolveDilemma orchard skip-gather behavior', () => {
         useGameStore.getState().resolveDilemma(0)
 
         const plot = useGameStore.getState().plots.find((p) => p.id === plotId)
-        expect(plot?.state).toBe('empty')
+        expect(plot?.state).toBe(PlotState.Empty)
         expect(plot?.plantedAt).toBeNull()
         expect(useGameStore.getState().grapes).toBe(0)
         expect(useGameStore.getState().activePlotId).toBeNull()
@@ -150,7 +151,7 @@ describe('resolveDilemma orchard skip-gather behavior', () => {
         useGameStore.getState().harvest(plotId)
         useGameStore.getState().resolveDilemma(1)
         const plot = useGameStore.getState().plots.find((p) => p.id === plotId)
-        expect(plot?.state).toBe('harvested')
+        expect(plot?.state).toBe(PlotState.Harvested)
         expect(useGameStore.getState().activePlotId).toBeNull()
     })
 
@@ -162,7 +163,7 @@ describe('resolveDilemma orchard skip-gather behavior', () => {
         useGameStore.getState().resolveDilemma(0)
 
         const plot = useGameStore.getState().plots.find((p) => p.id === plotId)
-        expect(plot?.state).toBe('empty')
+        expect(plot?.state).toBe(PlotState.Empty)
         expect(useGameStore.getState().grapes).toBe(0)
         expect(useGameStore.getState().activePlotId).toBeNull()
     })
@@ -172,7 +173,7 @@ describe('resolveDilemma orchard skip-gather behavior', () => {
         useGameStore.getState().harvest(plotId)
         useGameStore.getState().resolveDilemma(1)
         const plot = useGameStore.getState().plots.find((p) => p.id === plotId)
-        expect(plot?.state).toBe('harvested')
+        expect(plot?.state).toBe(PlotState.Harvested)
     })
 
     it('activePlotId is cleared on every resolveDilemma call', () => {
@@ -281,7 +282,7 @@ describe('PERET_OLLELOT dilemma (cycle 5+, harvestCount >= 4)', () => {
         const plotId = setupOrchardPlot(4)
         useGameStore.getState().harvest(plotId)
         useGameStore.getState().resolveDilemma(0, true)
-        const saved = useGameStore.getState().savedFieldDecisions['peret_ollelot:grapes']
+        const saved = useGameStore.getState().savedFieldDecisions['peret_ollelot:Grapes']
         expect(saved).toBeDefined()
         expect(saved?.choiceIndex).toBe(0)
         expect(saved?.cyclesRemaining).toBe(5)
@@ -330,11 +331,11 @@ describe('PERET_OLLELOT dilemma (cycle 5+, harvestCount >= 4)', () => {
             plots: [
                 {
                     id: plotId,
-                    state: 'ready',
+                    state: PlotState.Ready,
                     plantedAt: Date.now() - 100_000,
                     growthDuration: 20_000,
                     tileCoord: { col: 2, row: 2 },
-                    cropType: 'barley',
+                    cropType: CropType.Barley,
                     hasBeenPlanted: false,
                     nextActionAt: null,
                     stepWaitDuration: null,

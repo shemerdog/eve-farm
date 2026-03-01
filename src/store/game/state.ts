@@ -1,4 +1,5 @@
-import type { BuildingSlot, CropType, GameState, Plot, TileCoord } from '@/types'
+import { CropType, PlotState } from '@/types'
+import type { BuildingSlot, GameState, Plot, TileCoord } from '@/types'
 
 /** The data shape that Zustand's persist middleware writes to localStorage.
  *  Equals GameState because all state fields are persisted (actions are excluded
@@ -16,9 +17,9 @@ import {
 import { FARM_COORD } from '@/game/world-map'
 
 const growthDurationByCropType: Record<CropType, number> = {
-    wheat: WHEAT_GROWTH_DURATION,
-    grapes: GRAPE_GROWTH_DURATION,
-    barley: BARLEY_GROWTH_DURATION,
+    [CropType.Wheat]: WHEAT_GROWTH_DURATION,
+    [CropType.Grapes]: GRAPE_GROWTH_DURATION,
+    [CropType.Barley]: BARLEY_GROWTH_DURATION,
 }
 
 export const makeStructureSlots = (coord: TileCoord): BuildingSlot[] =>
@@ -29,10 +30,10 @@ export const makeStructureSlots = (coord: TileCoord): BuildingSlot[] =>
         state: 'empty' as const,
     }))
 
-export const makePlots = (coord: TileCoord, cropType: CropType = 'wheat'): Plot[] =>
+export const makePlots = (coord: TileCoord, cropType: CropType = CropType.Wheat): Plot[] =>
     Array.from({ length: PLOT_COUNT }, (_, i) => ({
         id: `${coord.col}_${coord.row}_${i}`,
-        state: 'empty' as const,
+        state: PlotState.Empty,
         plantedAt: null,
         growthDuration: growthDurationByCropType[cropType],
         tileCoord: coord,

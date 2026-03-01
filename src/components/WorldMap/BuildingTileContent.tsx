@@ -1,6 +1,6 @@
 import type { TileCoord } from '@/types'
 import { BuildingGrid } from '@/components/BuildingGrid'
-import styles from './FarmTileContent.module.css'
+import styles from './WheatTileContent.module.css'
 
 type Props = { tileCoord: TileCoord }
 

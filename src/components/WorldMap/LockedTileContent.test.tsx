@@ -2,7 +2,7 @@ import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { vi, describe, test, expect, beforeEach } from 'vitest'
 import { LockedTileContent } from './LockedTileContent'
-import type { TileCategory, TileSubcategory } from '@/types'
+import { TileCategory, TileSubcategory } from '@/types'
 
 type OnBuy = (category: TileCategory, subcategory: TileSubcategory) => void
 type OnBuyMock = ReturnType<typeof vi.fn<OnBuy>>
@@ -57,7 +57,7 @@ describe('LockedTileContent — root step (3 category buttons)', () => {
         const onBuy = vi.fn<(c: TileCategory, s: TileSubcategory) => void>()
         render(<LockedTileContent purchasable canAfford price={50} onBuy={onBuy} />)
         await userEvent.click(screen.getByRole('button', { name: /מבנים|structure/i }))
-        expect(onBuy).toHaveBeenCalledWith('structure', 'structure')
+        expect(onBuy).toHaveBeenCalledWith(TileCategory.Structure, TileSubcategory.Structure)
         // Returns to root step
         expect(screen.getByRole('button', { name: /שדה|field/i })).toBeInTheDocument()
     })
@@ -81,7 +81,7 @@ describe('LockedTileContent — field step', () => {
         const onBuy = vi.fn<(c: TileCategory, s: TileSubcategory) => void>()
         await renderFieldStep(onBuy)
         await userEvent.click(screen.getByRole('button', { name: /חיטה|wheat/i }))
-        expect(onBuy).toHaveBeenCalledWith('field', 'wheat')
+        expect(onBuy).toHaveBeenCalledWith(TileCategory.Field, TileSubcategory.Wheat)
         // Back at root step — category buttons reappear
         expect(screen.getByRole('button', { name: /שדה|field/i })).toBeInTheDocument()
     })
@@ -90,7 +90,7 @@ describe('LockedTileContent — field step', () => {
         const onBuy = vi.fn<(c: TileCategory, s: TileSubcategory) => void>()
         await renderFieldStep(onBuy)
         await userEvent.click(screen.getByRole('button', { name: /שעורה|barley/i }))
-        expect(onBuy).toHaveBeenCalledWith('field', 'barley')
+        expect(onBuy).toHaveBeenCalledWith(TileCategory.Field, TileSubcategory.Barley)
         expect(screen.getByRole('button', { name: /שדה|field/i })).toBeInTheDocument()
     })
 
@@ -119,7 +119,7 @@ describe('LockedTileContent — orchard step', () => {
             .find((b) => /כרם|vineyard/i.test(b.textContent ?? ''))
         expect(vineyardBtn).toBeDefined()
         await userEvent.click(vineyardBtn!)
-        expect(onBuy).toHaveBeenCalledWith('orchard', 'grapes')
+        expect(onBuy).toHaveBeenCalledWith(TileCategory.Orchard, TileSubcategory.Grapes)
         expect(screen.getByRole('button', { name: /שדה|field/i })).toBeInTheDocument()
     })
 

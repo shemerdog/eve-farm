@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event'
 import { describe, it, expect, beforeEach } from 'vitest'
 import { BuildingSlotTile } from './BuildingSlotTile'
 import type { BuildingSlot } from '@/types'
+import { BuildingType } from '@/types'
 import { useGameStore } from '@/store/game-store'
 import { resetGameStore } from '@/test-utils/game-store'
 import { HE } from '@/game/strings.he'
@@ -30,16 +31,16 @@ describe('BuildingSlotTile — empty slot', () => {
         render(<BuildingSlotTile slot={EMPTY_SLOT} />)
         await userEvent.click(screen.getByRole('button', { name: HE.buildings.emptySlotLabel }))
         expect(
-            screen.getByRole('button', { name: new RegExp(HE.buildings.farmhouse) }),
+            screen.getByRole('button', { name: new RegExp(HE.buildings.Farmhouse) }),
         ).toBeInTheDocument()
         expect(
-            screen.getByRole('button', { name: new RegExp(HE.buildings.barn) }),
+            screen.getByRole('button', { name: new RegExp(HE.buildings.Barn) }),
         ).toBeInTheDocument()
         expect(
-            screen.getByRole('button', { name: new RegExp(HE.buildings.sheepfold) }),
+            screen.getByRole('button', { name: new RegExp(HE.buildings.Sheepfold) }),
         ).toBeInTheDocument()
         expect(
-            screen.getByRole('button', { name: new RegExp(HE.buildings.silo) }),
+            screen.getByRole('button', { name: new RegExp(HE.buildings.Silo) }),
         ).toBeInTheDocument()
     })
 
@@ -48,22 +49,20 @@ describe('BuildingSlotTile — empty slot', () => {
         render(<BuildingSlotTile slot={EMPTY_SLOT} />)
         await userEvent.click(screen.getByRole('button', { name: HE.buildings.emptySlotLabel }))
         await userEvent.click(
-            screen.getByRole('button', { name: new RegExp(HE.buildings.farmhouse) }),
+            screen.getByRole('button', { name: new RegExp(HE.buildings.Farmhouse) }),
         )
         const slot = useGameStore.getState().buildingSlots.find((s) => s.id === EMPTY_SLOT.id)!
         expect(slot.state).toBe('built')
-        expect(slot.buildingType).toBe('farmhouse')
+        expect(slot.buildingType).toBe(BuildingType.Farmhouse)
     })
 
     it('selecting barn calls buildStructure with "barn"', async () => {
         useGameStore.setState({ buildingSlots: [{ ...EMPTY_SLOT }] })
         render(<BuildingSlotTile slot={EMPTY_SLOT} />)
         await userEvent.click(screen.getByRole('button', { name: HE.buildings.emptySlotLabel }))
-        await userEvent.click(
-            screen.getByRole('button', { name: new RegExp(HE.buildings.barn) }),
-        )
+        await userEvent.click(screen.getByRole('button', { name: new RegExp(HE.buildings.Barn) }))
         const slot = useGameStore.getState().buildingSlots.find((s) => s.id === EMPTY_SLOT.id)!
-        expect(slot.buildingType).toBe('barn')
+        expect(slot.buildingType).toBe(BuildingType.Barn)
     })
 
     it('back button in picking mode returns to build button without building', async () => {
@@ -80,33 +79,49 @@ describe('BuildingSlotTile — built slot', () => {
     it('renders the building name for farmhouse', () => {
         const slot: BuildingSlot = {
             ...EMPTY_SLOT,
-            buildingType: 'farmhouse',
+            buildingType: BuildingType.Farmhouse,
             state: 'built',
         }
         render(<BuildingSlotTile slot={slot} />)
-        expect(screen.getByText(HE.buildings.farmhouse)).toBeInTheDocument()
+        expect(screen.getByText(HE.buildings.Farmhouse)).toBeInTheDocument()
     })
 
     it('renders the building name for barn', () => {
-        const slot: BuildingSlot = { ...EMPTY_SLOT, buildingType: 'barn', state: 'built' }
+        const slot: BuildingSlot = {
+            ...EMPTY_SLOT,
+            buildingType: BuildingType.Barn,
+            state: 'built',
+        }
         render(<BuildingSlotTile slot={slot} />)
-        expect(screen.getByText(HE.buildings.barn)).toBeInTheDocument()
+        expect(screen.getByText(HE.buildings.Barn)).toBeInTheDocument()
     })
 
     it('renders the building name for sheepfold', () => {
-        const slot: BuildingSlot = { ...EMPTY_SLOT, buildingType: 'sheepfold', state: 'built' }
+        const slot: BuildingSlot = {
+            ...EMPTY_SLOT,
+            buildingType: BuildingType.Sheepfold,
+            state: 'built',
+        }
         render(<BuildingSlotTile slot={slot} />)
-        expect(screen.getByText(HE.buildings.sheepfold)).toBeInTheDocument()
+        expect(screen.getByText(HE.buildings.Sheepfold)).toBeInTheDocument()
     })
 
     it('renders the building name for silo', () => {
-        const slot: BuildingSlot = { ...EMPTY_SLOT, buildingType: 'silo', state: 'built' }
+        const slot: BuildingSlot = {
+            ...EMPTY_SLOT,
+            buildingType: BuildingType.Silo,
+            state: 'built',
+        }
         render(<BuildingSlotTile slot={slot} />)
-        expect(screen.getByText(HE.buildings.silo)).toBeInTheDocument()
+        expect(screen.getByText(HE.buildings.Silo)).toBeInTheDocument()
     })
 
     it('does not render the build button when slot is built', () => {
-        const slot: BuildingSlot = { ...EMPTY_SLOT, buildingType: 'silo', state: 'built' }
+        const slot: BuildingSlot = {
+            ...EMPTY_SLOT,
+            buildingType: BuildingType.Silo,
+            state: 'built',
+        }
         render(<BuildingSlotTile slot={slot} />)
         expect(
             screen.queryByRole('button', { name: HE.buildings.emptySlotLabel }),

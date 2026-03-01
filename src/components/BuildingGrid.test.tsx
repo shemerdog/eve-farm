@@ -6,6 +6,7 @@ import { resetGameStore } from '@/test-utils/game-store'
 import { HE } from '@/game/strings.he'
 import { makeStructureSlots } from '@/store/game/state'
 import { BUILDING_SLOT_COUNT } from '@/game/constants'
+import { BuildingType } from '@/types'
 
 const COORD = { col: 2, row: 1 }
 const OTHER_COORD = { col: 3, row: 2 }
@@ -41,9 +42,9 @@ describe('BuildingGrid', () => {
 
     it('renders a built slot by its building name', () => {
         const slots = makeStructureSlots(COORD)
-        slots[0] = { ...slots[0], buildingType: 'barn', state: 'built' }
+        slots[0] = { ...slots[0], buildingType: BuildingType.Barn, state: 'built' }
         useGameStore.setState({ buildingSlots: slots })
         render(<BuildingGrid tileCoord={COORD} />)
-        expect(screen.getByText(HE.buildings.barn)).toBeInTheDocument()
+        expect(screen.getByText(HE.buildings.Barn)).toBeInTheDocument()
     })
 })

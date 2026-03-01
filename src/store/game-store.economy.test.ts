@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { useGameStore } from './game-store'
 import { buyTileWithWheat, findPlotByCoord, resetGameStore } from '@/test-utils/game-store'
+import { TileCategory, TileSubcategory, CropType, PlotState } from '@/types'
 import {
     GRAPES_PER_HARVEST,
     BARLEY_GROWTH_DURATION,
@@ -19,35 +20,35 @@ describe('buyTile with category + subcategory', () => {
         useGameStore.setState({ shekels: 1000 })
 
         const coord = { col: 2, row: 1 } // adjacent to default farm at (2,2)
-        useGameStore.getState().buyTile(coord, 'field', 'wheat')
+        useGameStore.getState().buyTile(coord, TileCategory.Field, TileSubcategory.Wheat)
 
         const state = useGameStore.getState()
         const category = state.tileCategories[`${coord.col}_${coord.row}`]
-        expect(category).toBe('field')
+        expect(category).toBe(TileCategory.Field)
 
         const plots = state.plots.filter(
             (p) => p.tileCoord.col === coord.col && p.tileCoord.row === coord.row,
         )
         expect(plots.length).toBe(4)
-        plots.forEach((p) => expect(p.cropType).toBe('wheat'))
+        plots.forEach((p) => expect(p.cropType).toBe(CropType.Wheat))
     })
 
     it('buyTile("field", "barley") creates barley plots and stores category "field"', () => {
         useGameStore.setState({ shekels: 1000 })
 
         const coord = { col: 2, row: 1 }
-        useGameStore.getState().buyTile(coord, 'field', 'barley')
+        useGameStore.getState().buyTile(coord, TileCategory.Field, TileSubcategory.Barley)
 
         const state = useGameStore.getState()
         const category = state.tileCategories[`${coord.col}_${coord.row}`]
-        expect(category).toBe('field')
+        expect(category).toBe(TileCategory.Field)
 
         const plots = state.plots.filter(
             (p) => p.tileCoord.col === coord.col && p.tileCoord.row === coord.row,
         )
         expect(plots.length).toBe(4)
         plots.forEach((p) => {
-            expect(p.cropType).toBe('barley')
+            expect(p.cropType).toBe(CropType.Barley)
             expect(p.growthDuration).toBe(BARLEY_GROWTH_DURATION)
         })
     })
@@ -56,17 +57,17 @@ describe('buyTile with category + subcategory', () => {
         useGameStore.setState({ shekels: 1000 })
 
         const coord = { col: 2, row: 1 }
-        useGameStore.getState().buyTile(coord, 'orchard', 'grapes')
+        useGameStore.getState().buyTile(coord, TileCategory.Orchard, TileSubcategory.Grapes)
 
         const state = useGameStore.getState()
         const category = state.tileCategories[`${coord.col}_${coord.row}`]
-        expect(category).toBe('orchard')
+        expect(category).toBe(TileCategory.Orchard)
 
         const plots = state.plots.filter(
             (p) => p.tileCoord.col === coord.col && p.tileCoord.row === coord.row,
         )
         expect(plots.length).toBe(4)
-        plots.forEach((p) => expect(p.cropType).toBe('grapes'))
+        plots.forEach((p) => expect(p.cropType).toBe(CropType.Grapes))
     })
 
     it('grape plots have longer growthDuration than wheat', () => {
@@ -75,8 +76,8 @@ describe('buyTile with category + subcategory', () => {
         const wheatCoord = { col: 2, row: 1 }
         const grapeCoord = { col: 3, row: 2 }
 
-        useGameStore.getState().buyTile(wheatCoord, 'field', 'wheat')
-        useGameStore.getState().buyTile(grapeCoord, 'orchard', 'grapes')
+        useGameStore.getState().buyTile(wheatCoord, TileCategory.Field, TileSubcategory.Wheat)
+        useGameStore.getState().buyTile(grapeCoord, TileCategory.Orchard, TileSubcategory.Grapes)
 
         const state = useGameStore.getState()
         const wheatPlot = state.plots.find(
@@ -92,7 +93,7 @@ describe('buyTile with category + subcategory', () => {
     it('buyTile fails when not adjacent (no category stored)', () => {
         useGameStore.setState({ shekels: 1000 })
         const farCoord = { col: 0, row: 0 } // not adjacent to (2,2)
-        useGameStore.getState().buyTile(farCoord, 'orchard', 'grapes')
+        useGameStore.getState().buyTile(farCoord, TileCategory.Orchard, TileSubcategory.Grapes)
 
         const state = useGameStore.getState()
         expect(state.tileCategories[`${farCoord.col}_${farCoord.row}`]).toBeUndefined()
@@ -101,7 +102,7 @@ describe('buyTile with category + subcategory', () => {
     it('buyTile fails when shekels < price (no category stored)', () => {
         useGameStore.setState({ shekels: 0 })
         const coord = { col: 2, row: 1 }
-        useGameStore.getState().buyTile(coord, 'field', 'wheat')
+        useGameStore.getState().buyTile(coord, TileCategory.Field, TileSubcategory.Wheat)
 
         const state = useGameStore.getState()
         expect(state.tileCategories[`${coord.col}_${coord.row}`]).toBeUndefined()
@@ -110,7 +111,7 @@ describe('buyTile with category + subcategory', () => {
     it('buyTile deducts shekels on success', () => {
         useGameStore.setState({ shekels: 1000 })
         const coord = { col: 2, row: 1 }
-        useGameStore.getState().buyTile(coord, 'field', 'wheat')
+        useGameStore.getState().buyTile(coord, TileCategory.Field, TileSubcategory.Wheat)
 
         expect(useGameStore.getState().shekels).toBeLessThan(1000)
     })
@@ -118,7 +119,7 @@ describe('buyTile with category + subcategory', () => {
     it('barley plots have growthDuration between wheat and grapes', () => {
         useGameStore.setState({ shekels: 1000 })
         const barleyCoord = { col: 2, row: 1 }
-        useGameStore.getState().buyTile(barleyCoord, 'field', 'barley')
+        useGameStore.getState().buyTile(barleyCoord, TileCategory.Field, TileSubcategory.Barley)
 
         const state = useGameStore.getState()
         const barleyPlot = state.plots.find(
@@ -133,14 +134,14 @@ describe('buyTile with category + subcategory', () => {
 describe('gatherSheafs crop yield', () => {
     it('gathering a grape plot adds to grapes counter (not wheat)', () => {
         const coord = { col: 2, row: 1 }
-        buyTileWithWheat(coord, 'orchard', 'grapes')
+        buyTileWithWheat(coord, TileCategory.Orchard, TileSubcategory.Grapes)
         const state = useGameStore.getState()
         const grapePlot = findPlotByCoord(coord)
 
         // Force plot into gathered state with known wheat/grapes counts
         useGameStore.setState({
             plots: state.plots.map((p) =>
-                p.id === grapePlot.id ? { ...p, state: 'gathered' as const } : p,
+                p.id === grapePlot.id ? { ...p, state: PlotState.Gathered } : p,
             ),
             wheat: 0,
             grapes: 0,
@@ -159,7 +160,7 @@ describe('gatherSheafs crop yield', () => {
 
         useGameStore.setState({
             plots: state.plots.map((p) =>
-                p.id === wheatPlot.id ? { ...p, state: 'gathered' as const } : p,
+                p.id === wheatPlot.id ? { ...p, state: PlotState.Gathered } : p,
             ),
             wheat: 0,
             grapes: 0,
@@ -190,7 +191,7 @@ describe('gatherSheafs dilemma routing', () => {
 
         useGameStore.setState({
             plots: state.plots.map((p) =>
-                p.id === wheatPlot.id ? { ...p, state: 'gathered' as const } : p,
+                p.id === wheatPlot.id ? { ...p, state: PlotState.Gathered } : p,
             ),
             activeDilemma: null,
             wheat: 0,
@@ -205,13 +206,13 @@ describe('gatherSheafs dilemma routing', () => {
 
     it('gathering a grape plot does NOT trigger any dilemma', () => {
         const coord = { col: 2, row: 1 }
-        buyTileWithWheat(coord, 'orchard', 'grapes')
+        buyTileWithWheat(coord, TileCategory.Orchard, TileSubcategory.Grapes)
         const state = useGameStore.getState()
         const grapePlot = findPlotByCoord(coord)
 
         useGameStore.setState({
             plots: state.plots.map((p) =>
-                p.id === grapePlot.id ? { ...p, state: 'gathered' as const } : p,
+                p.id === grapePlot.id ? { ...p, state: PlotState.Gathered } : p,
             ),
             activeDilemma: null,
             wheat: 0,
@@ -234,7 +235,7 @@ describe('gatherSheafs dilemma routing', () => {
 
         useGameStore.setState({
             plots: state.plots.map((p) =>
-                p.id === wheatPlot.id ? { ...p, state: 'gathered' as const } : p,
+                p.id === wheatPlot.id ? { ...p, state: PlotState.Gathered } : p,
             ),
             activeDilemma: existingDilemma as never,
             wheat: 0,
@@ -251,7 +252,7 @@ describe('gatherSheafs — barley', () => {
     it('gathering a barley plot adds to barley counter (not wheat or grapes)', () => {
         useGameStore.setState({ wheat: 1000 })
         const coord = { col: 2, row: 1 }
-        useGameStore.getState().buyTile(coord, 'field', 'barley')
+        useGameStore.getState().buyTile(coord, TileCategory.Field, TileSubcategory.Barley)
 
         const state = useGameStore.getState()
         const barleyPlot = state.plots.find(
@@ -260,7 +261,7 @@ describe('gatherSheafs — barley', () => {
 
         useGameStore.setState({
             plots: state.plots.map((p) =>
-                p.id === barleyPlot.id ? { ...p, state: 'gathered' as const } : p,
+                p.id === barleyPlot.id ? { ...p, state: PlotState.Gathered } : p,
             ),
             wheat: 0,
             grapes: 0,
@@ -288,7 +289,7 @@ describe('gatherSheafs — barley', () => {
     it('gathering a barley plot triggers SHIKCHAH_DILEMMA', () => {
         useGameStore.setState({ wheat: 1000 })
         const coord = { col: 2, row: 1 }
-        useGameStore.getState().buyTile(coord, 'field', 'barley')
+        useGameStore.getState().buyTile(coord, TileCategory.Field, TileSubcategory.Barley)
 
         const state = useGameStore.getState()
         const barleyPlot = state.plots.find(
@@ -297,7 +298,7 @@ describe('gatherSheafs — barley', () => {
 
         useGameStore.setState({
             plots: state.plots.map((p) =>
-                p.id === barleyPlot.id ? { ...p, state: 'gathered' as const } : p,
+                p.id === barleyPlot.id ? { ...p, state: PlotState.Gathered } : p,
             ),
             activeDilemma: null,
             wheat: 0,
@@ -315,7 +316,7 @@ describe('harvest dilemma routing', () => {
     it('harvesting a grape plot sets ORLAH_DILEMMA as activeDilemma', () => {
         useGameStore.setState({ wheat: 1000 })
         const coord = { col: 2, row: 1 }
-        useGameStore.getState().buyTile(coord, 'orchard', 'grapes')
+        useGameStore.getState().buyTile(coord, TileCategory.Orchard, TileSubcategory.Grapes)
 
         const state = useGameStore.getState()
         const grapePlot = state.plots.find(
@@ -325,7 +326,7 @@ describe('harvest dilemma routing', () => {
         // Force plot into ready state
         useGameStore.setState({
             plots: state.plots.map((p) =>
-                p.id === grapePlot.id ? { ...p, state: 'ready' as const } : p,
+                p.id === grapePlot.id ? { ...p, state: PlotState.Ready } : p,
             ),
             activeDilemma: null,
         })
@@ -343,7 +344,7 @@ describe('harvest dilemma routing', () => {
 
         useGameStore.setState({
             plots: state.plots.map((p) =>
-                p.id === wheatPlot.id ? { ...p, state: 'ready' as const } : p,
+                p.id === wheatPlot.id ? { ...p, state: PlotState.Ready } : p,
             ),
             activeDilemma: null,
         })
@@ -358,7 +359,7 @@ describe('harvest dilemma routing', () => {
     it('harvesting a barley plot sets PEAH_DILEMMA as activeDilemma', () => {
         useGameStore.setState({ wheat: 1000 })
         const coord = { col: 2, row: 1 }
-        useGameStore.getState().buyTile(coord, 'field', 'barley')
+        useGameStore.getState().buyTile(coord, TileCategory.Field, TileSubcategory.Barley)
 
         const state = useGameStore.getState()
         const barleyPlot = state.plots.find(
@@ -367,7 +368,7 @@ describe('harvest dilemma routing', () => {
 
         useGameStore.setState({
             plots: state.plots.map((p) =>
-                p.id === barleyPlot.id ? { ...p, state: 'ready' as const } : p,
+                p.id === barleyPlot.id ? { ...p, state: PlotState.Ready } : p,
             ),
             activeDilemma: null,
         })
@@ -382,7 +383,7 @@ describe('harvest dilemma routing', () => {
     it("harvesting a barley plot sets activeDilemmaContext to 'barley'", () => {
         useGameStore.setState({ wheat: 1000 })
         const coord = { col: 2, row: 1 }
-        useGameStore.getState().buyTile(coord, 'field', 'barley')
+        useGameStore.getState().buyTile(coord, TileCategory.Field, TileSubcategory.Barley)
 
         const state = useGameStore.getState()
         const barleyPlot = state.plots.find(
@@ -391,7 +392,7 @@ describe('harvest dilemma routing', () => {
 
         useGameStore.setState({
             plots: state.plots.map((p) =>
-                p.id === barleyPlot.id ? { ...p, state: 'ready' as const } : p,
+                p.id === barleyPlot.id ? { ...p, state: PlotState.Ready } : p,
             ),
             activeDilemma: null,
             activeDilemmaContext: null,
@@ -399,7 +400,7 @@ describe('harvest dilemma routing', () => {
 
         useGameStore.getState().harvest(barleyPlot.id)
 
-        expect(useGameStore.getState().activeDilemmaContext).toBe('barley')
+        expect(useGameStore.getState().activeDilemmaContext).toBe(CropType.Barley)
     })
 
     it("harvesting a wheat plot sets activeDilemmaContext to 'wheat'", () => {
@@ -408,7 +409,7 @@ describe('harvest dilemma routing', () => {
 
         useGameStore.setState({
             plots: state.plots.map((p) =>
-                p.id === wheatPlot.id ? { ...p, state: 'ready' as const } : p,
+                p.id === wheatPlot.id ? { ...p, state: PlotState.Ready } : p,
             ),
             activeDilemma: null,
             activeDilemmaContext: null,
@@ -416,7 +417,7 @@ describe('harvest dilemma routing', () => {
 
         useGameStore.getState().harvest(wheatPlot.id)
 
-        expect(useGameStore.getState().activeDilemmaContext).toBe('wheat')
+        expect(useGameStore.getState().activeDilemmaContext).toBe(CropType.Wheat)
     })
 })
 
@@ -427,42 +428,42 @@ describe('sellCrops', () => {
 
     it('selling wheat when < SELL_BULK_SIZE is a no-op', () => {
         useGameStore.setState({ wheat: SELL_BULK_SIZE - 1, shekels: INITIAL_SHEKELS })
-        useGameStore.getState().sellCrops('wheat')
+        useGameStore.getState().sellCrops(CropType.Wheat)
         expect(useGameStore.getState().wheat).toBe(SELL_BULK_SIZE - 1)
         expect(useGameStore.getState().shekels).toBe(INITIAL_SHEKELS)
     })
 
     it('selling 10 wheat deducts 10 wheat and adds 50₪', () => {
         useGameStore.setState({ wheat: 10, shekels: 0 })
-        useGameStore.getState().sellCrops('wheat')
+        useGameStore.getState().sellCrops(CropType.Wheat)
         expect(useGameStore.getState().wheat).toBe(0)
         expect(useGameStore.getState().shekels).toBe(50)
     })
 
     it('selling 10 barley deducts 10 barley and adds 70₪', () => {
         useGameStore.setState({ barley: 10, shekels: 0 })
-        useGameStore.getState().sellCrops('barley')
+        useGameStore.getState().sellCrops(CropType.Barley)
         expect(useGameStore.getState().barley).toBe(0)
         expect(useGameStore.getState().shekels).toBe(70)
     })
 
     it('selling 10 grapes deducts 10 grapes and adds 100₪', () => {
         useGameStore.setState({ grapes: 10, shekels: 0 })
-        useGameStore.getState().sellCrops('grapes')
+        useGameStore.getState().sellCrops(CropType.Grapes)
         expect(useGameStore.getState().grapes).toBe(0)
         expect(useGameStore.getState().shekels).toBe(100)
     })
 
     it('selling when exactly SELL_BULK_SIZE succeeds', () => {
         useGameStore.setState({ wheat: SELL_BULK_SIZE, shekels: 0 })
-        useGameStore.getState().sellCrops('wheat')
+        useGameStore.getState().sellCrops(CropType.Wheat)
         expect(useGameStore.getState().wheat).toBe(0)
         expect(useGameStore.getState().shekels).toBe(50)
     })
 
     it('selling when more than SELL_BULK_SIZE deducts exactly 10', () => {
         useGameStore.setState({ wheat: 25, shekels: 0 })
-        useGameStore.getState().sellCrops('wheat')
+        useGameStore.getState().sellCrops(CropType.Wheat)
         expect(useGameStore.getState().wheat).toBe(15)
         expect(useGameStore.getState().shekels).toBe(50)
     })

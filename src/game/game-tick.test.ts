@@ -1,14 +1,15 @@
 import { describe, it, expect } from 'vitest'
 import { tickPlot, growthProgress, stepWaitProgress } from './game-tick'
 import type { Plot } from '@/types'
+import { PlotState, CropType } from '@/types'
 
 const makePlot = (overrides: Partial<Plot> = {}): Plot => ({
     id: '2_2_0',
-    state: 'growing',
+    state: PlotState.Growing,
     plantedAt: Date.now(),
     growthDuration: 15_000,
     tileCoord: { col: 2, row: 2 },
-    cropType: 'wheat',
+    cropType: CropType.Wheat,
     hasBeenPlanted: false,
     nextActionAt: null,
     stepWaitDuration: null,
@@ -21,65 +22,65 @@ describe('tickPlot', () => {
         const now = Date.now()
         const plot = makePlot({ plantedAt: now - 16_000 })
         const result = tickPlot(plot, now)
-        expect(result.state).toBe('ready')
+        expect(result.state).toBe(PlotState.Ready)
     })
 
     it('leaves growing plot unchanged when growthDuration has not elapsed', () => {
         const now = Date.now()
         const plot = makePlot({ plantedAt: now - 5_000 })
         const result = tickPlot(plot, now)
-        expect(result.state).toBe('growing')
+        expect(result.state).toBe(PlotState.Growing)
     })
 
     it('transitions exactly at growthDuration boundary', () => {
         const now = Date.now()
         const plot = makePlot({ plantedAt: now - 15_000 })
         const result = tickPlot(plot, now)
-        expect(result.state).toBe('ready')
+        expect(result.state).toBe(PlotState.Ready)
     })
 
     it('does not modify plots that are not in growing state', () => {
-        const emptyPlot = makePlot({ state: 'empty', plantedAt: null })
-        expect(tickPlot(emptyPlot).state).toBe('empty')
+        const emptyPlot = makePlot({ state: PlotState.Empty, plantedAt: null })
+        expect(tickPlot(emptyPlot).state).toBe(PlotState.Empty)
 
-        const plowedPlot = makePlot({ state: 'plowed', plantedAt: null })
-        expect(tickPlot(plowedPlot).state).toBe('plowed')
+        const plowedPlot = makePlot({ state: PlotState.Plowed, plantedAt: null })
+        expect(tickPlot(plowedPlot).state).toBe(PlotState.Plowed)
 
         const plantedPlot = makePlot({
-            state: 'planted',
+            state: PlotState.Planted,
             plantedAt: null,
-            cropType: 'grapes',
+            cropType: CropType.Grapes,
         })
-        expect(tickPlot(plantedPlot).state).toBe('planted')
+        expect(tickPlot(plantedPlot).state).toBe(PlotState.Planted)
 
         const fertilizedPlot = makePlot({
-            state: 'fertilized',
+            state: PlotState.Fertilized,
             plantedAt: null,
-            cropType: 'grapes',
+            cropType: CropType.Grapes,
         })
-        expect(tickPlot(fertilizedPlot).state).toBe('fertilized')
+        expect(tickPlot(fertilizedPlot).state).toBe(PlotState.Fertilized)
 
         const tendedPlot = makePlot({
-            state: 'tended',
+            state: PlotState.Tended,
             plantedAt: null,
-            cropType: 'grapes',
+            cropType: CropType.Grapes,
         })
-        expect(tickPlot(tendedPlot).state).toBe('tended')
+        expect(tickPlot(tendedPlot).state).toBe(PlotState.Tended)
 
-        const readyPlot = makePlot({ state: 'ready' })
-        expect(tickPlot(readyPlot).state).toBe('ready')
+        const readyPlot = makePlot({ state: PlotState.Ready })
+        expect(tickPlot(readyPlot).state).toBe(PlotState.Ready)
 
-        const harvestedPlot = makePlot({ state: 'harvested' })
-        expect(tickPlot(harvestedPlot).state).toBe('harvested')
+        const harvestedPlot = makePlot({ state: PlotState.Harvested })
+        expect(tickPlot(harvestedPlot).state).toBe(PlotState.Harvested)
 
-        const gatheredPlot = makePlot({ state: 'gathered' })
-        expect(tickPlot(gatheredPlot).state).toBe('gathered')
+        const gatheredPlot = makePlot({ state: PlotState.Gathered })
+        expect(tickPlot(gatheredPlot).state).toBe(PlotState.Gathered)
     })
 
     it('does not modify a growing plot with null plantedAt', () => {
         const plot = makePlot({ plantedAt: null })
         const result = tickPlot(plot)
-        expect(result.state).toBe('growing')
+        expect(result.state).toBe(PlotState.Growing)
     })
 
     it('returns a new object reference on state change', () => {
@@ -101,7 +102,7 @@ describe('tickPlot', () => {
         const plot = makePlot({
             plantedAt: now - 5_000,
             growthDuration: 10_000,
-            cropType: 'grapes',
+            cropType: CropType.Grapes,
             hasBeenPlanted: true,
             harvestCount: 7,
         })
@@ -114,9 +115,9 @@ describe('tickPlot — nextActionAt unlock', () => {
     it('clears nextActionAt when its time has passed', () => {
         const now = Date.now()
         const plot = makePlot({
-            state: 'fertilized',
+            state: PlotState.Fertilized,
             plantedAt: null,
-            cropType: 'grapes',
+            cropType: CropType.Grapes,
             nextActionAt: now - 1,
         })
         const result = tickPlot(plot, now)
@@ -126,9 +127,9 @@ describe('tickPlot — nextActionAt unlock', () => {
     it('clears nextActionAt exactly at the boundary', () => {
         const now = Date.now()
         const plot = makePlot({
-            state: 'tended',
+            state: PlotState.Tended,
             plantedAt: null,
-            cropType: 'grapes',
+            cropType: CropType.Grapes,
             nextActionAt: now,
         })
         const result = tickPlot(plot, now)
@@ -138,9 +139,9 @@ describe('tickPlot — nextActionAt unlock', () => {
     it('does not clear nextActionAt before its time', () => {
         const now = Date.now()
         const plot = makePlot({
-            state: 'fertilized',
+            state: PlotState.Fertilized,
             plantedAt: null,
-            cropType: 'grapes',
+            cropType: CropType.Grapes,
             nextActionAt: now + 5_000,
         })
         const result = tickPlot(plot, now)
@@ -150,9 +151,9 @@ describe('tickPlot — nextActionAt unlock', () => {
     it('returns a new object reference when nextActionAt clears', () => {
         const now = Date.now()
         const plot = makePlot({
-            state: 'fertilized',
+            state: PlotState.Fertilized,
             plantedAt: null,
-            cropType: 'grapes',
+            cropType: CropType.Grapes,
             nextActionAt: now - 1,
         })
         const result = tickPlot(plot, now)
@@ -162,9 +163,9 @@ describe('tickPlot — nextActionAt unlock', () => {
     it('clears stepWaitDuration when nextActionAt clears', () => {
         const now = Date.now()
         const plot = makePlot({
-            state: 'fertilized',
+            state: PlotState.Fertilized,
             plantedAt: null,
-            cropType: 'grapes',
+            cropType: CropType.Grapes,
             nextActionAt: now - 1,
             stepWaitDuration: 10_000,
         })
@@ -178,7 +179,7 @@ describe('tickPlot — nextActionAt unlock', () => {
         // nextActionAt clear takes priority in the first tick, ready on the next.
         const now = Date.now()
         const plot = makePlot({
-            state: 'growing',
+            state: PlotState.Growing,
             plantedAt: now - 20_000,
             growthDuration: 15_000,
             nextActionAt: now - 1,
@@ -186,14 +187,14 @@ describe('tickPlot — nextActionAt unlock', () => {
         const result = tickPlot(plot, now)
         // nextActionAt cleared; state still growing (will become ready next tick)
         expect(result.nextActionAt).toBeNull()
-        expect(result.state).toBe('growing')
+        expect(result.state).toBe(PlotState.Growing)
     })
 })
 
 describe('growthProgress', () => {
     it('returns 0 for non-growing plots', () => {
-        expect(growthProgress(makePlot({ state: 'empty', plantedAt: null }))).toBe(0)
-        expect(growthProgress(makePlot({ state: 'ready' }))).toBe(0)
+        expect(growthProgress(makePlot({ state: PlotState.Empty, plantedAt: null }))).toBe(0)
+        expect(growthProgress(makePlot({ state: PlotState.Ready }))).toBe(0)
     })
 
     it('returns 0 for growing plot with null plantedAt', () => {

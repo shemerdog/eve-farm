@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event'
 import { vi, describe, test, expect, beforeEach } from 'vitest'
 import { PlotTile } from './PlotTile'
 import type { Plot } from '@/types'
+import { PlotState, CropType } from '@/types'
 
 const mockPlantWheat = vi.fn()
 const mockHarvest = vi.fn()
@@ -43,11 +44,11 @@ describe('PlotTile — orchard first cycle (grapes, hasBeenPlanted=false)', () =
 
     const emptyGrapePlot: Plot = {
         id: '3_2_0',
-        state: 'empty',
+        state: PlotState.Empty,
         plantedAt: null,
         growthDuration: 30000,
         tileCoord: grapeCoord,
-        cropType: 'grapes',
+        cropType: CropType.Grapes,
         hasBeenPlanted: false,
         nextActionAt: null,
         stepWaitDuration: null,
@@ -69,11 +70,11 @@ describe('PlotTile — orchard first cycle (grapes, hasBeenPlanted=false)', () =
 
     const plantedPlot: Plot = {
         id: '3_2_0',
-        state: 'planted',
+        state: PlotState.Planted,
         plantedAt: null,
         growthDuration: 30000,
         tileCoord: grapeCoord,
-        cropType: 'grapes',
+        cropType: CropType.Grapes,
         hasBeenPlanted: true,
         nextActionAt: null,
         stepWaitDuration: null,
@@ -94,11 +95,11 @@ describe('PlotTile — orchard first cycle (grapes, hasBeenPlanted=false)', () =
 
     const fertilizedPlot: Plot = {
         id: '3_2_0',
-        state: 'fertilized',
+        state: PlotState.Fertilized,
         plantedAt: null,
         growthDuration: 30000,
         tileCoord: grapeCoord,
-        cropType: 'grapes',
+        cropType: CropType.Grapes,
         hasBeenPlanted: true,
         nextActionAt: null,
         stepWaitDuration: null,
@@ -119,11 +120,11 @@ describe('PlotTile — orchard first cycle (grapes, hasBeenPlanted=false)', () =
 
     const tendedPlot: Plot = {
         id: '3_2_0',
-        state: 'tended',
+        state: PlotState.Tended,
         plantedAt: null,
         growthDuration: 30000,
         tileCoord: grapeCoord,
-        cropType: 'grapes',
+        cropType: CropType.Grapes,
         hasBeenPlanted: true,
         nextActionAt: null,
         stepWaitDuration: null,
@@ -144,11 +145,11 @@ describe('PlotTile — orchard first cycle (grapes, hasBeenPlanted=false)', () =
 
     const readyGrapePlot: Plot = {
         id: '3_2_0',
-        state: 'ready',
+        state: PlotState.Ready,
         plantedAt: null,
         growthDuration: 30000,
         tileCoord: grapeCoord,
-        cropType: 'grapes',
+        cropType: CropType.Grapes,
         hasBeenPlanted: true,
         nextActionAt: null,
         stepWaitDuration: null,
@@ -173,11 +174,11 @@ describe('PlotTile — orchard subsequent cycle (grapes, hasBeenPlanted=true)', 
 
     const emptyGrapeReturning: Plot = {
         id: '3_2_1',
-        state: 'empty',
+        state: PlotState.Empty,
         plantedAt: null,
         growthDuration: 30000,
         tileCoord: grapeCoord,
-        cropType: 'grapes',
+        cropType: CropType.Grapes,
         hasBeenPlanted: true,
         nextActionAt: null,
         stepWaitDuration: null,
@@ -205,52 +206,52 @@ describe('PlotTile — data-state for new orchard states', () => {
     test("planted plot has data-state='planted'", (): void => {
         const plot: Plot = {
             id: '3_2_0',
-            state: 'planted',
+            state: PlotState.Planted,
             plantedAt: null,
             growthDuration: 30000,
             tileCoord: grapeCoord,
-            cropType: 'grapes',
+            cropType: CropType.Grapes,
             hasBeenPlanted: true,
             nextActionAt: null,
             stepWaitDuration: null,
             harvestCount: 0,
         }
         const { container } = render(<PlotTile plot={plot} />)
-        expect(container.firstElementChild).toHaveAttribute('data-state', 'planted')
+        expect(container.firstElementChild).toHaveAttribute('data-state', 'Planted')
     })
 
     test("fertilized plot has data-state='fertilized'", (): void => {
         const plot: Plot = {
             id: '3_2_0',
-            state: 'fertilized',
+            state: PlotState.Fertilized,
             plantedAt: null,
             growthDuration: 30000,
             tileCoord: grapeCoord,
-            cropType: 'grapes',
+            cropType: CropType.Grapes,
             hasBeenPlanted: true,
             nextActionAt: null,
             stepWaitDuration: null,
             harvestCount: 0,
         }
         const { container } = render(<PlotTile plot={plot} />)
-        expect(container.firstElementChild).toHaveAttribute('data-state', 'fertilized')
+        expect(container.firstElementChild).toHaveAttribute('data-state', 'Fertilized')
     })
 
     test("tended plot has data-state='tended'", (): void => {
         const plot: Plot = {
             id: '3_2_0',
-            state: 'tended',
+            state: PlotState.Tended,
             plantedAt: null,
             growthDuration: 30000,
             tileCoord: grapeCoord,
-            cropType: 'grapes',
+            cropType: CropType.Grapes,
             hasBeenPlanted: true,
             nextActionAt: null,
             stepWaitDuration: null,
             harvestCount: 0,
         }
         const { container } = render(<PlotTile plot={plot} />)
-        expect(container.firstElementChild).toHaveAttribute('data-state', 'tended')
+        expect(container.firstElementChild).toHaveAttribute('data-state', 'Tended')
     })
 })
 
@@ -262,11 +263,11 @@ describe('PlotTile — nextActionAt countdown / disabled buttons', () => {
 
     const fertilizedLocked: Plot = {
         id: '3_2_0',
-        state: 'fertilized',
+        state: PlotState.Fertilized,
         plantedAt: null,
         growthDuration: 30000,
         tileCoord: grapeCoord,
-        cropType: 'grapes',
+        cropType: CropType.Grapes,
         hasBeenPlanted: true,
         nextActionAt: futureTime,
         stepWaitDuration: 10_000,
@@ -275,11 +276,11 @@ describe('PlotTile — nextActionAt countdown / disabled buttons', () => {
 
     const tendedLocked: Plot = {
         id: '3_2_0',
-        state: 'tended',
+        state: PlotState.Tended,
         plantedAt: null,
         growthDuration: 30000,
         tileCoord: grapeCoord,
-        cropType: 'grapes',
+        cropType: CropType.Grapes,
         hasBeenPlanted: true,
         nextActionAt: futureTime,
         stepWaitDuration: 10_000,
@@ -333,11 +334,11 @@ describe('PlotTile — ProgressRing step-wait visibility', () => {
     test('renders progress ring (svg) on locked fertilized plot', (): void => {
         const plot: Plot = {
             id: '3_2_0',
-            state: 'fertilized',
+            state: PlotState.Fertilized,
             plantedAt: null,
             growthDuration: 30000,
             tileCoord: grapeCoord,
-            cropType: 'grapes',
+            cropType: CropType.Grapes,
             hasBeenPlanted: true,
             nextActionAt: futureTime,
             stepWaitDuration: 10_000,
@@ -350,11 +351,11 @@ describe('PlotTile — ProgressRing step-wait visibility', () => {
     test('renders progress ring (svg) on locked tended plot', (): void => {
         const plot: Plot = {
             id: '3_2_0',
-            state: 'tended',
+            state: PlotState.Tended,
             plantedAt: null,
             growthDuration: 30000,
             tileCoord: grapeCoord,
-            cropType: 'grapes',
+            cropType: CropType.Grapes,
             hasBeenPlanted: true,
             nextActionAt: futureTime,
             stepWaitDuration: 10_000,
@@ -367,11 +368,11 @@ describe('PlotTile — ProgressRing step-wait visibility', () => {
     test('does not render progress ring on unlocked fertilized plot', (): void => {
         const plot: Plot = {
             id: '3_2_0',
-            state: 'fertilized',
+            state: PlotState.Fertilized,
             plantedAt: null,
             growthDuration: 30000,
             tileCoord: grapeCoord,
-            cropType: 'grapes',
+            cropType: CropType.Grapes,
             hasBeenPlanted: true,
             nextActionAt: null,
             stepWaitDuration: null,
@@ -384,11 +385,11 @@ describe('PlotTile — ProgressRing step-wait visibility', () => {
     test('does not render progress ring on unlocked tended plot', (): void => {
         const plot: Plot = {
             id: '3_2_0',
-            state: 'tended',
+            state: PlotState.Tended,
             plantedAt: null,
             growthDuration: 30000,
             tileCoord: grapeCoord,
-            cropType: 'grapes',
+            cropType: CropType.Grapes,
             hasBeenPlanted: true,
             nextActionAt: null,
             stepWaitDuration: null,

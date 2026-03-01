@@ -1,22 +1,42 @@
 // PlotState: orchards use planted→fertilized→tended→(thinned for grapes)→growing.
 // Fields (wheat, barley) use plowed→growing directly.
-export type PlotState =
-    | 'empty'
-    | 'plowed'
-    | 'planted' // orchard first cycle: vine/tree just planted
-    | 'fertilized' // orchard: after fertilizing (every cycle)
-    | 'tended' // orchard: after pruning/tending (grapes need thinning next)
-    | 'growing'
-    | 'ready'
-    | 'harvested'
-    | 'gathered'
+export enum PlotState {
+    Empty = 'Empty',
+    Plowed = 'Plowed',
+    Planted = 'Planted', // orchard first cycle: vine/tree just planted
+    Fertilized = 'Fertilized', // orchard: after fertilizing (every cycle)
+    Tended = 'Tended', // orchard: after pruning/tending (grapes need thinning next)
+    Growing = 'Growing',
+    Ready = 'Ready',
+    Harvested = 'Harvested',
+    Gathered = 'Gathered',
+}
 
-export type CropType = 'wheat' | 'grapes' | 'barley'
+export enum CropType {
+    Wheat = 'Wheat',
+    Barley = 'Barley',
+    Grapes = 'Grapes',
+}
 
-export type TileCategory = 'field' | 'orchard' | 'structure'
-export type TileSubcategory = 'wheat' | 'barley' | 'grapes' | 'structure'
+export enum TileCategory {
+    Field = 'Field',
+    Orchard = 'Orchard',
+    Structure = 'Structure',
+}
 
-export type BuildingType = 'farmhouse' | 'barn' | 'sheepfold' | 'silo'
+export enum TileSubcategory {
+    Wheat = 'Wheat',
+    Barley = 'Barley',
+    Grapes = 'Grapes',
+    Structure = 'Structure',
+}
+
+export enum BuildingType {
+    Farmhouse = 'Farmhouse',
+    Barn = 'Barn',
+    Sheepfold = 'Sheepfold',
+    Silo = 'Silo',
+}
 
 export type BuildingSlot = {
     id: string // format: "s{col}_{row}_{i}" e.g. "s2_1_0"
@@ -88,7 +108,10 @@ export type GameState = {
 
 export type TileCoord = { col: number; row: number }
 
-export type TileType = 'farm' | 'locked'
+export enum TileType {
+    Wheat = 'Wheat', // was 'farm' — renamed for explicitness
+    Locked = 'Locked',
+}
 
 export type MapTile = {
     coord: TileCoord

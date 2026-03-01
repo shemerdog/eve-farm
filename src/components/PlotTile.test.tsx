@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event'
 import { vi, describe, test, expect, beforeEach } from 'vitest'
 import { PlotTile } from './PlotTile'
 import type { Plot } from '@/types'
+import { PlotState, CropType } from '@/types'
 
 const mockPlantWheat = vi.fn()
 const mockHarvest = vi.fn()
@@ -30,11 +31,11 @@ vi.mock('@/store/game-store', () => ({
 const coord = { col: 2, row: 2 }
 const emptyPlot: Plot = {
     id: '2_2_0',
-    state: 'empty',
+    state: PlotState.Empty,
     plantedAt: null,
     growthDuration: 15000,
     tileCoord: coord,
-    cropType: 'wheat',
+    cropType: CropType.Wheat,
     hasBeenPlanted: false,
     nextActionAt: null,
     stepWaitDuration: null,
@@ -42,11 +43,11 @@ const emptyPlot: Plot = {
 }
 const plowedPlot: Plot = {
     id: '2_2_4',
-    state: 'plowed',
+    state: PlotState.Plowed,
     plantedAt: null,
     growthDuration: 15000,
     tileCoord: coord,
-    cropType: 'wheat',
+    cropType: CropType.Wheat,
     hasBeenPlanted: false,
     nextActionAt: null,
     stepWaitDuration: null,
@@ -54,11 +55,11 @@ const plowedPlot: Plot = {
 }
 const growingPlot: Plot = {
     id: '2_2_1',
-    state: 'growing',
+    state: PlotState.Growing,
     plantedAt: Date.now(),
     growthDuration: 15000,
     tileCoord: coord,
-    cropType: 'wheat',
+    cropType: CropType.Wheat,
     hasBeenPlanted: false,
     nextActionAt: null,
     stepWaitDuration: null,
@@ -66,11 +67,11 @@ const growingPlot: Plot = {
 }
 const readyPlot: Plot = {
     id: '2_2_2',
-    state: 'ready',
+    state: PlotState.Ready,
     plantedAt: Date.now() - 15001,
     growthDuration: 15000,
     tileCoord: coord,
-    cropType: 'wheat',
+    cropType: CropType.Wheat,
     hasBeenPlanted: false,
     nextActionAt: null,
     stepWaitDuration: null,
@@ -78,11 +79,11 @@ const readyPlot: Plot = {
 }
 const harvestedPlot: Plot = {
     id: '2_2_3',
-    state: 'harvested',
+    state: PlotState.Harvested,
     plantedAt: null,
     growthDuration: 15000,
     tileCoord: coord,
-    cropType: 'wheat',
+    cropType: CropType.Wheat,
     hasBeenPlanted: false,
     nextActionAt: null,
     stepWaitDuration: null,
@@ -90,11 +91,11 @@ const harvestedPlot: Plot = {
 }
 const gatheredPlot: Plot = {
     id: '2_2_5',
-    state: 'gathered',
+    state: PlotState.Gathered,
     plantedAt: null,
     growthDuration: 15000,
     tileCoord: coord,
-    cropType: 'wheat',
+    cropType: CropType.Wheat,
     hasBeenPlanted: false,
     nextActionAt: null,
     stepWaitDuration: null,
@@ -206,32 +207,32 @@ describe('PlotTile — gather', () => {
 describe('PlotTile — stage colors', () => {
     test("empty plot has data-state='empty'", (): void => {
         const { container } = render(<PlotTile plot={emptyPlot} />)
-        expect(container.firstElementChild).toHaveAttribute('data-state', 'empty')
+        expect(container.firstElementChild).toHaveAttribute('data-state', 'Empty')
     })
 
     test("plowed plot has data-state='plowed'", (): void => {
         const { container } = render(<PlotTile plot={plowedPlot} />)
-        expect(container.firstElementChild).toHaveAttribute('data-state', 'plowed')
+        expect(container.firstElementChild).toHaveAttribute('data-state', 'Plowed')
     })
 
     test("growing plot has data-state='growing'", (): void => {
         const { container } = render(<PlotTile plot={growingPlot} />)
-        expect(container.firstElementChild).toHaveAttribute('data-state', 'growing')
+        expect(container.firstElementChild).toHaveAttribute('data-state', 'Growing')
     })
 
     test("ready plot has data-state='ready'", (): void => {
         const { container } = render(<PlotTile plot={readyPlot} />)
-        expect(container.firstElementChild).toHaveAttribute('data-state', 'ready')
+        expect(container.firstElementChild).toHaveAttribute('data-state', 'Ready')
     })
 
     test("harvested plot has data-state='harvested'", (): void => {
         const { container } = render(<PlotTile plot={harvestedPlot} />)
-        expect(container.firstElementChild).toHaveAttribute('data-state', 'harvested')
+        expect(container.firstElementChild).toHaveAttribute('data-state', 'Harvested')
     })
 
     test("gathered plot has data-state='gathered'", (): void => {
         const { container } = render(<PlotTile plot={gatheredPlot} />)
-        expect(container.firstElementChild).toHaveAttribute('data-state', 'gathered')
+        expect(container.firstElementChild).toHaveAttribute('data-state', 'Gathered')
     })
 })
 
@@ -249,11 +250,11 @@ describe('PlotTile — no spurious calls', () => {
 describe('PlotTile — barley crop type', () => {
     const barleyReadyPlot: Plot = {
         id: '2_1_0',
-        state: 'ready',
+        state: PlotState.Ready,
         plantedAt: Date.now() - 20001,
         growthDuration: 20000,
         tileCoord: { col: 2, row: 1 },
-        cropType: 'barley',
+        cropType: CropType.Barley,
         hasBeenPlanted: false,
         nextActionAt: null,
         stepWaitDuration: null,
@@ -261,11 +262,11 @@ describe('PlotTile — barley crop type', () => {
     }
     const barleyGatheredPlot: Plot = {
         id: '2_1_1',
-        state: 'gathered',
+        state: PlotState.Gathered,
         plantedAt: null,
         growthDuration: 20000,
         tileCoord: { col: 2, row: 1 },
-        cropType: 'barley',
+        cropType: CropType.Barley,
         hasBeenPlanted: false,
         nextActionAt: null,
         stepWaitDuration: null,

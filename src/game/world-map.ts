@@ -1,4 +1,5 @@
-import type { CameraState, MapTile, TileCoord, TileType } from '@/types'
+import { TileType } from '@/types'
+import type { CameraState, MapTile, TileCoord } from '@/types'
 
 // ── Grid constants ───────────────────────────────────────────────────────────
 
@@ -29,7 +30,7 @@ export const ZOOM_STEP = 0.15
 export const FARM_COORD: TileCoord = { col: 2, row: 2 }
 
 export const getTileType = (coord: TileCoord): TileType =>
-    coord.col === FARM_COORD.col && coord.row === FARM_COORD.row ? 'farm' : 'locked'
+    coord.col === FARM_COORD.col && coord.row === FARM_COORD.row ? TileType.Wheat : TileType.Locked
 
 export const buildTileGrid = (): MapTile[] =>
     Array.from({ length: MAP_ROWS }, (_, row) =>

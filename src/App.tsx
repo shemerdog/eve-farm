@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useGameLoop } from '@/hooks/use-game-loop'
 import { MetersBar } from '@/components/MetersBar'
 import { WorldMap } from '@/components/WorldMap'
-import { WheatCounter } from '@/components/WheatCounter'
+import { CropsCounter } from '@/components/CropsCounter'
 import { DilemmaModal } from '@/components/DilemmaModal'
 import { DecisionsPanel } from '@/components/DecisionsPanel'
 import { ResetButton } from '@/components/ResetButton'
@@ -16,7 +16,7 @@ const App = (): React.JSX.Element => {
         <div className={styles.app}>
             <MetersBar onManageDecisions={() => setShowDecisions(true)} />
             <WorldMap />
-            <WheatCounter />
+            <CropsCounter />
             <DilemmaModal />
             <ResetButton />
             {showDecisions && <DecisionsPanel onClose={() => setShowDecisions(false)} />}

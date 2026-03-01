@@ -1,3 +1,4 @@
+import { CropType, PlotState, TileCategory } from '@/types'
 import type { Dilemma, MeterValues, SavedFieldDecision } from '@/types'
 import {
     BARLEY_PER_HARVEST,
@@ -6,12 +7,7 @@ import {
     applyWheatCost,
     clampMeter,
 } from '@/game/constants'
-import {
-    DILEMMAS,
-    NETA_REVAI_DILEMMA,
-    ORLAH_DILEMMA,
-    PERET_OLLELOT_DILEMMA,
-} from '@/game/dilemmas'
+import { DILEMMAS, NETA_REVAI_DILEMMA, ORLAH_DILEMMA, PERET_OLLELOT_DILEMMA } from '@/game/dilemmas'
 import type { GameActions, GetState, SetState } from './store-types'
 
 const PEAH_DILEMMA = DILEMMAS.find((d) => d.id === 'peah')!
@@ -73,10 +69,10 @@ export const createDilemmaActions = (
     harvest: (plotId: string): void => {
         const state = get()
         const plot = state.plots.find((p) => p.id === plotId)
-        if (!plot || plot.state !== 'ready') return
+        if (!plot || plot.state !== PlotState.Ready) return
 
         const coordKey = `${plot.tileCoord.col}_${plot.tileCoord.row}`
-        const isOrchard = state.tileCategories[coordKey] === 'orchard'
+        const isOrchard = state.tileCategories[coordKey] === TileCategory.Orchard
 
         const dilemmaToShow = resolveHarvestDilemma(plot.harvestCount, isOrchard)
 
@@ -84,13 +80,13 @@ export const createDilemmaActions = (
             p.id === plotId
                 ? {
                       ...p,
-                      state: 'harvested' as const,
+                      state: PlotState.Harvested,
                       harvestCount: isOrchard ? p.harvestCount + 1 : p.harvestCount,
                   }
                 : p,
         )
 
-        const isFieldCropHarvest = plot.cropType === 'wheat' || plot.cropType === 'barley'
+        const isFieldCropHarvest = plot.cropType === CropType.Wheat || plot.cropType === CropType.Barley
 
         // Track encounter for PEAH (field crops) and PERET_OLLELOT (orchard cycle 5+)
         const peahKey = `peah:${plot.cropType}`
@@ -99,7 +95,11 @@ export const createDilemmaActions = (
         if (isFieldCropHarvest && !newEncounteredDilemmas.includes(peahKey)) {
             newEncounteredDilemmas = [...newEncounteredDilemmas, peahKey]
         }
-        if (isOrchard && plot.harvestCount >= 4 && !newEncounteredDilemmas.includes(peretOllelotKey)) {
+        if (
+            isOrchard &&
+            plot.harvestCount >= 4 &&
+            !newEncounteredDilemmas.includes(peretOllelotKey)
+        ) {
             newEncounteredDilemmas = [...newEncounteredDilemmas, peretOllelotKey]
         }
 
@@ -107,7 +107,7 @@ export const createDilemmaActions = (
         if (isFieldCropHarvest && state.activeDilemma === null) {
             const saved = state.savedFieldDecisions[peahKey]
             if (saved && saved.cyclesRemaining > 0 && saved.enabled) {
-                const cropAmount = plot.cropType === 'barley' ? state.barley : state.wheat
+                const cropAmount = plot.cropType === CropType.Barley ? state.barley : state.wheat
                 const { newCropAmount, meters } = applyDilemmaChoice(
                     PEAH_DILEMMA,
                     saved.choiceIndex,
@@ -115,7 +115,7 @@ export const createDilemmaActions = (
                     state.meters,
                 )
                 const cropUpdate =
-                    plot.cropType === 'barley'
+                    plot.cropType === CropType.Barley
                         ? { wheat: state.wheat, barley: newCropAmount }
                         : { wheat: newCropAmount, barley: state.barley }
                 set({
@@ -168,16 +168,16 @@ export const createDilemmaActions = (
     gatherSheafs: (plotId: string): void => {
         const state = get()
         const plot = state.plots.find((p) => p.id === plotId)
-        if (!plot || plot.state !== 'gathered') return
+        if (!plot || plot.state !== PlotState.Gathered) return
 
         const yieldAmount =
-            plot.cropType === 'grapes'
+            plot.cropType === CropType.Grapes
                 ? GRAPES_PER_HARVEST
-                : plot.cropType === 'barley'
+                : plot.cropType === CropType.Barley
                   ? BARLEY_PER_HARVEST
                   : WHEAT_PER_HARVEST
 
-        const isFieldCrop = plot.cropType === 'wheat' || plot.cropType === 'barley'
+        const isFieldCrop = plot.cropType === CropType.Wheat || plot.cropType === CropType.Barley
         const triggerShikchah = isFieldCrop && state.activeDilemma === null
 
         // Track encounter for SHIKCHAH dilemma
@@ -188,20 +188,20 @@ export const createDilemmaActions = (
                 : state.encounteredDilemmas
 
         const plotsReset = state.plots.map((p) =>
-            p.id === plotId ? { ...p, state: 'empty' as const, plantedAt: null } : p,
+            p.id === plotId ? { ...p, state: PlotState.Empty, plantedAt: null } : p,
         )
-        const wheatAfterYield = plot.cropType === 'wheat' ? state.wheat + yieldAmount : state.wheat
+        const wheatAfterYield = plot.cropType === CropType.Wheat ? state.wheat + yieldAmount : state.wheat
         const grapesAfterYield =
-            plot.cropType === 'grapes' ? state.grapes + yieldAmount : state.grapes
+            plot.cropType === CropType.Grapes ? state.grapes + yieldAmount : state.grapes
         const barleyAfterYield =
-            plot.cropType === 'barley' ? state.barley + yieldAmount : state.barley
+            plot.cropType === CropType.Barley ? state.barley + yieldAmount : state.barley
 
         // Auto-resolve SHIKCHAH when a saved decision exists for field crops
         if (triggerShikchah) {
             const saved = state.savedFieldDecisions[shikchahKey]
             if (saved && saved.cyclesRemaining > 0 && saved.enabled) {
                 const cropAmountAfterYield =
-                    plot.cropType === 'barley' ? barleyAfterYield : wheatAfterYield
+                    plot.cropType === CropType.Barley ? barleyAfterYield : wheatAfterYield
                 const { newCropAmount, meters } = applyDilemmaChoice(
                     SHIKCHAH_DILEMMA,
                     saved.choiceIndex,
@@ -209,7 +209,7 @@ export const createDilemmaActions = (
                     state.meters,
                 )
                 const cropUpdate =
-                    plot.cropType === 'barley'
+                    plot.cropType === CropType.Barley
                         ? { wheat: wheatAfterYield, barley: newCropAmount }
                         : { wheat: newCropAmount, barley: barleyAfterYield }
                 set({
@@ -226,9 +226,9 @@ export const createDilemmaActions = (
 
         set((s) => ({
             plots: plotsReset,
-            wheat: plot.cropType === 'wheat' ? s.wheat + yieldAmount : s.wheat,
-            grapes: plot.cropType === 'grapes' ? s.grapes + yieldAmount : s.grapes,
-            barley: plot.cropType === 'barley' ? s.barley + yieldAmount : s.barley,
+            wheat: plot.cropType === CropType.Wheat ? s.wheat + yieldAmount : s.wheat,
+            grapes: plot.cropType === CropType.Grapes ? s.grapes + yieldAmount : s.grapes,
+            barley: plot.cropType === CropType.Barley ? s.barley + yieldAmount : s.barley,
             activeDilemma: triggerShikchah ? SHIKCHAH_DILEMMA : s.activeDilemma,
             activeDilemmaContext: triggerShikchah ? plot.cropType : s.activeDilemmaContext,
             encounteredDilemmas: newEncounteredDilemmas,
@@ -253,9 +253,9 @@ export const createDilemmaActions = (
         if (!choice) return
 
         const cropAmount =
-            activeDilemmaContext === 'grapes'
+            activeDilemmaContext === CropType.Grapes
                 ? grapes
-                : activeDilemmaContext === 'barley'
+                : activeDilemmaContext === CropType.Barley
                   ? barley
                   : wheat
 
@@ -267,9 +267,9 @@ export const createDilemmaActions = (
         )
 
         const cropUpdate =
-            activeDilemmaContext === 'grapes'
+            activeDilemmaContext === CropType.Grapes
                 ? { wheat, barley, grapes: newCropAmount }
-                : activeDilemmaContext === 'barley'
+                : activeDilemmaContext === CropType.Barley
                   ? { wheat, barley: newCropAmount, grapes }
                   : { wheat: newCropAmount, barley, grapes }
 
@@ -296,7 +296,7 @@ export const createDilemmaActions = (
             skipGatherAndReset && activePlotId
                 ? plots.map((p) =>
                       p.id === activePlotId
-                          ? { ...p, state: 'empty' as const, plantedAt: null }
+                          ? { ...p, state: PlotState.Empty, plantedAt: null }
                           : p,
                   )
                 : plots
@@ -328,7 +328,9 @@ export const createDilemmaActions = (
     resetPlot: (plotId: string): void => {
         set((s) => ({
             plots: s.plots.map((p) =>
-                p.id === plotId && p.state === 'harvested' ? { ...p, state: 'gathered' } : p,
+                p.id === plotId && p.state === PlotState.Harvested
+                    ? { ...p, state: PlotState.Gathered }
+                    : p,
             ),
         }))
     },

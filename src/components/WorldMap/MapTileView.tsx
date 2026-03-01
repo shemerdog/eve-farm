@@ -1,9 +1,10 @@
 import { useMemo } from 'react'
-import type { MapTile, TileCategory } from '@/types'
+import { TileCategory, TileType, CropType } from '@/types'
+import type { MapTile } from '@/types'
 import { useGameStore } from '@/store/game-store'
 import { isAdjacentToUnlocked, isPurchased, coordsEqual } from '@/game/world-map'
 import { calcTilePrice } from '@/game/constants'
-import { FarmTileContent } from './FarmTileContent'
+import { WheatTileContent } from './WheatTileContent'
 import { VineyardTileContent } from './VineyardTileContent'
 import { BarleyFieldTileContent } from './BarleyFieldTileContent'
 import { BuildingTileContent } from './BuildingTileContent'
@@ -24,10 +25,10 @@ export const MapTileView = ({ tile }: Props): React.JSX.Element => {
         [allPlots, tile.coord],
     )
 
-    if (tile.type === 'farm') {
+    if (tile.type === TileType.Wheat) {
         return (
             <div className={`${styles.tile} ${styles.farm}`}>
-                <FarmTileContent tileCoord={tile.coord} />
+                <WheatTileContent tileCoord={tile.coord} />
             </div>
         )
     }
@@ -36,18 +37,18 @@ export const MapTileView = ({ tile }: Props): React.JSX.Element => {
 
     if (purchased) {
         const key = `${tile.coord.col}_${tile.coord.row}`
-        const category: TileCategory = tileCategories[key] ?? 'field'
-        const firstCropType = tilePlots[0]?.cropType ?? 'wheat'
+        const category: TileCategory = tileCategories[key] ?? TileCategory.Field
+        const firstCropType = tilePlots[0]?.cropType ?? CropType.Wheat
         return (
             <div className={`${styles.tile} ${styles.farm}`}>
-                {category === 'structure' ? (
+                {category === TileCategory.Structure ? (
                     <BuildingTileContent tileCoord={tile.coord} />
-                ) : category === 'orchard' ? (
+                ) : category === TileCategory.Orchard ? (
                     <VineyardTileContent tileCoord={tile.coord} />
-                ) : firstCropType === 'barley' ? (
+                ) : firstCropType === CropType.Barley ? (
                     <BarleyFieldTileContent tileCoord={tile.coord} />
                 ) : (
-                    <FarmTileContent tileCoord={tile.coord} />
+                    <WheatTileContent tileCoord={tile.coord} />
                 )}
             </div>
         )

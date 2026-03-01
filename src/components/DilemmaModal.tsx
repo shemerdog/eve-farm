@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useGameStore } from '@/store/game-store'
 import { applyWheatCost } from '@/game/constants'
 import { HE } from '@/game/strings.he'
+import { CropType } from '@/types'
 import styles from './DilemmaModal.module.css'
 
 const METER_ABBREV: Record<string, string> = {
@@ -38,12 +39,12 @@ export const DilemmaModal = (): React.JSX.Element | null => {
     if (!activeDilemma) return null
 
     const cropAmount =
-        activeDilemmaContext === 'grapes'
+        activeDilemmaContext === CropType.Grapes
             ? grapes
-            : activeDilemmaContext === 'barley'
+            : activeDilemmaContext === CropType.Barley
               ? barley
               : wheat
-    const cropEmoji = activeDilemmaContext === 'grapes' ? '🍇' : '🌾'
+    const cropEmoji = activeDilemmaContext === CropType.Grapes ? '🍇' : '🌾'
 
     const isSaveable = SAVEABLE_IDS.has(activeDilemma.id)
     const saveKey =

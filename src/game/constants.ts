@@ -1,4 +1,5 @@
-import type { CropType, MeterValues } from '@/types'
+import { CropType } from '@/types'
+import type { MeterValues } from '@/types'
 
 export const PLOT_COUNT = 4
 export const BUILDING_SLOT_COUNT = 4
@@ -40,7 +41,11 @@ export const TEND_WAIT_DURATION = 10_000
 
 export const INITIAL_SHEKELS = 5_000
 export const SELL_BULK_SIZE = 10
-export const SELL_PRICE: Record<CropType, number> = { wheat: 5, barley: 7, grapes: 10 }
+export const SELL_PRICE: Record<CropType, number> = {
+    [CropType.Wheat]: 5,
+    [CropType.Barley]: 7,
+    [CropType.Grapes]: 10,
+}
 
 // ── Tile purchasing ───────────────────────────────────────────────────────────
 

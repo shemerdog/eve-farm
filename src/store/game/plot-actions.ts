@@ -1,3 +1,4 @@
+import { CropType, PlotState } from '@/types'
 import { FERTILIZE_WAIT_DURATION, TEND_WAIT_DURATION } from '@/game/constants'
 import { tickPlot } from '@/game/game-tick'
 import type { GameActions, SetState } from './store-types'
@@ -17,7 +18,9 @@ export const createPlotActions = (
     plowPlot: (plotId: string): void => {
         set((s) => ({
             plots: s.plots.map((p) =>
-                p.id === plotId && p.state === 'empty' ? { ...p, state: 'plowed' } : p,
+                p.id === plotId && p.state === PlotState.Empty
+                    ? { ...p, state: PlotState.Plowed }
+                    : p,
             ),
         }))
     },
@@ -25,8 +28,8 @@ export const createPlotActions = (
     plantWheat: (plotId: string): void => {
         set((s) => ({
             plots: s.plots.map((p) =>
-                p.id === plotId && p.state === 'plowed'
-                    ? { ...p, state: 'growing', plantedAt: Date.now() }
+                p.id === plotId && p.state === PlotState.Plowed
+                    ? { ...p, state: PlotState.Growing, plantedAt: Date.now() }
                     : p,
             ),
         }))
@@ -35,8 +38,8 @@ export const createPlotActions = (
     plantOrchard: (plotId: string): void => {
         set((s) => ({
             plots: s.plots.map((p) =>
-                p.id === plotId && p.state === 'empty' && !p.hasBeenPlanted
-                    ? { ...p, state: 'planted', hasBeenPlanted: true }
+                p.id === plotId && p.state === PlotState.Empty && !p.hasBeenPlanted
+                    ? { ...p, state: PlotState.Planted, hasBeenPlanted: true }
                     : p,
             ),
         }))
@@ -46,10 +49,10 @@ export const createPlotActions = (
         set((s) => ({
             plots: s.plots.map((p) =>
                 p.id === plotId &&
-                (p.state === 'planted' || (p.state === 'empty' && p.hasBeenPlanted))
+                (p.state === PlotState.Planted || (p.state === PlotState.Empty && p.hasBeenPlanted))
                     ? {
                           ...p,
-                          state: 'fertilized',
+                          state: PlotState.Fertilized,
                           nextActionAt: Date.now() + FERTILIZE_WAIT_DURATION,
                           stepWaitDuration: FERTILIZE_WAIT_DURATION,
                       }
@@ -61,19 +64,20 @@ export const createPlotActions = (
     tendPlot: (plotId: string): void => {
         set((s) => ({
             plots: s.plots.map((p) => {
-                if (p.id !== plotId || p.state !== 'fertilized' || p.nextActionAt !== null) return p
+                if (p.id !== plotId || p.state !== PlotState.Fertilized || p.nextActionAt !== null)
+                    return p
                 // Grapes require shoot thinning next; other orchards go straight to growing.
-                if (p.cropType === 'grapes') {
+                if (p.cropType === CropType.Grapes) {
                     return {
                         ...p,
-                        state: 'tended',
+                        state: PlotState.Tended,
                         nextActionAt: Date.now() + TEND_WAIT_DURATION,
                         stepWaitDuration: TEND_WAIT_DURATION,
                     }
                 }
                 return {
                     ...p,
-                    state: 'growing',
+                    state: PlotState.Growing,
                     plantedAt: Date.now(),
                     nextActionAt: null,
                 }
@@ -85,10 +89,10 @@ export const createPlotActions = (
         set((s) => ({
             plots: s.plots.map((p) =>
                 p.id === plotId &&
-                p.state === 'tended' &&
-                p.cropType === 'grapes' &&
+                p.state === PlotState.Tended &&
+                p.cropType === CropType.Grapes &&
                 p.nextActionAt === null
-                    ? { ...p, state: 'growing', plantedAt: Date.now() }
+                    ? { ...p, state: PlotState.Growing, plantedAt: Date.now() }
                     : p,
             ),
         }))

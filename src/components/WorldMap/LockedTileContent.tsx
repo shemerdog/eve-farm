@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import type { TileCategory, TileSubcategory } from '@/types'
+import { TileCategory, TileSubcategory } from '@/types'
 import styles from './LockedTileContent.module.css'
 
 type Step = 'root' | 'field' | 'orchard'
@@ -54,7 +54,9 @@ export const LockedTileContent = ({
                             <button
                                 className={styles.buyButton}
                                 disabled={!canAfford}
-                                onClick={() => handleBuy('structure', 'structure')}
+                                onClick={() =>
+                                    handleBuy(TileCategory.Structure, TileSubcategory.Structure)
+                                }
                             >
                                 🏗️ מבנים
                             </button>
@@ -65,13 +67,15 @@ export const LockedTileContent = ({
                         <div className={styles.buttonRow}>
                             <button
                                 className={styles.buyButton}
-                                onClick={() => handleBuy('field', 'wheat')}
+                                onClick={() => handleBuy(TileCategory.Field, TileSubcategory.Wheat)}
                             >
                                 🌾 חיטה
                             </button>
                             <button
                                 className={styles.buyButton}
-                                onClick={() => handleBuy('field', 'barley')}
+                                onClick={() =>
+                                    handleBuy(TileCategory.Field, TileSubcategory.Barley)
+                                }
                             >
                                 🌿 שעורה
                             </button>
@@ -85,7 +89,9 @@ export const LockedTileContent = ({
                         <div className={styles.buttonRow}>
                             <button
                                 className={styles.buyButton}
-                                onClick={() => handleBuy('orchard', 'grapes')}
+                                onClick={() =>
+                                    handleBuy(TileCategory.Orchard, TileSubcategory.Grapes)
+                                }
                             >
                                 🍇 כרם
                             </button>

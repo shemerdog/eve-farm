@@ -3,6 +3,7 @@ import { useGameStore } from './game-store'
 import { resetGameStore } from '@/test-utils/game-store'
 import { migratePersistedGameState } from './game/migrations'
 import { makePlots } from './game/state'
+import { PlotState, CropType, TileCategory, BuildingType } from '@/types'
 
 beforeEach(() => {
     resetGameStore()
@@ -296,5 +297,173 @@ describe('v13 migration logic', () => {
             makePlots,
         })
         expect(result.plots[0].stepWaitDuration).toBe(10_000)
+    })
+})
+
+describe('v16 migration logic', () => {
+    const baseRaw = {
+        wheat: 0,
+        grapes: 0,
+        barley: 0,
+        shekels: 5_000,
+        meters: { devotion: 50, morality: 50, faithfulness: 50 },
+        activeDilemma: null,
+        activeDilemmaContext: null,
+        activePlotId: null,
+        purchasedCoords: [],
+        savedFieldDecisions: {},
+        encounteredDilemmas: [],
+        buildingSlots: [],
+    }
+
+    it('converts plot.state from lowercase to PascalCase', () => {
+        const raw = {
+            ...baseRaw,
+            plots: [
+                {
+                    id: '2_2_0',
+                    state: 'fertilized',
+                    plantedAt: null,
+                    growthDuration: 30_000,
+                    tileCoord: { col: 2, row: 2 },
+                    cropType: 'grapes',
+                    hasBeenPlanted: true,
+                    nextActionAt: null,
+                    harvestCount: 0,
+                    stepWaitDuration: null,
+                },
+            ],
+            tileCategories: {},
+        }
+        const result = migratePersistedGameState({
+            persisted: raw,
+            version: 15,
+            farmCoord: { col: 2, row: 2 },
+            makePlots,
+        })
+        expect(result.plots[0].state).toBe(PlotState.Fertilized)
+    })
+
+    it('converts plot.cropType from lowercase to PascalCase', () => {
+        const raw = {
+            ...baseRaw,
+            plots: [
+                {
+                    id: '2_2_0',
+                    state: 'growing',
+                    plantedAt: null,
+                    growthDuration: 30_000,
+                    tileCoord: { col: 2, row: 2 },
+                    cropType: 'grapes',
+                    hasBeenPlanted: true,
+                    nextActionAt: null,
+                    harvestCount: 0,
+                    stepWaitDuration: null,
+                },
+            ],
+            tileCategories: {},
+        }
+        const result = migratePersistedGameState({
+            persisted: raw,
+            version: 15,
+            farmCoord: { col: 2, row: 2 },
+            makePlots,
+        })
+        expect(result.plots[0].cropType).toBe(CropType.Grapes)
+    })
+
+    it('converts tileCategories values from lowercase to PascalCase', () => {
+        const raw = {
+            ...baseRaw,
+            plots: [],
+            tileCategories: { '3_2': 'orchard', '2_3': 'field' },
+        }
+        const result = migratePersistedGameState({
+            persisted: raw,
+            version: 15,
+            farmCoord: { col: 2, row: 2 },
+            makePlots,
+        })
+        expect(result.tileCategories['3_2']).toBe(TileCategory.Orchard)
+        expect(result.tileCategories['2_3']).toBe(TileCategory.Field)
+    })
+
+    it('renames savedFieldDecisions keys with PascalCase crop suffix', () => {
+        const raw = {
+            ...baseRaw,
+            plots: [],
+            tileCategories: {},
+            savedFieldDecisions: {
+                'peah:wheat': { choiceIndex: 0, cyclesRemaining: 3, enabled: true },
+                'shikchah:barley': { choiceIndex: 1, cyclesRemaining: 2, enabled: true },
+            },
+        }
+        const result = migratePersistedGameState({
+            persisted: raw,
+            version: 15,
+            farmCoord: { col: 2, row: 2 },
+            makePlots,
+        })
+        expect(result.savedFieldDecisions['peah:Wheat']).toBeDefined()
+        expect(result.savedFieldDecisions['peah:wheat']).toBeUndefined()
+        expect(result.savedFieldDecisions['shikchah:Barley']).toBeDefined()
+        expect(result.savedFieldDecisions['shikchah:barley']).toBeUndefined()
+    })
+
+    it('updates encounteredDilemmas entries with PascalCase crop suffix', () => {
+        const raw = {
+            ...baseRaw,
+            plots: [],
+            tileCategories: {},
+            encounteredDilemmas: ['peah:wheat', 'shikchah:barley', 'peret_ollelot:grapes'],
+        }
+        const result = migratePersistedGameState({
+            persisted: raw,
+            version: 15,
+            farmCoord: { col: 2, row: 2 },
+            makePlots,
+        })
+        expect(result.encounteredDilemmas).toContain('peah:Wheat')
+        expect(result.encounteredDilemmas).toContain('shikchah:Barley')
+        expect(result.encounteredDilemmas).toContain('peret_ollelot:Grapes')
+        expect(result.encounteredDilemmas).not.toContain('peah:wheat')
+    })
+
+    it('converts activeDilemmaContext from lowercase to PascalCase', () => {
+        const raw = {
+            ...baseRaw,
+            plots: [],
+            tileCategories: {},
+            activeDilemmaContext: 'grapes',
+        }
+        const result = migratePersistedGameState({
+            persisted: raw,
+            version: 15,
+            farmCoord: { col: 2, row: 2 },
+            makePlots,
+        })
+        expect(result.activeDilemmaContext).toBe(CropType.Grapes)
+    })
+
+    it('converts buildingSlots buildingType from lowercase to PascalCase', () => {
+        const raw = {
+            ...baseRaw,
+            plots: [],
+            tileCategories: {},
+            buildingSlots: [
+                { id: 's2_1_0', tileCoord: { col: 2, row: 1 }, buildingType: 'barn', state: 'built' },
+                { id: 's2_1_1', tileCoord: { col: 2, row: 1 }, buildingType: 'silo', state: 'built' },
+                { id: 's2_1_2', tileCoord: { col: 2, row: 1 }, buildingType: null, state: 'empty' },
+            ],
+        }
+        const result = migratePersistedGameState({
+            persisted: raw,
+            version: 15,
+            farmCoord: { col: 2, row: 2 },
+            makePlots,
+        })
+        expect(result.buildingSlots[0].buildingType).toBe(BuildingType.Barn)
+        expect(result.buildingSlots[1].buildingType).toBe(BuildingType.Silo)
+        expect(result.buildingSlots[2].buildingType).toBeNull()
     })
 })

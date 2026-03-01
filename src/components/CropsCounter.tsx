@@ -1,9 +1,9 @@
 import { useGameStore } from '@/store/game-store'
 import { SELL_BULK_SIZE } from '@/game/constants'
-import type { CropType } from '@/types'
-import styles from './WheatCounter.module.css'
+import { CropType } from '@/types'
+import styles from './CropsCounter.module.css'
 
-export const WheatCounter = (): React.JSX.Element => {
+export const CropsCounter = (): React.JSX.Element => {
     const wheat = useGameStore((s) => s.wheat)
     const grapes = useGameStore((s) => s.grapes)
     const barley = useGameStore((s) => s.barley)
@@ -21,7 +21,7 @@ export const WheatCounter = (): React.JSX.Element => {
                 <button
                     className={styles.sellBtn}
                     disabled={wheat < SELL_BULK_SIZE}
-                    onClick={sell('wheat')}
+                    onClick={sell(CropType.Wheat)}
                 >
                     מכור
                 </button>
@@ -33,7 +33,7 @@ export const WheatCounter = (): React.JSX.Element => {
                         <button
                             className={styles.sellBtn}
                             disabled={barley < SELL_BULK_SIZE}
-                            onClick={sell('barley')}
+                            onClick={sell(CropType.Barley)}
                         >
                             מכור
                         </button>
@@ -47,7 +47,7 @@ export const WheatCounter = (): React.JSX.Element => {
                         <button
                             className={styles.sellBtn}
                             disabled={grapes < SELL_BULK_SIZE}
-                            onClick={sell('grapes')}
+                            onClick={sell(CropType.Grapes)}
                         >
                             מכור
                         </button>

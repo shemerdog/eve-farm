@@ -42,10 +42,10 @@ export const HE = {
     buildings: {
         categoryLabel: 'מבנים',
         emptySlotLabel: 'בנה', // "Build"
-        farmhouse: 'בית',
-        barn: 'אסם',
-        sheepfold: 'דיר',
-        silo: 'סילו',
+        Farmhouse: 'בית',
+        Barn: 'אסם',
+        Sheepfold: 'דיר',
+        Silo: 'סילו',
     },
 
     // ── Decisions panel ─────────────────────────────────────────

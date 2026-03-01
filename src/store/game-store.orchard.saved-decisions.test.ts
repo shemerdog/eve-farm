@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 import { useGameStore } from './game-store'
 import { resetGameStore } from '@/test-utils/game-store'
+import { TileCategory, TileSubcategory, PlotState } from '@/types'
 
 beforeEach(() => {
     resetGameStore()
@@ -12,11 +13,11 @@ describe('gatherSheafs auto-resolves saved SHIKCHAH', () => {
         const wheatPlot = state.plots[0]
         useGameStore.setState({
             plots: state.plots.map((p) =>
-                p.id === wheatPlot.id ? { ...p, state: 'gathered' as const } : p,
+                p.id === wheatPlot.id ? { ...p, state: PlotState.Gathered } : p,
             ),
             activeDilemma: null,
             savedFieldDecisions: {
-                'shikchah:wheat': { choiceIndex: 1, cyclesRemaining: 2, enabled: true },
+                'shikchah:Wheat': { choiceIndex: 1, cyclesRemaining: 2, enabled: true },
             },
         })
 
@@ -28,7 +29,7 @@ describe('gatherSheafs auto-resolves saved SHIKCHAH', () => {
     it('does not show SHIKCHAH modal for barley when saved decision exists', () => {
         useGameStore.setState({ wheat: 1000 })
         const coord = { col: 2, row: 1 }
-        useGameStore.getState().buyTile(coord, 'field', 'barley')
+        useGameStore.getState().buyTile(coord, TileCategory.Field, TileSubcategory.Barley)
 
         const state = useGameStore.getState()
         const barleyPlot = state.plots.find(
@@ -36,11 +37,11 @@ describe('gatherSheafs auto-resolves saved SHIKCHAH', () => {
         )!
         useGameStore.setState({
             plots: state.plots.map((p) =>
-                p.id === barleyPlot.id ? { ...p, state: 'gathered' as const } : p,
+                p.id === barleyPlot.id ? { ...p, state: PlotState.Gathered } : p,
             ),
             activeDilemma: null,
             savedFieldDecisions: {
-                'shikchah:barley': {
+                'shikchah:Barley': {
                     choiceIndex: 0,
                     cyclesRemaining: 3,
                     enabled: true,
@@ -56,7 +57,7 @@ describe('gatherSheafs auto-resolves saved SHIKCHAH', () => {
     it('barley shikchah saved decision does not affect wheat shikchah', () => {
         useGameStore.setState({ wheat: 1000 })
         const coord = { col: 2, row: 1 }
-        useGameStore.getState().buyTile(coord, 'field', 'barley')
+        useGameStore.getState().buyTile(coord, TileCategory.Field, TileSubcategory.Barley)
 
         const state = useGameStore.getState()
         const barleyPlot = state.plots.find(
@@ -64,12 +65,12 @@ describe('gatherSheafs auto-resolves saved SHIKCHAH', () => {
         )!
         useGameStore.setState({
             plots: state.plots.map((p) =>
-                p.id === barleyPlot.id ? { ...p, state: 'gathered' as const } : p,
+                p.id === barleyPlot.id ? { ...p, state: PlotState.Gathered } : p,
             ),
             activeDilemma: null,
             savedFieldDecisions: {
-                'shikchah:wheat': { choiceIndex: 2, cyclesRemaining: 5, enabled: true },
-                'shikchah:barley': {
+                'shikchah:Wheat': { choiceIndex: 2, cyclesRemaining: 5, enabled: true },
+                'shikchah:Barley': {
                     choiceIndex: 0,
                     cyclesRemaining: 3,
                     enabled: true,
@@ -80,8 +81,8 @@ describe('gatherSheafs auto-resolves saved SHIKCHAH', () => {
         useGameStore.getState().gatherSheafs(barleyPlot.id)
 
         const after = useGameStore.getState().savedFieldDecisions
-        expect(after['shikchah:barley']?.cyclesRemaining).toBe(2)
-        expect(after['shikchah:wheat']?.cyclesRemaining).toBe(5)
+        expect(after['shikchah:Barley']?.cyclesRemaining).toBe(2)
+        expect(after['shikchah:Wheat']?.cyclesRemaining).toBe(5)
     })
 
     it('decrements cyclesRemaining for SHIKCHAH on auto-resolve', () => {
@@ -89,17 +90,17 @@ describe('gatherSheafs auto-resolves saved SHIKCHAH', () => {
         const wheatPlot = state.plots[0]
         useGameStore.setState({
             plots: state.plots.map((p) =>
-                p.id === wheatPlot.id ? { ...p, state: 'gathered' as const } : p,
+                p.id === wheatPlot.id ? { ...p, state: PlotState.Gathered } : p,
             ),
             activeDilemma: null,
             savedFieldDecisions: {
-                'shikchah:wheat': { choiceIndex: 0, cyclesRemaining: 4, enabled: true },
+                'shikchah:Wheat': { choiceIndex: 0, cyclesRemaining: 4, enabled: true },
             },
         })
 
         useGameStore.getState().gatherSheafs(wheatPlot.id)
 
-        expect(useGameStore.getState().savedFieldDecisions['shikchah:wheat']?.cyclesRemaining).toBe(
+        expect(useGameStore.getState().savedFieldDecisions['shikchah:Wheat']?.cyclesRemaining).toBe(
             3,
         )
     })
@@ -109,16 +110,16 @@ describe('gatherSheafs auto-resolves saved SHIKCHAH', () => {
         const wheatPlot = state.plots[0]
         useGameStore.setState({
             plots: state.plots.map((p) =>
-                p.id === wheatPlot.id ? { ...p, state: 'gathered' as const } : p,
+                p.id === wheatPlot.id ? { ...p, state: PlotState.Gathered } : p,
             ),
             activeDilemma: null,
             savedFieldDecisions: {
-                'shikchah:wheat': { choiceIndex: 0, cyclesRemaining: 1, enabled: true },
+                'shikchah:Wheat': { choiceIndex: 0, cyclesRemaining: 1, enabled: true },
             },
         })
 
         useGameStore.getState().gatherSheafs(wheatPlot.id)
 
-        expect(useGameStore.getState().savedFieldDecisions['shikchah:wheat']).toBeUndefined()
+        expect(useGameStore.getState().savedFieldDecisions['shikchah:Wheat']).toBeUndefined()
     })
 })

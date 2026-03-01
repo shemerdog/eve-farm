@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import type { BuildingSlot, BuildingType } from '@/types'
+import { BuildingType } from '@/types'
+import type { BuildingSlot } from '@/types'
 import { useGameStore } from '@/store/game-store'
 import { HE } from '@/game/strings.he'
 import styles from './BuildingSlotTile.module.css'
@@ -7,17 +8,17 @@ import styles from './BuildingSlotTile.module.css'
 type Props = { slot: BuildingSlot }
 
 const BUILDING_TYPES: { type: BuildingType; label: string; emoji: string }[] = [
-    { type: 'farmhouse', label: HE.buildings.farmhouse, emoji: '🏠' },
-    { type: 'barn', label: HE.buildings.barn, emoji: '🌾' },
-    { type: 'sheepfold', label: HE.buildings.sheepfold, emoji: '🐑' },
-    { type: 'silo', label: HE.buildings.silo, emoji: '🏗️' },
+    { type: BuildingType.Farmhouse, label: HE.buildings.Farmhouse, emoji: '🏠' },
+    { type: BuildingType.Barn, label: HE.buildings.Barn, emoji: '🌾' },
+    { type: BuildingType.Sheepfold, label: HE.buildings.Sheepfold, emoji: '🐑' },
+    { type: BuildingType.Silo, label: HE.buildings.Silo, emoji: '🏗️' },
 ]
 
 const BUILT_EMOJI: Record<BuildingType, string> = {
-    farmhouse: '🏠',
-    barn: '🌾',
-    sheepfold: '🐑',
-    silo: '🏗️',
+    [BuildingType.Farmhouse]: '🏠',
+    [BuildingType.Barn]: '🌾',
+    [BuildingType.Sheepfold]: '🐑',
+    [BuildingType.Silo]: '🏗️',
 }
 
 export const BuildingSlotTile = ({ slot }: Props): React.JSX.Element => {

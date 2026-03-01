@@ -23,18 +23,19 @@ import {
     ZOOM_STEP,
 } from './world-map'
 import { calcTilePrice } from './constants'
+import { TileType } from '@/types'
 
 describe('getTileType', () => {
     it('returns farm for FARM_COORD', () => {
-        expect(getTileType(FARM_COORD)).toBe('farm')
+        expect(getTileType(FARM_COORD)).toBe(TileType.Wheat)
     })
     it('returns locked for tiles adjacent to farm', () => {
-        expect(getTileType({ col: FARM_COORD.col + 1, row: FARM_COORD.row })).toBe('locked')
-        expect(getTileType({ col: FARM_COORD.col, row: FARM_COORD.row + 1 })).toBe('locked')
+        expect(getTileType({ col: FARM_COORD.col + 1, row: FARM_COORD.row })).toBe(TileType.Locked)
+        expect(getTileType({ col: FARM_COORD.col, row: FARM_COORD.row + 1 })).toBe(TileType.Locked)
     })
     it('returns locked for corners', () => {
-        expect(getTileType({ col: 0, row: 0 })).toBe('locked')
-        expect(getTileType({ col: 4, row: 4 })).toBe('locked')
+        expect(getTileType({ col: 0, row: 0 })).toBe(TileType.Locked)
+        expect(getTileType({ col: 4, row: 4 })).toBe(TileType.Locked)
     })
 })
 
@@ -45,14 +46,14 @@ describe('buildTileGrid', () => {
         expect(grid).toHaveLength(MAP_COLS * MAP_ROWS)
     })
     it('has exactly one farm tile', () => {
-        expect(grid.filter((t) => t.type === 'farm')).toHaveLength(1)
+        expect(grid.filter((t) => t.type === TileType.Wheat)).toHaveLength(1)
     })
     it('farm tile is at FARM_COORD', () => {
-        const farm = grid.find((t) => t.type === 'farm')!
+        const farm = grid.find((t) => t.type === TileType.Wheat)!
         expect(farm.coord).toEqual(FARM_COORD)
     })
     it('all other tiles are locked', () => {
-        expect(grid.filter((t) => t.type === 'locked')).toHaveLength(MAP_COLS * MAP_ROWS - 1)
+        expect(grid.filter((t) => t.type === TileType.Locked)).toHaveLength(MAP_COLS * MAP_ROWS - 1)
     })
 })
 

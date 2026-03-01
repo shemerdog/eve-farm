@@ -166,5 +166,83 @@ export const migratePersistedGameState = ({
         state.shekels = typeof state.shekels === 'number' ? state.shekels : 5_000
     }
 
+    if (version < 16) {
+        // Convert all string union values to PascalCase enum values.
+        const plotStateMap: Record<string, string> = {
+            empty: 'Empty',
+            plowed: 'Plowed',
+            planted: 'Planted',
+            fertilized: 'Fertilized',
+            tended: 'Tended',
+            growing: 'Growing',
+            ready: 'Ready',
+            harvested: 'Harvested',
+            gathered: 'Gathered',
+        }
+        const cropTypeMap: Record<string, string> = {
+            wheat: 'Wheat',
+            barley: 'Barley',
+            grapes: 'Grapes',
+        }
+        const tileCatMap: Record<string, string> = {
+            field: 'Field',
+            orchard: 'Orchard',
+            structure: 'Structure',
+        }
+        const buildingTypeMap: Record<string, string> = {
+            farmhouse: 'Farmhouse',
+            barn: 'Barn',
+            sheepfold: 'Sheepfold',
+            silo: 'Silo',
+        }
+
+        // Plots: state + cropType
+        mapPlots(state, (plot) => ({
+            ...plot,
+            state: plotStateMap[String(plot.state)] ?? plot.state,
+            cropType: cropTypeMap[String(plot.cropType)] ?? plot.cropType,
+        }))
+
+        // tileCategories values
+        const cats = asRecord(state.tileCategories)
+        for (const key of Object.keys(cats)) {
+            cats[key] = tileCatMap[String(cats[key])] ?? cats[key]
+        }
+        state.tileCategories = cats
+
+        // savedFieldDecisions keys: "peah:wheat" → "peah:Wheat"
+        const oldDecisions = asRecord(state.savedFieldDecisions)
+        const newDecisions: Record<string, unknown> = {}
+        for (const [k, v] of Object.entries(oldDecisions)) {
+            const parts = k.split(':')
+            const newKey =
+                parts.length === 2 ? `${parts[0]}:${cropTypeMap[parts[1]] ?? parts[1]}` : k
+            newDecisions[newKey] = v
+        }
+        state.savedFieldDecisions = newDecisions
+
+        // encounteredDilemmas array
+        state.encounteredDilemmas = asArray(state.encounteredDilemmas).map((entry) => {
+            const k = String(entry)
+            const parts = k.split(':')
+            return parts.length === 2 ? `${parts[0]}:${cropTypeMap[parts[1]] ?? parts[1]}` : k
+        })
+
+        // activeDilemmaContext
+        if (typeof state.activeDilemmaContext === 'string') {
+            state.activeDilemmaContext =
+                cropTypeMap[state.activeDilemmaContext] ?? state.activeDilemmaContext
+        }
+
+        // buildingSlots: buildingType
+        state.buildingSlots = asArray(state.buildingSlots).map((slot) => {
+            const s = asRecord(slot)
+            if (typeof s.buildingType === 'string') {
+                s.buildingType = buildingTypeMap[s.buildingType] ?? s.buildingType
+            }
+            return s
+        })
+    }
+
     return state as GameState
 }

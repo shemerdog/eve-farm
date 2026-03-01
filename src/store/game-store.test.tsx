@@ -3,6 +3,7 @@ import { useGameStore } from './game-store'
 import { FARM_COORD } from '@/game/world-map'
 import { calcTilePrice } from '@/game/constants'
 import { DILEMMAS } from '@/game/dilemmas'
+import { PlotState, TileCategory, TileSubcategory } from '@/types'
 
 // Reset store data between tests (don't use replace mode — it strips action functions)
 beforeEach(() => {
@@ -39,7 +40,7 @@ describe('gameStore — buyTile creates plots', () => {
         const price = calcTilePrice(0)
         useGameStore.setState({ wheat: price })
 
-        useGameStore.getState().buyTile(adjacentCoord, 'field', 'wheat')
+        useGameStore.getState().buyTile(adjacentCoord, TileCategory.Field, TileSubcategory.Wheat)
 
         const { plots } = useGameStore.getState()
         expect(plots).toHaveLength(8) // 4 original + 4 new
@@ -49,7 +50,7 @@ describe('gameStore — buyTile creates plots', () => {
         const price = calcTilePrice(0)
         useGameStore.setState({ wheat: price })
 
-        useGameStore.getState().buyTile(adjacentCoord, 'field', 'wheat')
+        useGameStore.getState().buyTile(adjacentCoord, TileCategory.Field, TileSubcategory.Wheat)
 
         const { plots } = useGameStore.getState()
         const newPlots = plots.filter(
@@ -63,21 +64,21 @@ describe('gameStore — buyTile creates plots', () => {
         const price = calcTilePrice(0)
         useGameStore.setState({ wheat: price })
 
-        useGameStore.getState().buyTile(adjacentCoord, 'field', 'wheat')
+        useGameStore.getState().buyTile(adjacentCoord, TileCategory.Field, TileSubcategory.Wheat)
 
         const { plots } = useGameStore.getState()
         const newPlots = plots.filter(
             (p) => p.tileCoord.col === adjacentCoord.col && p.tileCoord.row === adjacentCoord.row,
         )
         for (const plot of newPlots) {
-            expect(plot.state).toBe('empty')
+            expect(plot.state).toBe(PlotState.Empty)
         }
     })
 
     it('does not create plots if purchase fails (not enough shekels)', () => {
         useGameStore.setState({ shekels: 0 })
 
-        useGameStore.getState().buyTile(adjacentCoord, 'field', 'wheat')
+        useGameStore.getState().buyTile(adjacentCoord, TileCategory.Field, TileSubcategory.Wheat)
 
         const { plots } = useGameStore.getState()
         expect(plots).toHaveLength(4) // only original plots
@@ -90,13 +91,13 @@ describe('gameStore — harvest transitions to harvested state', () => {
         const plotId = plots[0].id
 
         useGameStore.setState({
-            plots: plots.map((p) => (p.id === plotId ? { ...p, state: 'ready' as const } : p)),
+            plots: plots.map((p) => (p.id === plotId ? { ...p, state: PlotState.Ready } : p)),
         })
 
         useGameStore.getState().harvest(plotId)
 
         const { plots: updated } = useGameStore.getState()
-        expect(updated.find((p) => p.id === plotId)?.state).toBe('harvested')
+        expect(updated.find((p) => p.id === plotId)?.state).toBe(PlotState.Harvested)
     })
 
     it('harvest does NOT immediately award wheat', () => {
@@ -104,7 +105,7 @@ describe('gameStore — harvest transitions to harvested state', () => {
         const plotId = plots[0].id
 
         useGameStore.setState({
-            plots: plots.map((p) => (p.id === plotId ? { ...p, state: 'ready' as const } : p)),
+            plots: plots.map((p) => (p.id === plotId ? { ...p, state: PlotState.Ready } : p)),
             wheat: 0,
         })
 
@@ -118,7 +119,7 @@ describe('gameStore — harvest transitions to harvested state', () => {
         const plotId = plots[0].id
 
         useGameStore.setState({
-            plots: plots.map((p) => (p.id === plotId ? { ...p, state: 'ready' as const } : p)),
+            plots: plots.map((p) => (p.id === plotId ? { ...p, state: PlotState.Ready } : p)),
         })
 
         useGameStore.getState().harvest(plotId)
@@ -134,7 +135,7 @@ describe('gameStore — harvest transitions to harvested state', () => {
 
         // First harvest + resolve
         useGameStore.setState({
-            plots: plots.map((p) => (p.id === plotId ? { ...p, state: 'ready' as const } : p)),
+            plots: plots.map((p) => (p.id === plotId ? { ...p, state: PlotState.Ready } : p)),
         })
         useGameStore.getState().harvest(plotId)
         useGameStore.getState().resolveDilemma(0)
@@ -144,7 +145,7 @@ describe('gameStore — harvest transitions to harvested state', () => {
         useGameStore.setState({
             plots: useGameStore
                 .getState()
-                .plots.map((p) => (p.id === plotId ? { ...p, state: 'ready' as const } : p)),
+                .plots.map((p) => (p.id === plotId ? { ...p, state: PlotState.Ready } : p)),
         })
         useGameStore.getState().harvest(plotId)
 
@@ -159,7 +160,7 @@ describe('gameStore — harvest transitions to harvested state', () => {
         const maaser = DILEMMAS.find((d) => d.id === 'maaser')!
 
         useGameStore.setState({
-            plots: plots.map((p) => (p.id === plotId ? { ...p, state: 'ready' as const } : p)),
+            plots: plots.map((p) => (p.id === plotId ? { ...p, state: PlotState.Ready } : p)),
             activeDilemma: maaser,
         })
 
@@ -176,7 +177,7 @@ describe('gameStore — harvest transitions to harvested state', () => {
         useGameStore.getState().harvest(plotId)
 
         const { plots: updated } = useGameStore.getState()
-        expect(updated.find((p) => p.id === plotId)?.state).toBe('empty')
+        expect(updated.find((p) => p.id === plotId)?.state).toBe(PlotState.Empty)
     })
 })
 
@@ -186,13 +187,13 @@ describe('gameStore — gatherSheafs', () => {
         const plotId = plots[0].id
 
         useGameStore.setState({
-            plots: plots.map((p) => (p.id === plotId ? { ...p, state: 'gathered' as const } : p)),
+            plots: plots.map((p) => (p.id === plotId ? { ...p, state: PlotState.Gathered } : p)),
         })
 
         useGameStore.getState().gatherSheafs(plotId)
 
         const { plots: updated } = useGameStore.getState()
-        expect(updated.find((p) => p.id === plotId)?.state).toBe('empty')
+        expect(updated.find((p) => p.id === plotId)?.state).toBe(PlotState.Empty)
     })
 
     it('awards WHEAT_PER_HARVEST wheat on gather', () => {
@@ -200,7 +201,7 @@ describe('gameStore — gatherSheafs', () => {
         const plotId = plots[0].id
 
         useGameStore.setState({
-            plots: plots.map((p) => (p.id === plotId ? { ...p, state: 'gathered' as const } : p)),
+            plots: plots.map((p) => (p.id === plotId ? { ...p, state: PlotState.Gathered } : p)),
             wheat: 5,
         })
 
@@ -214,7 +215,7 @@ describe('gameStore — gatherSheafs', () => {
         const plotId = plots[0].id
 
         useGameStore.setState({
-            plots: plots.map((p) => (p.id === plotId ? { ...p, state: 'gathered' as const } : p)),
+            plots: plots.map((p) => (p.id === plotId ? { ...p, state: PlotState.Gathered } : p)),
         })
 
         useGameStore.getState().gatherSheafs(plotId)
@@ -230,7 +231,7 @@ describe('gameStore — gatherSheafs', () => {
         const maaser = DILEMMAS.find((d) => d.id === 'maaser')!
 
         useGameStore.setState({
-            plots: plots.map((p) => (p.id === plotId ? { ...p, state: 'gathered' as const } : p)),
+            plots: plots.map((p) => (p.id === plotId ? { ...p, state: PlotState.Gathered } : p)),
             activeDilemma: maaser,
         })
 
@@ -250,7 +251,7 @@ describe('gameStore — gatherSheafs', () => {
 
         expect(useGameStore.getState().wheat).toBe(0)
         const { plots: updated } = useGameStore.getState()
-        expect(updated.find((p) => p.id === plotId)?.state).toBe('empty')
+        expect(updated.find((p) => p.id === plotId)?.state).toBe(PlotState.Empty)
     })
 })
 
@@ -262,7 +263,7 @@ describe('gameStore — plowPlot', () => {
         useGameStore.getState().plowPlot(plotId)
 
         const { plots: updated } = useGameStore.getState()
-        expect(updated.find((p) => p.id === plotId)?.state).toBe('plowed')
+        expect(updated.find((p) => p.id === plotId)?.state).toBe(PlotState.Plowed)
     })
 
     it('is a no-op on a non-empty plot', () => {
@@ -271,14 +272,14 @@ describe('gameStore — plowPlot', () => {
 
         useGameStore.setState({
             plots: plots.map((p) =>
-                p.id === plotId ? { ...p, state: 'growing' as const, plantedAt: Date.now() } : p,
+                p.id === plotId ? { ...p, state: PlotState.Growing, plantedAt: Date.now() } : p,
             ),
         })
 
         useGameStore.getState().plowPlot(plotId)
 
         const { plots: updated } = useGameStore.getState()
-        expect(updated.find((p) => p.id === plotId)?.state).toBe('growing')
+        expect(updated.find((p) => p.id === plotId)?.state).toBe(PlotState.Growing)
     })
 })
 
@@ -288,13 +289,13 @@ describe('gameStore — plantWheat requires plowed state', () => {
         const plotId = plots[0].id
 
         useGameStore.setState({
-            plots: plots.map((p) => (p.id === plotId ? { ...p, state: 'plowed' as const } : p)),
+            plots: plots.map((p) => (p.id === plotId ? { ...p, state: PlotState.Plowed } : p)),
         })
 
         useGameStore.getState().plantWheat(plotId)
 
         const { plots: updated } = useGameStore.getState()
-        expect(updated.find((p) => p.id === plotId)?.state).toBe('growing')
+        expect(updated.find((p) => p.id === plotId)?.state).toBe(PlotState.Growing)
     })
 
     it('is a no-op on an empty plot (must plow first)', () => {
@@ -304,6 +305,6 @@ describe('gameStore — plantWheat requires plowed state', () => {
         useGameStore.getState().plantWheat(plotId)
 
         const { plots: updated } = useGameStore.getState()
-        expect(updated.find((p) => p.id === plotId)?.state).toBe('empty')
+        expect(updated.find((p) => p.id === plotId)?.state).toBe(PlotState.Empty)
     })
 })
