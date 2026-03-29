@@ -201,3 +201,21 @@ Renamed `DilemmaChoice.wheatCost` → `cropCost` to make cost deductions context
 
 **Files modified:** `src/types/index.ts`, `src/game/dilemmas.ts`, `src/store/game/dilemma-actions.ts`, `src/components/DilemmaModal.tsx`, `src/game/dilemmas.test.ts`, `src/store/game-store.dilemmas.test.ts`, `src/store/game-store.orchard.dilemma-gating.test.ts`
 **Tests:** +13 Vitest (total: 369 Vitest + 7 Playwright E2E)
+
+---
+
+## 2026-03-29 — TypeScript Enums + Naming Cleanup + Bug Fix
+
+Converted all string union types to TypeScript `enum` with PascalCase values for type safety and IDE autocomplete. Added persist v16 migration to convert old lowercase localStorage values to PascalCase. Renamed `FarmTileContent` → `WheatTileContent` and `WheatCounter` → `CropsCounter` for clarity.
+
+Also fixed a latent bug: `peret_ollelot` auto-resolve used a hardcoded lowercase key `"peret_ollelot:grapes"` that never matched the dynamically-constructed `"peret_ollelot:Grapes"` — saved decisions would silently fail to auto-resolve.
+
+**Enums added:** `PlotState`, `CropType`, `TileCategory`, `TileSubcategory`, `BuildingType` (all PascalCase values)
+
+**Save keys (now PascalCase):** `"peah:Wheat"`, `"peah:Barley"`, `"shikchah:Wheat"`, `"shikchah:Barley"`, `"peret_ollelot:Grapes"`
+
+**Files modified:** `src/types/index.ts`, `src/game/dilemmas.ts`, `src/game/game-tick.ts`, `src/game/game-tick.test.ts`, `src/store/game/*.ts`, `src/hooks/use-game-loop.ts`, `src/components/DilemmaModal.tsx`, all test files, `CLAUDE.md`
+
+**Files renamed:** `FarmTileContent.tsx/.module.css` → `WheatTileContent.tsx/.module.css`, `WheatCounter.tsx/.module.css` → `CropsCounter.tsx/.module.css`
+
+**Tests:** +7 Vitest (total: 376 Vitest + 7 Playwright E2E)

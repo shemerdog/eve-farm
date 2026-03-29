@@ -86,11 +86,12 @@ export const createDilemmaActions = (
                 : p,
         )
 
-        const isFieldCropHarvest = plot.cropType === CropType.Wheat || plot.cropType === CropType.Barley
+        const isFieldCropHarvest =
+            plot.cropType === CropType.Wheat || plot.cropType === CropType.Barley
 
         // Track encounter for PEAH (field crops) and PERET_OLLELOT (orchard cycle 5+)
         const peahKey = `peah:${plot.cropType}`
-        const peretOllelotKey = 'peret_ollelot:grapes'
+        const peretOllelotKey = `peret_ollelot:${CropType.Grapes}`
         let newEncounteredDilemmas = state.encounteredDilemmas
         if (isFieldCropHarvest && !newEncounteredDilemmas.includes(peahKey)) {
             newEncounteredDilemmas = [...newEncounteredDilemmas, peahKey]
@@ -190,7 +191,8 @@ export const createDilemmaActions = (
         const plotsReset = state.plots.map((p) =>
             p.id === plotId ? { ...p, state: PlotState.Empty, plantedAt: null } : p,
         )
-        const wheatAfterYield = plot.cropType === CropType.Wheat ? state.wheat + yieldAmount : state.wheat
+        const wheatAfterYield =
+            plot.cropType === CropType.Wheat ? state.wheat + yieldAmount : state.wheat
         const grapesAfterYield =
             plot.cropType === CropType.Grapes ? state.grapes + yieldAmount : state.grapes
         const barleyAfterYield =
@@ -295,9 +297,7 @@ export const createDilemmaActions = (
         const updatedPlots =
             skipGatherAndReset && activePlotId
                 ? plots.map((p) =>
-                      p.id === activePlotId
-                          ? { ...p, state: PlotState.Empty, plantedAt: null }
-                          : p,
+                      p.id === activePlotId ? { ...p, state: PlotState.Empty, plantedAt: null } : p,
                   )
                 : plots
 

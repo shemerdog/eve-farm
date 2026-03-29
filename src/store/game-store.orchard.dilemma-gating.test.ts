@@ -264,18 +264,18 @@ describe('PERET_OLLELOT dilemma (cycle 5+, harvestCount >= 4)', () => {
         expect(useGameStore.getState().meters.devotion).toBe(45) // -5
     })
 
-    it('adds peret_ollelot:grapes to encounteredDilemmas on first cycle-5 harvest', () => {
+    it('adds peret_ollelot:Grapes to encounteredDilemmas on first cycle-5 harvest', () => {
         const plotId = setupOrchardPlot(4)
         useGameStore.setState({ ...useGameStore.getState(), encounteredDilemmas: [] })
         useGameStore.getState().harvest(plotId)
-        expect(useGameStore.getState().encounteredDilemmas).toContain('peret_ollelot:grapes')
+        expect(useGameStore.getState().encounteredDilemmas).toContain('peret_ollelot:Grapes')
     })
 
-    it('does not add peret_ollelot:grapes to encounteredDilemmas on cycle 4 (NETA_REVAI)', () => {
+    it('does not add peret_ollelot:Grapes to encounteredDilemmas on cycle 4 (NETA_REVAI)', () => {
         const plotId = setupOrchardPlot(3)
         useGameStore.setState({ ...useGameStore.getState(), encounteredDilemmas: [] })
         useGameStore.getState().harvest(plotId)
-        expect(useGameStore.getState().encounteredDilemmas).not.toContain('peret_ollelot:grapes')
+        expect(useGameStore.getState().encounteredDilemmas).not.toContain('peret_ollelot:Grapes')
     })
 
     it('peret_ollelot is saveable — resolveDilemma with save=true stores decision', () => {
@@ -294,7 +294,7 @@ describe('PERET_OLLELOT dilemma (cycle 5+, harvestCount >= 4)', () => {
             ...useGameStore.getState(),
             grapes: 30,
             savedFieldDecisions: {
-                'peret_ollelot:grapes': { choiceIndex: 0, cyclesRemaining: 3, enabled: true },
+                'peret_ollelot:Grapes': { choiceIndex: 0, cyclesRemaining: 3, enabled: true },
             },
         })
         useGameStore.getState().harvest(plotId)
@@ -308,13 +308,13 @@ describe('PERET_OLLELOT dilemma (cycle 5+, harvestCount >= 4)', () => {
         useGameStore.setState({
             ...useGameStore.getState(),
             savedFieldDecisions: {
-                'peret_ollelot:grapes': { choiceIndex: 1, cyclesRemaining: 3, enabled: true },
+                'peret_ollelot:Grapes': { choiceIndex: 1, cyclesRemaining: 3, enabled: true },
             },
         })
         const plotId = setupOrchardPlot(4)
         useGameStore.getState().harvest(plotId)
         expect(
-            useGameStore.getState().savedFieldDecisions['peret_ollelot:grapes']?.cyclesRemaining,
+            useGameStore.getState().savedFieldDecisions['peret_ollelot:Grapes']?.cyclesRemaining,
         ).toBe(2)
     })
 
